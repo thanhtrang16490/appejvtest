@@ -27,6 +27,13 @@ export function InventoryTable({ initialProducts, isAdmin = false }: { initialPr
         setProducts(initialProducts)
     }, [initialProducts])
 
+    // Listen for add product event from parent
+    useEffect(() => {
+        const handleOpenAdd = () => setIsAddOpen(true)
+        window.addEventListener('openAddProduct', handleOpenAdd)
+        return () => window.removeEventListener('openAddProduct', handleOpenAdd)
+    }, [])
+
     const filteredProducts = products.filter(p => {
         const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase()) ||
             p.code.toLowerCase().includes(search.toLowerCase())
@@ -77,25 +84,14 @@ export function InventoryTable({ initialProducts, isAdmin = false }: { initialPr
     return (
         <div className="space-y-6">
             <div className="flex flex-col gap-4">
-                <div className="flex flex-col sm:flex-row gap-4">
-                    <div className="relative group flex-1">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                        <Input
-                            placeholder="Tìm kiếm theo tên hoặc mã..."
-                            className="pl-10 h-12 bg-white border-none shadow-sm focus-visible:ring-primary/20 transition-all rounded-2xl"
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                        />
-                    </div>
-                    {isAdmin && (
-                        <Button
-                            onClick={() => setIsAddOpen(true)}
-                            className="h-12 px-6 bg-primary text-white rounded-2xl flex items-center gap-2 shadow-lg shadow-primary/20 active:scale-95 transition-all font-bold"
-                        >
-                            <Plus className="w-5 h-5" />
-                            Thêm sản phẩm
-                        </Button>
-                    )}
+                <div className="relative group flex-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                    <Input
+                        placeholder="Tìm kiếm theo tên hoặc mã..."
+                        className="pl-10 h-12 bg-white border-none shadow-sm focus-visible:ring-primary/20 transition-all rounded-2xl"
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                    />
                 </div>
 
                 {/* Category Filter */}

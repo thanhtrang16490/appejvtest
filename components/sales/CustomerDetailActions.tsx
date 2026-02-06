@@ -48,6 +48,7 @@ export function CustomerDetailActions({ customer, isAdmin }: { customer: any, is
                 customer={customer}
                 isOpen={isEditOpen}
                 onOpenChange={setIsEditOpen}
+                isAdmin={isAdmin}
             />
         </div>
     )

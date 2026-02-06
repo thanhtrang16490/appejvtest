@@ -104,7 +104,7 @@ export interface Database {
           id: number
           customer_id: number | null
           sale_id: string | null
-          status: 'pending' | 'processing' | 'shipping' | 'completed' | 'cancelled'
+          status: 'draft' | 'ordered' | 'shipping' | 'paid' | 'completed' | 'cancelled'
           total_amount: number
           payment_status: 'unpaid' | 'paid'
           created_at: string
@@ -113,7 +113,7 @@ export interface Database {
           id?: number
           customer_id?: number | null
           sale_id?: string | null
-          status?: 'pending' | 'processing' | 'shipping' | 'completed' | 'cancelled'
+          status?: 'draft' | 'ordered' | 'shipping' | 'paid' | 'completed' | 'cancelled'
           total_amount?: number
           payment_status?: 'unpaid' | 'paid'
           created_at?: string
@@ -122,7 +122,7 @@ export interface Database {
           id?: number
           customer_id?: number | null
           sale_id?: string | null
-          status?: 'pending' | 'processing' | 'shipping' | 'completed' | 'cancelled'
+          status?: 'draft' | 'ordered' | 'shipping' | 'paid' | 'completed' | 'cancelled'
           total_amount?: number
           payment_status?: 'unpaid' | 'paid'
           created_at?: string

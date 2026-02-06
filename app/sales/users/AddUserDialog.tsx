@@ -19,9 +19,8 @@ export function AddUserDialog({ saleAdmins }: { saleAdmins: any[] }) {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button className="gap-2 shadow-lg shadow-primary/20 rounded-2xl h-12 font-bold px-6">
-                    <UserPlus className="w-4 h-4" />
-                    Thêm người dùng
+                <Button className="bg-[#175ead] hover:bg-blue-600 rounded-full w-10 h-10 p-0 shadow-lg">
+                    <UserPlus className="w-5 h-5" />
                 </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px] rounded-[2rem] border-none shadow-2xl p-8">

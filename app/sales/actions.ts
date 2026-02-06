@@ -32,9 +32,20 @@ export async function createCustomer(data: any) {
     if (!user) return { error: 'Unauthorized' }
 
     const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-    if ((profile as any)?.role !== 'admin') return { error: 'Chỉ Admin mới có quyền thực hiện' }
+    const userRole = (profile as any)?.role
+    
+    // Only admin and sale can create customers
+    if (!['admin', 'sale', 'sale_admin'].includes(userRole)) {
+        return { error: 'Không có quyền thực hiện' }
+    }
 
-    const { error } = await (supabase.from('customers') as any).insert([data])
+    // Auto-assign customer to the user creating it (unless admin specifies otherwise)
+    const customerData = {
+        ...data,
+        assigned_sale: data.assigned_sale || user.id
+    }
+
+    const { error } = await (supabase.from('customers') as any).insert([customerData])
     if (error) return { error: error.message }
 
     revalidatePath('/sales/customers')
@@ -47,7 +58,23 @@ export async function updateCustomer(id: string, data: any) {
     if (!user) return { error: 'Unauthorized' }
 
     const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-    if ((profile as any)?.role !== 'admin') return { error: 'Chỉ Admin mới có quyền thực hiện' }
+    const userRole = (profile as any)?.role
+    
+    // Admin can update any customer, sale can only update their own customers
+    if (userRole === 'sale' || userRole === 'sale_admin') {
+        // Check if customer is assigned to this user
+        const { data: customer } = await supabase
+            .from('customers')
+            .select('assigned_sale')
+            .eq('id', id)
+            .single()
+        
+        if ((customer as any)?.assigned_sale !== user.id) {
+            return { error: 'Không có quyền chỉnh sửa khách hàng này' }
+        }
+    } else if (userRole !== 'admin') {
+        return { error: 'Không có quyền thực hiện' }
+    }
 
     const { error } = await (supabase.from('customers') as any).update(data).eq('id', id)
     if (error) return { error: error.message }
@@ -65,10 +92,27 @@ export async function deleteCustomer(id: string) {
     const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
     if ((profile as any)?.role !== 'admin') return { error: 'Chỉ Admin mới có quyền thực hiện' }
 
+    // Get all orders for this customer
+    const { data: orders } = await supabase.from('orders').select('id').eq('customer_id', id)
+    
+    if (orders && orders.length > 0) {
+        const orderIds = orders.map((order: any) => order.id)
+        
+        // Delete order items first
+        const { error: itemsError } = await supabase.from('order_items').delete().in('order_id', orderIds)
+        if (itemsError) return { error: itemsError.message }
+        
+        // Delete orders
+        const { error: ordersError } = await supabase.from('orders').delete().eq('customer_id', id)
+        if (ordersError) return { error: ordersError.message }
+    }
+
+    // Finally delete the customer
     const { error } = await (supabase.from('customers') as any).delete().eq('id', id)
     if (error) return { error: error.message }
 
     revalidatePath('/sales/customers')
+    revalidatePath('/sales/orders')
     return { success: true }
 }
 
@@ -110,6 +154,25 @@ export async function deleteProduct(id: number) {
 
     const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
     if ((profile as any)?.role !== 'admin') return { error: 'Chỉ Admin mới có quyền thực hiện' }
+
+    // Check if product is used in any order_items and get related order IDs
+    const { data: orderItems, error: checkError } = await supabase
+        .from('order_items')
+        .select('order_id')
+        .eq('product_id', id)
+
+    if (checkError) return { error: checkError.message }
+    
+    if (orderItems && orderItems.length > 0) {
+        // Get unique order IDs
+        const orderIds = [...new Set(orderItems.map((item: any) => item.order_id))]
+        const orderIdsList = orderIds.slice(0, 5).map((id: any) => `#${id}`).join(', ')
+        const moreCount = orderIds.length > 5 ? ` và ${orderIds.length - 5} đơn hàng khác` : ''
+        
+        return { 
+            error: `Không thể xóa sản phẩm này vì đã có ${orderIds.length} đơn hàng liên quan: ${orderIdsList}${moreCount}` 
+        }
+    }
 
     const { error } = await supabase.from('products').delete().eq('id', id)
     if (error) return { error: error.message }

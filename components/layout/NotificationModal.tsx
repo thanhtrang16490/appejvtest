@@ -89,6 +89,18 @@ export function NotificationModal({ user, role }: NotificationModalProps) {
         setNotifications(mockNotifications)
     }, [])
 
+    // Prevent body scroll when modal is open
+    useEffect(() => {
+        if (isOpen) {
+            document.body.style.overflow = 'hidden'
+        } else {
+            document.body.style.overflow = 'unset'
+        }
+        return () => {
+            document.body.style.overflow = 'unset'
+        }
+    }, [isOpen])
+
     const toggleModal = () => {
         setIsOpen(!isOpen)
     }
@@ -169,48 +181,48 @@ export function NotificationModal({ user, role }: NotificationModalProps) {
                 )}
             </Button>
 
-            {/* Overlay */}
+            {/* Overlay - Always show when open */}
             {isOpen && (
                 <div 
-                    className="fixed inset-0 bg-black bg-opacity-50 z-[60]"
+                    className="fixed inset-0 bg-black/50 z-[60]"
                     onClick={closeModal}
                 />
             )}
 
-            {/* Modal */}
+            {/* Modal - Full Screen with solid white background */}
             <div className={cn(
-                "fixed top-0 right-0 h-full w-96 bg-white border-l border-gray-200 shadow-2xl z-[70] transform transition-transform duration-300 ease-in-out",
+                "fixed inset-0 bg-white z-[70] transform transition-transform duration-300 ease-in-out flex flex-col",
                 isOpen ? "translate-x-0" : "translate-x-full"
             )}>
-                {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-gray-100">
-                    <div className="flex items-center gap-3">
-                        <Bell className="w-6 h-6 text-gray-700" />
-                        <div>
-                            <h2 className="text-xl font-bold text-gray-900">Thông báo</h2>
-                            <p className="text-sm text-gray-500">
-                                {unreadCount > 0 ? `${unreadCount} thông báo mới` : 'Không có thông báo mới'}
-                            </p>
+                {/* Header with Gradient */}
+                <div className="bg-gradient-to-r from-[#175ead] to-[#2575be] p-4 pb-6">
+                    <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                            <Bell className="w-5 h-5 text-white" />
+                            <h2 className="text-lg font-bold text-white">Thông báo</h2>
                         </div>
+                        <Button
+                            size="sm"
+                            variant="ghost"
+                            className="w-9 h-9 p-0 rounded-full hover:bg-white/20 text-white"
+                            onClick={closeModal}
+                        >
+                            <X className="w-5 h-5" />
+                        </Button>
                     </div>
-                    <Button
-                        size="sm"
-                        variant="ghost"
-                        className="w-8 h-8 p-0 rounded-full hover:bg-gray-100"
-                        onClick={closeModal}
-                    >
-                        <X className="w-5 h-5 text-gray-600" />
-                    </Button>
+                    <p className="text-xs text-white/90">
+                        {unreadCount > 0 ? `${unreadCount} thông báo mới` : 'Không có thông báo mới'}
+                    </p>
                 </div>
 
                 {/* Tabs */}
-                <div className="flex border-b border-gray-100">
+                <div className="flex border-b border-gray-200 bg-white sticky top-0 z-10">
                     <button
                         onClick={() => setActiveTab('all')}
                         className={cn(
-                            "flex-1 px-4 py-3 text-sm font-medium transition-colors",
+                            "flex-1 px-4 py-3 text-xs font-bold transition-colors",
                             activeTab === 'all'
-                                ? "text-blue-600 border-b-2 border-blue-600 bg-blue-50"
+                                ? "text-[#175ead] border-b-2 border-[#175ead] bg-blue-50"
                                 : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
                         )}
                     >
@@ -219,9 +231,9 @@ export function NotificationModal({ user, role }: NotificationModalProps) {
                     <button
                         onClick={() => setActiveTab('unread')}
                         className={cn(
-                            "flex-1 px-4 py-3 text-sm font-medium transition-colors",
+                            "flex-1 px-4 py-3 text-xs font-bold transition-colors",
                             activeTab === 'unread'
-                                ? "text-blue-600 border-b-2 border-blue-600 bg-blue-50"
+                                ? "text-[#175ead] border-b-2 border-[#175ead] bg-blue-50"
                                 : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
                         )}
                     >
@@ -231,87 +243,89 @@ export function NotificationModal({ user, role }: NotificationModalProps) {
 
                 {/* Actions */}
                 {unreadCount > 0 && (
-                    <div className="p-4 border-b border-gray-100">
+                    <div className="p-3 border-b border-gray-100 bg-white">
                         <Button
                             size="sm"
                             variant="outline"
                             onClick={markAllAsRead}
-                            className="w-full text-sm"
+                            className="w-full text-xs font-medium rounded-full h-8"
                         >
-                            <CheckCircle className="w-4 h-4 mr-2" />
+                            <CheckCircle className="w-3.5 h-3.5 mr-1.5" />
                             Đánh dấu tất cả đã đọc
                         </Button>
                     </div>
                 )}
 
                 {/* Notifications List */}
-                <div className="flex-1 overflow-y-auto">
+                <div className="flex-1 overflow-y-auto bg-white">
                     {filteredNotifications.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-12 px-4">
-                            <Bell className="w-12 h-12 text-gray-300 mb-4" />
-                            <p className="text-gray-500 text-center">
+                        <div className="flex flex-col items-center justify-center py-16 px-4">
+                            <Bell className="w-12 h-12 text-gray-300 mb-3" />
+                            <p className="text-gray-500 text-center text-sm font-medium">
                                 {activeTab === 'unread' ? 'Không có thông báo chưa đọc' : 'Không có thông báo nào'}
                             </p>
                         </div>
                     ) : (
-                        <div className="divide-y divide-gray-100">
-                            {filteredNotifications.map((notification) => {
-                                const Icon = getIcon(notification.type, notification.category)
-                                return (
-                                    <div
-                                        key={notification.id}
-                                        className={cn(
-                                            "p-4 hover:bg-gray-50 transition-colors cursor-pointer group",
-                                            !notification.read && "bg-blue-50/50"
-                                        )}
-                                        onClick={() => markAsRead(notification.id)}
-                                    >
-                                        <div className="flex gap-3">
-                                            <div className={cn(
-                                                "p-2 rounded-lg flex-shrink-0",
-                                                getBgColor(notification.type)
-                                            )}>
-                                                <Icon className={cn("w-5 h-5", getIconColor(notification.type))} />
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex items-start justify-between">
-                                                    <h3 className={cn(
-                                                        "text-sm font-medium text-gray-900 mb-1",
-                                                        !notification.read && "font-semibold"
-                                                    )}>
-                                                        {notification.title}
-                                                    </h3>
-                                                    <div className="flex items-center gap-2 ml-2">
-                                                        {!notification.read && (
-                                                            <div className="w-2 h-2 bg-[#175ead] rounded-full" />
-                                                        )}
-                                                        <Button
-                                                            size="sm"
-                                                            variant="ghost"
-                                                            className="w-6 h-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                                                            onClick={(e) => {
-                                                                e.stopPropagation()
-                                                                deleteNotification(notification.id)
-                                                            }}
-                                                        >
-                                                            <Trash2 className="w-3 h-3 text-gray-400 hover:text-red-500" />
-                                                        </Button>
-                                                    </div>
+                        <div className="p-3">
+                            <div className="bg-gray-50 rounded-xl divide-y divide-gray-200">
+                                {filteredNotifications.map((notification) => {
+                                    const Icon = getIcon(notification.type, notification.category)
+                                    return (
+                                        <div
+                                            key={notification.id}
+                                            className={cn(
+                                                "p-2.5 hover:bg-white transition-colors cursor-pointer group",
+                                                !notification.read && "bg-blue-50"
+                                            )}
+                                            onClick={() => markAsRead(notification.id)}
+                                        >
+                                            <div className="flex gap-2.5">
+                                                <div className={cn(
+                                                    "p-1.5 rounded-lg flex-shrink-0",
+                                                    getBgColor(notification.type)
+                                                )}>
+                                                    <Icon className={cn("w-4 h-4", getIconColor(notification.type))} />
                                                 </div>
-                                                <p className="text-sm text-gray-600 mb-2">
-                                                    {notification.message}
-                                                </p>
-                                                <div className="flex items-center gap-2">
-                                                    <Clock className="w-3 h-3 text-gray-400" />
-                                                    <span className="text-xs text-gray-500">
-                                                        {notification.time}
-                                                    </span>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-start justify-between gap-2">
+                                                        <h3 className={cn(
+                                                            "text-xs text-gray-900 leading-tight",
+                                                            !notification.read && "font-bold"
+                                                        )}>
+                                                            {notification.title}
+                                                        </h3>
+                                                        <div className="flex items-center gap-1.5 flex-shrink-0">
+                                                            {!notification.read && (
+                                                                <div className="w-1.5 h-1.5 bg-[#175ead] rounded-full" />
+                                                            )}
+                                                            <Button
+                                                                size="sm"
+                                                                variant="ghost"
+                                                                className="w-6 h-6 p-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-50"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation()
+                                                                    deleteNotification(notification.id)
+                                                                }}
+                                                            >
+                                                                <Trash2 className="w-3 h-3 text-gray-400 hover:text-red-500" />
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                    <p className="text-[11px] text-gray-600 mt-0.5 line-clamp-2">
+                                                        {notification.message}
+                                                    </p>
+                                                    <div className="flex items-center gap-1 mt-1">
+                                                        <Clock className="w-2.5 h-2.5 text-gray-400" />
+                                                        <span className="text-[10px] text-gray-500 font-medium">
+                                                            {notification.time}
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                )
-                            })}
+                                    )
+                                })}
+                            </div>
                         </div>
                     )}
                 </div>

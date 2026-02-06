@@ -190,7 +190,7 @@ This project implements multiple layers of security:
 ### Sales Routes (Role-Protected)
 - `/sales` - Sales dashboard
 - `/sales/orders` - Order management
-- `/sales/orders/new` - Create new order
+- `/sales/selling` - Create new order (selling page)
 - `/sales/customers` - Customer management
 - `/sales/inventory` - Inventory management
 - `/sales/selling` - Point-of-sale interface

@@ -10,6 +10,7 @@ import { NotificationModal } from '@/components/layout/NotificationModal'
 import { cn } from '@/lib/utils'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useScrollHeader } from '@/hooks/useScrollHeader'
 
 const filterTabs = [
     { id: 'today', label: 'Hôm nay' },
@@ -28,30 +29,9 @@ export default function SalesDashboard() {
         totalRevenue: 0
     })
     const [activeFilter, setActiveFilter] = useState('thisMonth')
-    const [isHeaderVisible, setIsHeaderVisible] = useState(true)
-    const [lastScrollY, setLastScrollY] = useState(0)
     const [loading, setLoading] = useState(true)
     const router = useRouter()
-
-    useEffect(() => {
-        const controlHeader = () => {
-            if (typeof window !== 'undefined') {
-                if (window.scrollY > lastScrollY && window.scrollY > 50) {
-                    setIsHeaderVisible(false)
-                } else {
-                    setIsHeaderVisible(true)
-                }
-                setLastScrollY(window.scrollY)
-            }
-        }
-
-        if (typeof window !== 'undefined') {
-            window.addEventListener('scroll', controlHeader)
-            return () => {
-                window.removeEventListener('scroll', controlHeader)
-            }
-        }
-    }, [lastScrollY])
+    const { isHeaderVisible } = useScrollHeader()
 
     useEffect(() => {
         fetchData()
@@ -86,6 +66,7 @@ export default function SalesDashboard() {
 
             const isSale = (profileData as any).role === 'sale'
             const isSaleAdmin = (profileData as any).role === 'sale_admin'
+            const isAdmin = (profileData as any).role === 'admin'
 
             // For Sale Admin, fetch managed sales IDs
             let managedSaleIds: string[] = []
@@ -114,6 +95,7 @@ export default function SalesDashboard() {
             } else if (isSaleAdmin) {
                 pendingQuery = pendingQuery.in('sale_id', [user.id, ...managedSaleIds])
             }
+            // Admin sees all - no filter
             const { count: pendingCount } = await pendingQuery
 
             // 2. Low Stock Items
@@ -129,6 +111,7 @@ export default function SalesDashboard() {
             } else if (isSaleAdmin) {
                 customerQuery = customerQuery.in('assigned_sale', [user.id, ...managedSaleIds])
             }
+            // Admin sees all customers - no filter
             const { count: customerCount } = await customerQuery
 
             // 4. Completed Orders & Revenue
@@ -144,6 +127,7 @@ export default function SalesDashboard() {
             } else if (isSaleAdmin) {
                 revenueQuery = revenueQuery.in('sale_id', [user.id, ...managedSaleIds])
             }
+            // Admin sees all revenue - no filter
             const { data: completedOrders } = await revenueQuery
 
             const totalRevenue = completedOrders?.reduce((sum, o: any) => sum + (o.total_amount || 0), 0) || 0
@@ -250,8 +234,11 @@ export default function SalesDashboard() {
                 </div>
             </div>
 
-            {/* Fixed Filter Tabs */}
-            <div className="fixed top-20 left-0 right-0 z-40 bg-gradient-to-br from-blue-50 to-cyan-50 px-4 pb-2">
+            {/* Sticky Filter Tabs */}
+            <div className={cn(
+                "sticky left-0 right-0 z-40 bg-gradient-to-br from-blue-50 to-cyan-50 px-4 pb-2 pt-2 transition-all duration-300",
+                !isHeaderVisible ? "top-0" : "top-20"
+            )}>
                 <div className="flex flex-col gap-3">
                     <div className="flex items-center justify-between">
                         <div>
@@ -329,7 +316,7 @@ export default function SalesDashboard() {
                         <div className="grid grid-cols-2 gap-4">
                             <QuickActionButton 
                                 title="Tạo đơn mới" 
-                                href="/sales/orders/new" 
+                                href="/sales/selling" 
                                 icon={ShoppingBag} 
                                 color="bg-blue-50 text-blue-600 border-blue-200" 
                             />

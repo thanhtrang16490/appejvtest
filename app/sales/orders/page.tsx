@@ -1,49 +1,28 @@
 'use client'
 
 import { createClient } from '@/lib/supabase/client'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { formatCurrency, cn } from '@/lib/utils'
 import Link from 'next/link'
-import { Database } from '@/types/database.types'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import { ShoppingBag, Plus, Sparkles, Menu, Bell } from 'lucide-react'
+import { ShoppingBag, Plus, Sparkles } from 'lucide-react'
 import { HeaderMenu } from '@/components/layout/HeaderMenu'
 import { NotificationModal } from '@/components/layout/NotificationModal'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { updateOrderStatus } from './actions'
+import { useScrollHeader } from '@/hooks/useScrollHeader'
 
 export default function SalesOrdersPage() {
     const [user, setUser] = useState<any>(null)
     const [profile, setProfile] = useState<any>(null)
     const [orders, setOrders] = useState<any[]>([])
-    const [isHeaderVisible, setIsHeaderVisible] = useState(true)
-    const [lastScrollY, setLastScrollY] = useState(0)
     const [loading, setLoading] = useState(true)
-    const [activeTab, setActiveTab] = useState('pending')
+    const [activeTab, setActiveTab] = useState('ordered')
     const router = useRouter()
-
-    useEffect(() => {
-        const controlHeader = () => {
-            if (typeof window !== 'undefined') {
-                if (window.scrollY > lastScrollY && window.scrollY > 50) {
-                    setIsHeaderVisible(false)
-                } else {
-                    setIsHeaderVisible(true)
-                }
-                setLastScrollY(window.scrollY)
-            }
-        }
-
-        if (typeof window !== 'undefined') {
-            window.addEventListener('scroll', controlHeader)
-            return () => {
-                window.removeEventListener('scroll', controlHeader)
-            }
-        }
-    }, [lastScrollY])
+    const { isHeaderVisible } = useScrollHeader()
 
     useEffect(() => {
         fetchData()
@@ -76,8 +55,10 @@ export default function SalesOrdersPage() {
 
             setProfile(profileData)
 
-            const isSale = (profileData as any).role === 'sale'
-            const isSaleAdmin = (profileData as any).role === 'sale_admin'
+            const userRole = (profileData as any).role
+            const isSale = userRole === 'sale'
+            const isSaleAdmin = userRole === 'sale_admin'
+            const isAdmin = userRole === 'admin'
 
             // For Sale Admin, fetch managed sales IDs
             let managedSaleIds: string[] = []
@@ -89,12 +70,16 @@ export default function SalesOrdersPage() {
                 managedSaleIds = managedSales?.map(s => (s as any).id) || []
             }
 
-            // Fetch orders
-            let query = supabase.from('orders').select('*, customers(name)')
+            // Fetch orders based on role
+            let query = supabase.from('orders').select('*, customers(name), profiles!orders_sale_id_fkey(full_name)')
 
-            if (isSale) {
+            if (isAdmin) {
+                // Admin sees ALL orders - no filter
+            } else if (isSale) {
+                // Sale sees only their orders
                 query = query.eq('sale_id', user.id)
             } else if (isSaleAdmin) {
+                // Sale Admin sees their orders + managed team orders
                 query = query.in('sale_id', [user.id, ...managedSaleIds])
             }
 
@@ -118,9 +103,10 @@ export default function SalesOrdersPage() {
     }
 
     const statusMap: Record<string, { label: string, class: string }> = {
-        pending: { label: 'Chờ xử lý', class: 'bg-amber-100 text-amber-700 border-amber-200' },
-        processing: { label: 'Đang xử lý', class: 'bg-blue-100 text-blue-700 border-blue-200' },
-        shipping: { label: 'Đang giao', class: 'bg-purple-100 text-purple-700 border-purple-200' },
+        draft: { label: 'Đơn nháp', class: 'bg-gray-100 text-gray-700 border-gray-200' },
+        ordered: { label: 'Đơn đặt hàng', class: 'bg-amber-100 text-amber-700 border-amber-200' },
+        shipping: { label: 'Giao hàng', class: 'bg-blue-100 text-blue-700 border-blue-200' },
+        paid: { label: 'Thanh toán', class: 'bg-purple-100 text-purple-700 border-purple-200' },
         completed: { label: 'Hoàn thành', class: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
         cancelled: { label: 'Đã hủy', class: 'bg-rose-100 text-rose-700 border-rose-200' }
     }
@@ -133,6 +119,8 @@ export default function SalesOrdersPage() {
         <div className="grid gap-3 mt-4">
             {list.map(order => {
                 const config = statusMap[order.status as keyof typeof statusMap] || statusMap.pending
+                const saleName = order.profiles?.full_name || 'Không xác định'
+                
                 return (
                     <Card key={order.id} className="bg-white rounded-2xl shadow-sm border-0">
                         <CardHeader className="p-4 flex-row items-center justify-between gap-4 space-y-0">
@@ -142,8 +130,15 @@ export default function SalesOrdersPage() {
                                     <ShoppingBag className="w-5 h-5 text-[#175ead]" />
                                 </div>
                                 <div className="min-w-0">
-                                    <h3 className="text-sm font-semibold text-gray-900 truncate">{order.customers?.name || 'Không xác định'}</h3>
-                                    <p className="text-xs text-gray-500">#{order.id} • {new Date(order.created_at).toLocaleDateString('vi-VN')}</p>
+                                    <h3 className="text-sm font-semibold text-gray-900 truncate">{order.customers?.name || 'Khách lẻ'}</h3>
+                                    <div className="flex items-center gap-2">
+                                        <p className="text-xs text-gray-500">#{order.id} • {new Date(order.created_at).toLocaleDateString('vi-VN')}</p>
+                                        {userRole === 'admin' && (
+                                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-blue-200 text-blue-600 bg-blue-50">
+                                                {saleName}
+                                            </Badge>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                             <div className="flex flex-col items-end gap-1">
@@ -165,16 +160,34 @@ export default function SalesOrdersPage() {
                                         Chi tiết
                                     </Button>
                                 </Link>
-                                {order.status === 'pending' && (
+                                {order.status === 'draft' && (
                                     <Button 
                                         size="sm" 
                                         className="text-xs bg-[#175ead] hover:bg-blue-600"
-                                        onClick={() => handleUpdateOrderStatus(order.id, 'processing')}
+                                        onClick={() => handleUpdateOrderStatus(order.id, 'ordered')}
                                     >
-                                        Xử lý
+                                        Đặt hàng
                                     </Button>
                                 )}
-                                {order.status === 'processing' && (
+                                {order.status === 'ordered' && (
+                                    <Button 
+                                        size="sm" 
+                                        className="text-xs bg-blue-500 hover:bg-blue-600"
+                                        onClick={() => handleUpdateOrderStatus(order.id, 'shipping')}
+                                    >
+                                        Giao hàng
+                                    </Button>
+                                )}
+                                {order.status === 'shipping' && (
+                                    <Button 
+                                        size="sm" 
+                                        className="text-xs bg-purple-500 hover:bg-purple-600"
+                                        onClick={() => handleUpdateOrderStatus(order.id, 'paid')}
+                                    >
+                                        Thanh toán
+                                    </Button>
+                                )}
+                                {order.status === 'paid' && (
                                     <Button 
                                         size="sm" 
                                         className="text-xs bg-emerald-500 hover:bg-emerald-600"
@@ -218,90 +231,116 @@ export default function SalesOrdersPage() {
         )
     }
 
-    const isSale = (profile as any).role === 'sale'
-    const isSaleAdmin = (profile as any).role === 'sale_admin'
+    const userRole = (profile as any).role
+    const isSaleAdmin = userRole === 'sale_admin'
 
     return (
         <div className="bg-gradient-to-br from-blue-50 to-cyan-50 min-h-screen">
-            {/* Fixed Header */}
-            <div className={cn(
-                "fixed top-0 left-0 right-0 z-50 bg-gradient-to-br from-blue-50 to-cyan-50 transition-transform duration-300",
-                isHeaderVisible ? "translate-y-0" : "-translate-y-full"
-            )}>
-                {/* Logo and AI Assistant Row */}
-                <div className="flex items-center justify-between p-4 pt-6">
-                    <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-gradient-to-r from-green-400 to-blue-500 rounded-lg flex items-center justify-center">
-                            <span className="text-white font-bold text-xs">A</span>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                {/* Fixed Header */}
+                <div className={cn(
+                    "fixed top-0 left-0 right-0 z-50 bg-gradient-to-br from-blue-50 to-cyan-50 transition-transform duration-300",
+                    isHeaderVisible ? "translate-y-0" : "-translate-y-full"
+                )}>
+                    {/* Logo and AI Assistant Row */}
+                    <div className="flex items-center justify-between p-4 pt-6">
+                        <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 bg-gradient-to-r from-green-400 to-blue-500 rounded-lg flex items-center justify-center">
+                                <span className="text-white font-bold text-xs">A</span>
+                            </div>
+                            <span className="text-xl font-bold text-gray-900">APPE JV</span>
                         </div>
-                        <span className="text-xl font-bold text-gray-900">APPE JV</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <Button 
-                            size="sm" 
-                            className="bg-gradient-to-r from-[#175ead] to-[#2575be] text-white rounded-full px-4 py-2 text-sm font-medium"
-                        >
-                            <Sparkles className="w-4 h-4 mr-1" />
-                            Trợ lý AI
-                        </Button>
-                        <NotificationModal user={user} role={(profile as any).role} />
-                        <HeaderMenu user={user} role={(profile as any).role} />
-                    </div>
-                </div>
-
-                {/* Page Title */}
-                <div className="flex items-center justify-between px-4 pb-2">
-                    <div>
-                        <h1 className="text-2xl font-bold text-gray-900">
-                            {isSaleAdmin ? 'Đơn hàng nhóm' : 'Đơn hàng của tôi'}
-                        </h1>
-                        <p className="text-sm text-gray-600">Quản lý và theo dõi tiến độ đơn hàng</p>
-                    </div>
-                    <Link href="/sales/orders/new">
-                        <Button size="sm" className="bg-[#175ead] hover:bg-blue-600 rounded-full">
-                            <Plus className="w-4 h-4 mr-1" />
-                            Tạo mới
-                        </Button>
-                    </Link>
-                </div>
-            </div>
-
-            {/* Main Content with top padding */}
-            <div className="pt-32 pb-20">
-                <div className="p-4">
-                    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                        <TabsList className="grid w-full grid-cols-3 h-12 bg-white/80 p-1 rounded-2xl shadow-sm">
-                            <TabsTrigger 
-                                value="pending" 
-                                className="rounded-xl data-[state=active]:bg-[#175ead] data-[state=active]:text-white data-[state=active]:shadow-sm font-medium text-sm"
+                        <div className="flex items-center gap-2">
+                            <Button 
+                                size="sm" 
+                                className="bg-gradient-to-r from-[#175ead] to-[#2575be] text-white rounded-full px-4 py-2 text-sm font-medium"
                             >
-                                Chờ xử lý
+                                <Sparkles className="w-4 h-4 mr-1" />
+                                Trợ lý AI
+                            </Button>
+                            <NotificationModal user={user} role={(profile as any).role} />
+                            <HeaderMenu user={user} role={(profile as any).role} />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Sticky Page Title and Tabs */}
+                <div className={cn(
+                    "sticky left-0 right-0 z-40 bg-gradient-to-br from-blue-50 to-cyan-50 px-4 pb-3 pt-2 transition-all duration-300",
+                    !isHeaderVisible ? "top-0" : "top-20"
+                )}>
+                    <div className="flex items-center justify-between mb-3">
+                        <div>
+                            <h1 className="text-2xl font-bold text-gray-900">
+                                {isSaleAdmin ? 'Đơn hàng nhóm' : 'Đơn hàng của tôi'}
+                            </h1>
+                            <p className="text-sm text-gray-600">Quản lý và theo dõi tiến độ đơn hàng</p>
+                        </div>
+                        <Link href="/sales/selling">
+                            <Button size="sm" className="bg-[#175ead] hover:bg-blue-600 rounded-full w-10 h-10 p-0">
+                                <Plus className="w-5 h-5" />
+                            </Button>
+                        </Link>
+                    </div>
+                    
+                    {/* Tabs - Scrollable */}
+                    <div className="overflow-x-auto -mx-4 px-4 scrollbar-hide">
+                        <TabsList className="inline-flex w-auto min-w-full h-12 bg-white/80 p-1 rounded-2xl shadow-sm gap-1">
+                            <TabsTrigger 
+                                value="draft" 
+                                className="rounded-xl data-[state=active]:bg-[#175ead] data-[state=active]:text-white data-[state=active]:shadow-sm font-medium text-xs px-4 whitespace-nowrap"
+                            >
+                                Nháp
                             </TabsTrigger>
                             <TabsTrigger 
-                                value="processing" 
-                                className="rounded-xl data-[state=active]:bg-[#175ead] data-[state=active]:text-white data-[state=active]:shadow-sm font-medium text-sm"
+                                value="ordered" 
+                                className="rounded-xl data-[state=active]:bg-[#175ead] data-[state=active]:text-white data-[state=active]:shadow-sm font-medium text-xs px-4 whitespace-nowrap"
                             >
-                                Đang xử lý
+                                Đặt hàng
+                            </TabsTrigger>
+                            <TabsTrigger 
+                                value="shipping" 
+                                className="rounded-xl data-[state=active]:bg-[#175ead] data-[state=active]:text-white data-[state=active]:shadow-sm font-medium text-xs px-4 whitespace-nowrap"
+                            >
+                                Giao hàng
+                            </TabsTrigger>
+                            <TabsTrigger 
+                                value="paid" 
+                                className="rounded-xl data-[state=active]:bg-[#175ead] data-[state=active]:text-white data-[state=active]:shadow-sm font-medium text-xs px-4 whitespace-nowrap"
+                            >
+                                Thanh toán
                             </TabsTrigger>
                             <TabsTrigger 
                                 value="completed" 
-                                className="rounded-xl data-[state=active]:bg-[#175ead] data-[state=active]:text-white data-[state=active]:shadow-sm font-medium text-sm"
+                                className="rounded-xl data-[state=active]:bg-[#175ead] data-[state=active]:text-white data-[state=active]:shadow-sm font-medium text-xs px-4 whitespace-nowrap"
                             >
                                 Hoàn thành
                             </TabsTrigger>
                         </TabsList>
-                        <TabsContent value="pending">
-                            <OrderList list={getFilteredOrders('pending')} />
+                    </div>
+                </div>
+
+                {/* Main Content */}
+                <div className="pt-44 pb-20">
+                    <div className="p-4">
+                        <TabsContent value="draft">
+                            <OrderList list={getFilteredOrders('draft')} />
                         </TabsContent>
-                        <TabsContent value="processing">
-                            <OrderList list={getFilteredOrders('processing')} />
+                        <TabsContent value="ordered">
+                            <OrderList list={getFilteredOrders('ordered')} />
+                        </TabsContent>
+                        <TabsContent value="shipping">
+                            <OrderList list={getFilteredOrders('shipping')} />
+                        </TabsContent>
+                        <TabsContent value="paid">
+                            <OrderList list={getFilteredOrders('paid')} />
                         </TabsContent>
                         <TabsContent value="completed">
                             <OrderList list={getFilteredOrders('completed')} />
                         </TabsContent>
-                    </Tabs>
+                    </div>
                 </div>
-            </div>
+            </Tabs>
         </div>
     )
 }

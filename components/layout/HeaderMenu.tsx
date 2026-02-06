@@ -64,11 +64,11 @@ export function HeaderMenu({ user, role }: HeaderMenuProps) {
 
             {/* Drawer */}
             <div className={cn(
-                "fixed top-0 right-0 h-full w-80 bg-white border-l border-gray-200 shadow-2xl z-[70] transform transition-transform duration-300 ease-in-out",
+                "fixed top-0 right-0 h-full w-full bg-white shadow-2xl z-[70] transform transition-transform duration-300 ease-in-out",
                 isOpen ? "translate-x-0" : "translate-x-full"
             )}>
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-gray-100">
+                <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-cyan-50">
                     <div>
                         <h2 className="text-xl font-bold text-gray-900">Menu</h2>
                         <p className="text-sm text-gray-500">Các chức năng bổ sung</p>
@@ -76,7 +76,7 @@ export function HeaderMenu({ user, role }: HeaderMenuProps) {
                     <Button
                         size="sm"
                         variant="ghost"
-                        className="w-8 h-8 p-0 rounded-full hover:bg-gray-100"
+                        className="w-8 h-8 p-0 rounded-full hover:bg-white/50"
                         onClick={closeMenu}
                     >
                         <X className="w-5 h-5 text-gray-600" />
@@ -84,8 +84,11 @@ export function HeaderMenu({ user, role }: HeaderMenuProps) {
                 </div>
 
                 {/* Menu Items */}
-                <div className="flex-1 py-4">
-                    <nav className="space-y-1 px-4">
+                <div className="flex-1 py-6 bg-white">
+                    <h3 className="px-8 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                        Chức năng
+                    </h3>
+                    <nav className="space-y-2 px-4">
                         {menuItems.map((item) => {
                             const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
                             
@@ -97,15 +100,15 @@ export function HeaderMenu({ user, role }: HeaderMenuProps) {
                                     className={cn(
                                         "flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all group",
                                         isActive
-                                            ? "bg-blue-50 text-blue-600 border border-blue-100"
-                                            : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                                            ? "bg-gradient-to-r from-blue-50 to-cyan-50 text-blue-600 border border-blue-100"
+                                            : "text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-cyan-50 hover:text-blue-600"
                                     )}
                                 >
                                     <div className={cn(
                                         "p-2 rounded-lg transition-colors",
                                         isActive 
                                             ? "bg-blue-100 text-blue-600" 
-                                            : "bg-gray-100 text-gray-600 group-hover:bg-gray-200"
+                                            : "bg-gray-100 text-gray-600 group-hover:bg-blue-100 group-hover:text-blue-600"
                                     )}>
                                         <item.icon className="w-5 h-5" />
                                     </div>
@@ -121,14 +124,14 @@ export function HeaderMenu({ user, role }: HeaderMenuProps) {
                 </div>
 
                 {/* Footer */}
-                <div className="border-t border-gray-100 p-4">
+                <div className="border-t border-gray-100 p-4 bg-gray-50">
                     <form action={logout}>
                         <Button 
                             variant="ghost" 
-                            className="w-full justify-start gap-3 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-xl py-3"
+                            className="w-full justify-start gap-3 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-xl py-3 h-auto"
                         >
                             <LogOut className="h-5 w-5" />
-                            Đăng xuất
+                            <span className="font-medium">Đăng xuất</span>
                         </Button>
                     </form>
                 </div>

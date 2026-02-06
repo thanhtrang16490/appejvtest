@@ -5,22 +5,23 @@ import { Button } from '@/components/ui/button'
 import { Plus } from 'lucide-react'
 import { CustomerDialog } from './CustomerDialog'
 
-export function CustomerListActions({ isAdmin }: { isAdmin: boolean }) {
+export function CustomerListActions({ canCreate, isAdmin = false }: { canCreate: boolean, isAdmin?: boolean }) {
     const [isOpen, setIsOpen] = useState(false)
 
-    if (!isAdmin) return null
+    if (!canCreate) return null
 
     return (
         <>
             <Button
                 onClick={() => setIsOpen(true)}
-                className="h-12 w-12 bg-primary text-white rounded-2xl flex items-center justify-center shadow-lg active:scale-95 transition-all"
+                className="bg-[#175ead] hover:bg-blue-600 rounded-full w-10 h-10 p-0 shadow-lg"
             >
-                <Plus className="w-6 h-6" />
+                <Plus className="w-5 h-5" />
             </Button>
             <CustomerDialog
                 isOpen={isOpen}
                 onOpenChange={setIsOpen}
+                isAdmin={isAdmin}
             />
         </>
     )
