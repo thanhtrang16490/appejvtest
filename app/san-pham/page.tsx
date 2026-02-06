@@ -192,21 +192,15 @@ function ProductCatalogueCard({ product }: { product: Product }) {
                 <h3 className="font-bold text-sm md:text-lg text-gray-900 line-clamp-2 group-hover:text-[#175ead] transition-colors">
                     {product.name}
                 </h3>
-                
-                {product.description && (
-                    <p className="text-xs md:text-sm text-gray-600 line-clamp-2 md:line-clamp-3 mt-1 md:mt-2 hidden md:block">
-                        {product.description}
-                    </p>
-                )}
 
                 {/* Stock Status */}
-                {product.stock_quantity !== null && product.stock_quantity !== undefined && (
+                {product.stock !== null && product.stock !== undefined && (
                     <div className="flex items-center justify-center mt-2 md:mt-3 pt-2 md:pt-3 border-t border-gray-100">
                         <span className={cn(
                             "text-xs md:text-sm font-semibold",
-                            product.stock_quantity > 0 ? "text-green-600" : "text-red-600"
+                            product.stock > 0 ? "text-green-600" : "text-red-600"
                         )}>
-                            {product.stock_quantity > 0 ? '✓ Còn hàng' : '✗ Hết hàng'}
+                            {product.stock > 0 ? '✓ Còn hàng' : '✗ Hết hàng'}
                         </span>
                     </div>
                 )}

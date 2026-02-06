@@ -73,10 +73,18 @@ export const metadata: Metadata = {
     description: "Chuyên sản xuất và cung cấp thức ăn chăn nuôi chất lượng cao cho heo, gia cầm và thủy sản. Thành lập từ 2008.",
     images: [
       {
-        url: "/appejv-logo.png",
+        url: "/og-image.png",
         width: 1200,
         height: 630,
         alt: "APPE JV Việt Nam Logo",
+        type: "image/png",
+      },
+      {
+        url: "/appejv-logo.png",
+        width: 800,
+        height: 800,
+        alt: "APPE JV Logo",
+        type: "image/png",
       },
     ],
   },
@@ -84,7 +92,9 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "APPE JV Việt Nam - Thức ăn chăn nuôi và thủy sản",
     description: "Chuyên sản xuất và cung cấp thức ăn chăn nuôi chất lượng cao",
-    images: ["/appejv-logo.png"],
+    images: ["/og-image.png"],
+    creator: "@appejv",
+    site: "@appejv",
   },
   robots: {
     index: true,
@@ -134,6 +144,24 @@ export default async function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="APPE JV" />
+        
+        {/* Zalo Open Graph Tags */}
+        <meta property="zalo:app_id" content="YOUR_ZALO_APP_ID" />
+        <meta property="zalo:title" content="APPE JV Việt Nam - Thức ăn chăn nuôi chất lượng cao" />
+        <meta property="zalo:description" content="Chuyên sản xuất thức ăn heo, gia cầm, thủy sản. Liên hệ: 0351 3595 202" />
+        <meta property="zalo:image" content="https://appejv.app/zalo-og-image.png" />
+        <meta property="zalo:url" content="https://appejv.app" />
+        
+        {/* Additional Social Meta Tags */}
+        <meta property="fb:app_id" content="YOUR_FACEBOOK_APP_ID" />
+        <meta name="twitter:site" content="@appejv" />
+        <meta name="twitter:creator" content="@appejv" />
+        
+        {/* WhatsApp / Telegram Preview */}
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:type" content="image/png" />
+        
         <OrganizationStructuredData />
         <WebsiteStructuredData />
       </head>
