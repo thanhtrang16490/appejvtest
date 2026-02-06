@@ -85,6 +85,7 @@ export default function ProfilePage() {
     const [isHeaderVisible, setIsHeaderVisible] = useState(true)
     const [lastScrollY, setLastScrollY] = useState(0)
     const [loading, setLoading] = useState(true)
+    const [avatarKey, setAvatarKey] = useState(Date.now()) // For cache busting
     const router = useRouter()
 
     useEffect(() => {
@@ -132,6 +133,7 @@ export default function ProfilePage() {
                 .single()
 
             setCustomer(customerData)
+            setAvatarKey(Date.now()) // Update avatar key to bust cache
         } catch (error) {
             console.error('Error fetching user data:', error)
         } finally {
@@ -225,7 +227,10 @@ export default function ProfilePage() {
                     {/* Profile Header */}
                     <div className="text-center pt-8 pb-4">
                         <Avatar className="w-24 h-24 mx-auto mb-4 border-4 border-white shadow-xl">
-                            <AvatarImage src={customer?.avatar_url || undefined} alt={customer?.name || 'Avatar'} />
+                            <AvatarImage 
+                                src={customer?.avatar_url ? `${customer.avatar_url}?v=${avatarKey}` : undefined} 
+                                alt={customer?.name || 'Avatar'} 
+                            />
                             <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white text-2xl font-bold">
                                 {customer?.name?.[0] || user.phone?.[0] || 'T'}
                             </AvatarFallback>

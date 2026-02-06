@@ -55,6 +55,7 @@ export default function InventoryPage() {
             const { data: productsData } = await supabase
                 .from('products')
                 .select('*')
+                .is('deleted_at', null) // Filter out soft-deleted products
                 .order('name')
 
             setProducts(productsData || [])

@@ -25,9 +25,10 @@ interface EditProfileSheetProps {
     currentName: string
     currentAddress: string
     currentAvatar?: string | null
+    onSuccess?: () => void
 }
 
-export function EditProfileSheet({ currentName, currentAddress, currentAvatar }: EditProfileSheetProps) {
+export function EditProfileSheet({ currentName, currentAddress, currentAvatar, onSuccess }: EditProfileSheetProps) {
     const [open, setOpen] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
     const [uploading, setUploading] = useState(false)
@@ -118,8 +119,13 @@ export function EditProfileSheet({ currentName, currentAddress, currentAvatar }:
         } else {
             toast.success('Cập nhật thông tin thành công')
             setOpen(false)
-            // Reload page to show updated avatar
-            window.location.reload()
+            // Call onSuccess callback to refetch data
+            if (onSuccess) {
+                onSuccess()
+            } else {
+                // Fallback to reload if no callback provided
+                window.location.reload()
+            }
         }
     }
 

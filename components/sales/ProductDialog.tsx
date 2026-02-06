@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -10,6 +10,7 @@ import { createProduct, updateProduct } from '@/app/sales/actions'
 import { toast } from 'sonner'
 import { Loader2, X, Image as ImageIcon } from 'lucide-react'
 import Image from 'next/image'
+import { createClient } from '@/lib/supabase/client'
 
 interface Product {
     id?: number
@@ -19,6 +20,7 @@ interface Product {
     stock: number
     unit: string
     category: string
+    category_id?: number
     description?: string
     specifications?: string
     image_url?: string
@@ -36,6 +38,7 @@ export function ProductDialog({ product, isOpen, onOpenChange, onSuccess }: Prod
     const [uploading, setUploading] = useState(false)
     const [imagePreview, setImagePreview] = useState<string | null>(product?.image_url || null)
     const [imagePath, setImagePath] = useState<string | null>(null)
+    const [categories, setCategories] = useState<any[]>([])
     const fileInputRef = useRef<HTMLInputElement>(null)
     const [formData, setFormData] = useState<Partial<Product>>(product || {
         name: '',
@@ -44,12 +47,33 @@ export function ProductDialog({ product, isOpen, onOpenChange, onSuccess }: Prod
         stock: 0,
         unit: 'Cái',
         category: 'Chung',
+        category_id: undefined,
         description: '',
         specifications: '',
         image_url: ''
     })
 
     const isEdit = !!product?.id
+
+    useEffect(() => {
+        if (isOpen) {
+            fetchCategories()
+        }
+    }, [isOpen])
+
+    const fetchCategories = async () => {
+        try {
+            const supabase = createClient()
+            const { data } = await supabase
+                .from('categories')
+                .select('*')
+                .order('display_order')
+            
+            setCategories(data || [])
+        } catch (error) {
+            console.error('Error fetching categories:', error)
+        }
+    }
 
     const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
@@ -78,7 +102,6 @@ export function ProductDialog({ product, isOpen, onOpenChange, onSuccess }: Prod
         // Upload directly to Supabase from client
         setUploading(true)
         try {
-            const { createClient } = await import('@/lib/supabase/client')
             const supabase = createClient()
 
             // Generate unique filename
@@ -115,7 +138,6 @@ export function ProductDialog({ product, isOpen, onOpenChange, onSuccess }: Prod
     const handleRemoveImage = async () => {
         if (imagePath) {
             try {
-                const { createClient } = await import('@/lib/supabase/client')
                 const supabase = createClient()
                 await supabase.storage.from('product-images').remove([imagePath])
             } catch (error) {
@@ -275,12 +297,18 @@ export function ProductDialog({ product, isOpen, onOpenChange, onSuccess }: Prod
                         </div>
                         <div className="space-y-2">
                             <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Danh mục</Label>
-                            <Input
-                                value={formData.category}
-                                onChange={e => setFormData({ ...formData, category: e.target.value })}
-                                placeholder="Gia dụng..."
-                                className="h-12 rounded-2xl bg-muted/30 border-none focus-visible:ring-primary/20"
-                            />
+                            <select
+                                value={formData.category_id || ''}
+                                onChange={e => setFormData({ ...formData, category_id: e.target.value ? Number(e.target.value) : undefined })}
+                                className="w-full h-12 rounded-2xl bg-muted/30 border-none focus-visible:ring-primary/20 px-4 text-sm"
+                            >
+                                <option value="">Chọn danh mục...</option>
+                                {categories.map((cat) => (
+                                    <option key={cat.id} value={cat.id}>
+                                        {cat.name}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
                     </div>
                     

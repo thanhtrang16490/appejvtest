@@ -43,6 +43,7 @@ export default function ProductDetailPublicPage() {
                 .from('products')
                 .select('*')
                 .eq('slug', slug)
+                .is('deleted_at', null) // Filter out soft-deleted products
                 .single()
 
             setProduct(productData)

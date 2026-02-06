@@ -24,6 +24,7 @@ export default function AccountPage() {
     const [isHeaderVisible, setIsHeaderVisible] = useState(true)
     const [lastScrollY, setLastScrollY] = useState(0)
     const [loading, setLoading] = useState(true)
+    const [avatarKey, setAvatarKey] = useState(Date.now()) // For cache busting
     const router = useRouter()
 
     useEffect(() => {
@@ -71,6 +72,7 @@ export default function AccountPage() {
                 .single()
 
             setCustomer(customerData)
+            setAvatarKey(Date.now()) // Update avatar key to bust cache
         } catch (error) {
             console.error('Error fetching user data:', error)
         } finally {
@@ -145,7 +147,10 @@ export default function AccountPage() {
                     <Card className="bg-white rounded-2xl shadow-sm border-0">
                         <CardHeader className="flex flex-row items-center gap-4 space-y-0 pb-2">
                             <Avatar className="h-16 w-16 border-2 border-gray-100">
-                                <AvatarImage src={customer?.avatar_url || undefined} alt={customer?.name || 'Avatar'} />
+                                <AvatarImage 
+                                    src={customer?.avatar_url ? `${customer.avatar_url}?v=${avatarKey}` : undefined} 
+                                    alt={customer?.name || 'Avatar'} 
+                                />
                                 <AvatarFallback className="bg-gradient-to-r from-[#175ead] to-[#2575be] text-2xl font-bold text-white">
                                     {customer?.name?.[0] || user.phone?.[0] || 'U'}
                                 </AvatarFallback>
@@ -162,6 +167,7 @@ export default function AccountPage() {
                                 currentName={customer?.name || ''}
                                 currentAddress={customer?.address || ''}
                                 currentAvatar={customer?.avatar_url}
+                                onSuccess={fetchUserData}
                             />
                         </CardHeader>
                         <CardContent className="grid gap-4 pt-4">

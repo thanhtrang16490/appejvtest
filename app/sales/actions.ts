@@ -162,23 +162,11 @@ export async function deleteCustomer(id: string) {
     const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
     if ((profile as any)?.role !== 'admin') return { error: 'Chỉ Admin mới có quyền thực hiện' }
 
-    // Get all orders for this customer
-    const { data: orders } = await supabase.from('orders').select('id').eq('customer_id', id)
+    // Soft delete: set deleted_at timestamp
+    const { error } = await (supabase.from('customers') as any)
+        .update({ deleted_at: new Date().toISOString() })
+        .eq('id', id)
     
-    if (orders && orders.length > 0) {
-        const orderIds = orders.map((order: any) => order.id)
-        
-        // Delete order items first
-        const { error: itemsError } = await supabase.from('order_items').delete().in('order_id', orderIds)
-        if (itemsError) return { error: itemsError.message }
-        
-        // Delete orders
-        const { error: ordersError } = await supabase.from('orders').delete().eq('customer_id', id)
-        if (ordersError) return { error: ordersError.message }
-    }
-
-    // Finally delete the customer
-    const { error } = await (supabase.from('customers') as any).delete().eq('id', id)
     if (error) return { error: error.message }
 
     revalidatePath('/sales/customers')
@@ -225,26 +213,11 @@ export async function deleteProduct(id: number) {
     const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
     if ((profile as any)?.role !== 'admin') return { error: 'Chỉ Admin mới có quyền thực hiện' }
 
-    // Check if product is used in any order_items and get related order IDs
-    const { data: orderItems, error: checkError } = await supabase
-        .from('order_items')
-        .select('order_id')
-        .eq('product_id', id)
-
-    if (checkError) return { error: checkError.message }
+    // Soft delete: set deleted_at timestamp
+    const { error } = await (supabase.from('products') as any)
+        .update({ deleted_at: new Date().toISOString() })
+        .eq('id', id)
     
-    if (orderItems && orderItems.length > 0) {
-        // Get unique order IDs
-        const orderIds = [...new Set(orderItems.map((item: any) => item.order_id))]
-        const orderIdsList = orderIds.slice(0, 5).map((id: any) => `#${id}`).join(', ')
-        const moreCount = orderIds.length > 5 ? ` và ${orderIds.length - 5} đơn hàng khác` : ''
-        
-        return { 
-            error: `Không thể xóa sản phẩm này vì đã có ${orderIds.length} đơn hàng liên quan: ${orderIdsList}${moreCount}` 
-        }
-    }
-
-    const { error } = await supabase.from('products').delete().eq('id', id)
     if (error) return { error: error.message }
 
     revalidatePath('/sales/inventory')

@@ -52,6 +52,7 @@ export interface Database {
           image_url: string | null
           price: number
           category: string | null
+          category_id: number | null
           description: string | null
           specifications: string | null
           deleted_at: string | null
@@ -67,6 +68,7 @@ export interface Database {
           image_url?: string | null
           price?: number
           category?: string | null
+          category_id?: number | null
           description?: string | null
           specifications?: string | null
           deleted_at?: string | null
@@ -82,9 +84,33 @@ export interface Database {
           image_url?: string | null
           price?: number
           category?: string | null
+          category_id?: number | null
           description?: string | null
           specifications?: string | null
           deleted_at?: string | null
+          created_at?: string
+        }
+      }
+      categories: {
+        Row: {
+          id: number
+          name: string
+          description: string | null
+          display_order: number
+          created_at: string
+        }
+        Insert: {
+          id?: number
+          name: string
+          description?: string | null
+          display_order?: number
+          created_at?: string
+        }
+        Update: {
+          id?: number
+          name?: string
+          description?: string | null
+          display_order?: number
           created_at?: string
         }
       }
@@ -214,6 +240,53 @@ export interface Database {
           metadata?: Json
           created_at?: string
           updated_at?: string
+        }
+      }
+      audit_logs: {
+        Row: {
+          id: string
+          timestamp: string
+          event_type: string
+          user_id: string | null
+          user_email: string | null
+          ip_address: string | null
+          user_agent: string | null
+          resource: string | null
+          action: string | null
+          success: boolean
+          error_message: string | null
+          metadata: Json
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          timestamp?: string
+          event_type: string
+          user_id?: string | null
+          user_email?: string | null
+          ip_address?: string | null
+          user_agent?: string | null
+          resource?: string | null
+          action?: string | null
+          success?: boolean
+          error_message?: string | null
+          metadata?: Json
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          timestamp?: string
+          event_type?: string
+          user_id?: string | null
+          user_email?: string | null
+          ip_address?: string | null
+          user_agent?: string | null
+          resource?: string | null
+          action?: string | null
+          success?: boolean
+          error_message?: string | null
+          metadata?: Json
+          created_at?: string
         }
       }
     }

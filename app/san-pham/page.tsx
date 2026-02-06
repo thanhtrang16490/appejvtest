@@ -39,7 +39,10 @@ export default function ProductCataloguePage() {
         try {
             setLoading(true)
             const supabase = createClient()
-            let query = supabase.from('products').select('*')
+            let query = supabase
+                .from('products')
+                .select('*')
+                .is('deleted_at', null) // Filter out soft-deleted products
 
             if (searchQuery) {
                 query = query.ilike('name', `%${searchQuery}%`)

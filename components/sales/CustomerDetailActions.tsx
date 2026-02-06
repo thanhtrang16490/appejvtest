@@ -8,7 +8,13 @@ import { deleteCustomer } from '@/app/sales/actions'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 
-export function CustomerDetailActions({ customer, isAdmin }: { customer: any, isAdmin: boolean }) {
+interface CustomerDetailActionsProps {
+    customer: any
+    isAdmin: boolean
+    onSuccess?: () => void
+}
+
+export function CustomerDetailActions({ customer, isAdmin, onSuccess }: CustomerDetailActionsProps) {
     const [isEditOpen, setIsEditOpen] = useState(false)
     const router = useRouter()
 
@@ -23,6 +29,13 @@ export function CustomerDetailActions({ customer, isAdmin }: { customer: any, is
         } else {
             toast.success('Đã xóa khách hàng')
             router.push('/sales/customers')
+        }
+    }
+
+    const handleEditSuccess = () => {
+        setIsEditOpen(false)
+        if (onSuccess) {
+            onSuccess()
         }
     }
 
@@ -48,6 +61,7 @@ export function CustomerDetailActions({ customer, isAdmin }: { customer: any, is
                 customer={customer}
                 isOpen={isEditOpen}
                 onOpenChange={setIsEditOpen}
+                onSuccess={handleEditSuccess}
                 isAdmin={isAdmin}
             />
         </div>

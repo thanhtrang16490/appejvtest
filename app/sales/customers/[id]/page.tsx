@@ -35,9 +35,9 @@ export default function CustomerDetailPage() {
     const [orders, setOrders] = useState<any[]>([])
     const [isAdmin, setIsAdmin] = useState(false)
     const [loading, setLoading] = useState(true)
+    const [avatarKey, setAvatarKey] = useState(Date.now()) // For cache busting
 
-    useEffect(() => {
-        async function fetchData() {
+    const fetchData = async () => {
             const supabase = createClient()
             const { data: { user } } = await supabase.auth.getUser()
             
@@ -64,6 +64,7 @@ export default function CustomerDetailPage() {
                 .from('customers')
                 .select('*')
                 .eq('id', id)
+                .is('deleted_at', null) // Filter out soft-deleted customers
                 .single()
 
             if (!customerData) {
@@ -96,6 +97,7 @@ export default function CustomerDetailPage() {
             }
 
             setCustomer(customerData)
+            setAvatarKey(Date.now()) // Update avatar key to bust cache
 
             // Fetch Order History
             const { data: ordersData } = await supabase
@@ -107,6 +109,8 @@ export default function CustomerDetailPage() {
             setOrders((ordersData as any[]) || [])
             setLoading(false)
         }
+    
+    useEffect(() => {
         fetchData()
     }, [id, router])
 
@@ -186,7 +190,7 @@ export default function CustomerDetailPage() {
                         <h1 className="text-xl font-bold text-gray-900">Hồ sơ khách hàng</h1>
                         <p className="text-[10px] font-bold text-gray-600 uppercase mt-0.5 tracking-widest">{customer.code}</p>
                     </div>
-                    <CustomerDetailActions customer={customer} isAdmin={isAdmin} />
+                    <CustomerDetailActions customer={customer} isAdmin={isAdmin} onSuccess={fetchData} />
                 </div>
             </div>
 
@@ -197,7 +201,7 @@ export default function CustomerDetailPage() {
                     <div className="h-32 bg-gradient-to-r from-[#175ead]/10 via-[#2575be]/5 to-transparent relative">
                         <div className="absolute -bottom-12 left-8 border-8 border-white rounded-full shadow-lg">
                             <Avatar className="h-24 w-24">
-                                <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${customer.name}`} />
+                                <AvatarImage src={customer.avatar_url ? `${customer.avatar_url}?v=${avatarKey}` : undefined} />
                                 <AvatarFallback className="bg-[#175ead] text-white text-2xl font-black">
                                     {customer.name.substring(0, 2).toUpperCase()}
                                 </AvatarFallback>

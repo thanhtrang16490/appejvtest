@@ -106,7 +106,10 @@ export default function SalesCustomersPage() {
             }
 
             // Fetch customers based on role
-            let query = supabase.from('customers').select('*')
+            let query = supabase
+                .from('customers')
+                .select('*')
+                .is('deleted_at', null) // Filter out soft-deleted customers
 
             if (isAdmin) {
                 // Admin sees all customers

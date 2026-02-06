@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { 
@@ -10,7 +10,7 @@ import {
     Settings, 
     Users, 
     FileText, 
-    BarChart3,
+    Shield,
     LogOut,
     ChevronRight
 } from 'lucide-react'
@@ -19,10 +19,11 @@ import { cn } from '@/lib/utils'
 import { logout } from '@/app/auth/actions'
 
 const menuItems = [
-    { name: 'Kho hàng', href: '/sales/inventory', icon: Package, description: 'Quản lý tồn kho' },
-    { name: 'Quản lý người dùng', href: '/sales/users', icon: Users, description: 'Thêm, sửa người dùng' },
-    { name: 'Cài đặt', href: '/sales/settings', icon: Settings, description: 'Cấu hình hệ thống' },
-    { name: 'Báo cáo chi tiết', href: '/sales/detailed-reports', icon: FileText, description: 'Báo cáo nâng cao' },
+    { name: 'Kho hàng', href: '/sales/inventory', icon: Package, description: 'Quản lý tồn kho', roles: ['admin', 'sale', 'sale_admin'] },
+    { name: 'Quản lý người dùng', href: '/sales/users', icon: Users, description: 'Thêm, sửa người dùng', roles: ['admin'] },
+    { name: 'Lịch sử thao tác', href: '/sales/audit-logs', icon: Shield, description: 'Xem nhật ký hệ thống', roles: ['admin'] },
+    { name: 'Cài đặt', href: '/sales/settings', icon: Settings, description: 'Cấu hình hệ thống', roles: ['admin', 'sale_admin'] },
+    { name: 'Báo cáo chi tiết', href: '/sales/detailed-reports', icon: FileText, description: 'Báo cáo nâng cao', roles: ['admin', 'sale_admin'] },
 ]
 
 interface HeaderMenuProps {
@@ -89,37 +90,39 @@ export function HeaderMenu({ user, role }: HeaderMenuProps) {
                         Chức năng
                     </h3>
                     <nav className="space-y-2 px-4">
-                        {menuItems.map((item) => {
-                            const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
-                            
-                            return (
-                                <Link
-                                    key={item.name}
-                                    href={item.href}
-                                    onClick={closeMenu}
-                                    className={cn(
-                                        "flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all group",
-                                        isActive
-                                            ? "bg-gradient-to-r from-blue-50 to-cyan-50 text-blue-600 border border-blue-100"
-                                            : "text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-cyan-50 hover:text-blue-600"
-                                    )}
-                                >
-                                    <div className={cn(
-                                        "p-2 rounded-lg transition-colors",
-                                        isActive 
-                                            ? "bg-blue-100 text-blue-600" 
-                                            : "bg-gray-100 text-gray-600 group-hover:bg-blue-100 group-hover:text-blue-600"
-                                    )}>
-                                        <item.icon className="w-5 h-5" />
-                                    </div>
-                                    <div className="flex-1">
-                                        <div className="font-medium">{item.name}</div>
-                                        <div className="text-xs text-gray-500">{item.description}</div>
-                                    </div>
-                                    <ChevronRight className="w-4 h-4 text-gray-400" />
-                                </Link>
-                            )
-                        })}
+                        {menuItems
+                            .filter(item => !role || item.roles.includes(role))
+                            .map((item) => {
+                                const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+                                
+                                return (
+                                    <Link
+                                        key={item.name}
+                                        href={item.href}
+                                        onClick={closeMenu}
+                                        className={cn(
+                                            "flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all group",
+                                            isActive
+                                                ? "bg-gradient-to-r from-blue-50 to-cyan-50 text-blue-600 border border-blue-100"
+                                                : "text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-cyan-50 hover:text-blue-600"
+                                        )}
+                                    >
+                                        <div className={cn(
+                                            "p-2 rounded-lg transition-colors",
+                                            isActive 
+                                                ? "bg-blue-100 text-blue-600" 
+                                                : "bg-gray-100 text-gray-600 group-hover:bg-blue-100 group-hover:text-blue-600"
+                                        )}>
+                                            <item.icon className="w-5 h-5" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <div className="font-medium">{item.name}</div>
+                                            <div className="text-xs text-gray-500">{item.description}</div>
+                                        </div>
+                                        <ChevronRight className="w-4 h-4 text-gray-400" />
+                                    </Link>
+                                )
+                            })}
                     </nav>
                 </div>
 

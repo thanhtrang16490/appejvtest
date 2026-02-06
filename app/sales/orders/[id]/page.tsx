@@ -99,14 +99,15 @@ export default function SalesOrderDetailsPage() {
     }
 
     const statusConfig = {
-        pending: { label: 'Chờ xử lý', class: 'bg-amber-100 text-amber-700 border-amber-200', icon: Clock },
-        processing: { label: 'Đang xử lý', class: 'bg-blue-100 text-blue-700 border-blue-200', icon: Edit2 },
+        draft: { label: 'Nháp', class: 'bg-gray-100 text-gray-700 border-gray-200', icon: Edit2 },
+        ordered: { label: 'Đã đặt', class: 'bg-blue-100 text-blue-700 border-blue-200', icon: ShoppingBag },
         shipping: { label: 'Đang giao', class: 'bg-purple-100 text-purple-700 border-purple-200', icon: ShoppingBag },
+        paid: { label: 'Đã thanh toán', class: 'bg-emerald-100 text-emerald-700 border-emerald-200', icon: CheckCircle2 },
         completed: { label: 'Hoàn thành', class: 'bg-emerald-100 text-emerald-700 border-emerald-200', icon: CheckCircle2 },
         cancelled: { label: 'Đã hủy', class: 'bg-rose-100 text-rose-700 border-rose-200', icon: AlertCircle }
     }
 
-    const currentStatus = statusConfig[order.status as keyof typeof statusConfig] || statusConfig.pending
+    const currentStatus = statusConfig[order.status as keyof typeof statusConfig] || statusConfig.draft
     const Icon = currentStatus.icon
 
     return (
@@ -222,24 +223,29 @@ export default function SalesOrderDetailsPage() {
                             <Card className="border-none shadow-sm bg-white rounded-2xl p-4">
                                 <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3">Thao tác nhanh</h3>
                                 <div className="grid grid-cols-2 gap-2">
-                                    {order.status === 'pending' && (
-                                        <Button onClick={() => handleUpdateStatus('processing')} className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold">
-                                            Xử lý
+                                    {order.status === 'draft' && (
+                                        <Button onClick={() => handleUpdateStatus('ordered')} className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold">
+                                            Xác nhận đặt
                                         </Button>
                                     )}
-                                    {order.status === 'processing' && (
+                                    {order.status === 'ordered' && (
                                         <Button onClick={() => handleUpdateStatus('shipping')} className="bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold">
                                             Giao hàng
                                         </Button>
                                     )}
                                     {order.status === 'shipping' && (
+                                        <Button onClick={() => handleUpdateStatus('paid')} className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold">
+                                            Đã thanh toán
+                                        </Button>
+                                    )}
+                                    {order.status === 'paid' && (
                                         <Button onClick={() => handleUpdateStatus('completed')} className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold">
                                             Hoàn thành
                                         </Button>
                                     )}
-                                    {order.status !== 'cancelled' && (
+                                    {order.status !== 'cancelled' && order.status !== 'completed' && (
                                         <Button onClick={() => handleUpdateStatus('cancelled')} variant="destructive" className="rounded-xl text-xs font-bold">
-                                            {order.status === 'completed' ? "Trả & Hủy" : "Hủy đơn"}
+                                            Hủy đơn
                                         </Button>
                                     )}
                                 </div>

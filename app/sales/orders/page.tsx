@@ -11,7 +11,7 @@ import { ShoppingBag, Plus, Sparkles } from 'lucide-react'
 import { HeaderMenu } from '@/components/layout/HeaderMenu'
 import { NotificationModal } from '@/components/layout/NotificationModal'
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { updateOrderStatus } from './actions'
 import { useScrollHeader } from '@/hooks/useScrollHeader'
 
@@ -22,7 +22,16 @@ export default function SalesOrdersPage() {
     const [loading, setLoading] = useState(true)
     const [activeTab, setActiveTab] = useState('ordered')
     const router = useRouter()
+    const searchParams = useSearchParams()
     const { isHeaderVisible } = useScrollHeader()
+
+    useEffect(() => {
+        // Check if there's a tab query parameter
+        const tabParam = searchParams.get('tab')
+        if (tabParam) {
+            setActiveTab(tabParam)
+        }
+    }, [searchParams])
 
     useEffect(() => {
         fetchData()
@@ -71,7 +80,10 @@ export default function SalesOrdersPage() {
             }
 
             // Fetch orders based on role
-            let query = supabase.from('orders').select('*, customers(name), profiles!orders_sale_id_fkey(full_name)')
+            let query = supabase
+                .from('orders')
+                .select('*, customers(name), profiles!orders_sale_id_fkey(full_name)')
+                .is('deleted_at', null) // Filter out soft-deleted orders
 
             if (isAdmin) {
                 // Admin sees ALL orders - no filter
@@ -119,52 +131,64 @@ export default function SalesOrdersPage() {
         <div className="grid gap-3 mt-4">
             {list.map(order => {
                 const config = statusMap[order.status as keyof typeof statusMap] || statusMap.pending
-                const saleName = order.profiles?.full_name || 'Không xác định'
+                const saleName = order.profiles?.full_name || 'N/A'
                 
                 return (
-                    <Card key={order.id} className="bg-white rounded-2xl shadow-sm border-0">
-                        <CardHeader className="p-4 flex-row items-center justify-between gap-4 space-y-0">
-                            <div className="flex items-center gap-3">
-                                <div className={cn("w-1.5 h-6 rounded-full", order.payment_status === 'paid' ? 'bg-emerald-500' : 'bg-rose-500')} title={order.payment_status === 'paid' ? 'Đã thanh toán' : 'Chưa thanh toán'} />
-                                <div className="p-3 bg-gray-100 rounded-xl">
-                                    <ShoppingBag className="w-5 h-5 text-[#175ead]" />
-                                </div>
-                                <div className="min-w-0">
-                                    <h3 className="text-sm font-semibold text-gray-900 truncate">{order.customers?.name || 'Khách lẻ'}</h3>
-                                    <div className="flex items-center gap-2">
-                                        <p className="text-xs text-gray-500">#{order.id} • {new Date(order.created_at).toLocaleDateString('vi-VN')}</p>
-                                        {userRole === 'admin' && (
-                                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-blue-200 text-blue-600 bg-blue-50">
-                                                {saleName}
+                    <Card key={order.id} className="bg-white rounded-2xl shadow-sm border-0 hover:shadow-md transition-shadow">
+                        <CardContent className="p-4">
+                            {/* Top Row: Info */}
+                            <div className="flex items-center justify-between gap-3 mb-3">
+                                {/* Left: Icon + Info */}
+                                <div className="flex items-center gap-3 flex-1 min-w-0">
+                                    <div className="p-2.5 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl flex-shrink-0">
+                                        <ShoppingBag className="w-5 h-5 text-[#175ead]" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-2 mb-0.5">
+                                            <h3 className="text-sm font-semibold text-gray-900 truncate">
+                                                {order.customers?.name || 'Khách lẻ'}
+                                            </h3>
+                                            <Badge className={cn("text-[10px] px-1.5 py-0.5 border-none flex-shrink-0", config.class)}>
+                                                {config.label}
                                             </Badge>
-                                        )}
+                                        </div>
+                                        <div className="flex items-center gap-2 text-xs text-gray-500">
+                                            <span>#{order.id}</span>
+                                            <span>•</span>
+                                            <span>{new Date(order.created_at).toLocaleDateString('vi-VN')}</span>
+                                            {userRole === 'admin' && (
+                                                <>
+                                                    <span>•</span>
+                                                    <span className="text-blue-600">{saleName}</span>
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                {/* Right: Amount */}
+                                <div className="text-right flex-shrink-0">
+                                    <div className="text-base font-bold text-gray-900">
+                                        {formatCurrency(order.total_amount)}
                                     </div>
                                 </div>
                             </div>
-                            <div className="flex flex-col items-end gap-1">
-                                <Badge className={cn("text-xs px-2 py-1 border-none", config.class)}>
-                                    {config.label}
-                                </Badge>
-                                {order.payment_status === 'unpaid' && (
-                                    <Badge variant="outline" className="text-xs px-2 py-1 border-rose-200 text-rose-600 bg-rose-50">
-                                        Chưa thu
-                                    </Badge>
-                                )}
-                            </div>
-                        </CardHeader>
-                        <CardContent className="p-4 pt-0 flex justify-between items-center">
-                            <span className="text-lg font-bold text-gray-900">{formatCurrency(order.total_amount)}</span>
-                            <div className="flex gap-2">
-                                <Link href={`/sales/orders/${order.id}`}>
-                                    <Button variant="outline" size="sm" className="text-xs">
+
+                            {/* Bottom Row: Actions */}
+                            <div className="flex items-center gap-2">
+                                <Link href={`/sales/orders/${order.id}`} className="flex-1">
+                                    <Button variant="outline" size="sm" className="w-full text-xs h-8">
                                         Chi tiết
                                     </Button>
                                 </Link>
                                 {order.status === 'draft' && (
                                     <Button 
                                         size="sm" 
-                                        className="text-xs bg-[#175ead] hover:bg-blue-600"
-                                        onClick={() => handleUpdateOrderStatus(order.id, 'ordered')}
+                                        className="flex-1 text-xs h-8 bg-[#175ead] hover:bg-blue-600"
+                                        onClick={(e) => {
+                                            e.preventDefault()
+                                            handleUpdateOrderStatus(order.id, 'ordered')
+                                        }}
                                     >
                                         Đặt hàng
                                     </Button>
@@ -172,8 +196,11 @@ export default function SalesOrdersPage() {
                                 {order.status === 'ordered' && (
                                     <Button 
                                         size="sm" 
-                                        className="text-xs bg-blue-500 hover:bg-blue-600"
-                                        onClick={() => handleUpdateOrderStatus(order.id, 'shipping')}
+                                        className="flex-1 text-xs h-8 bg-blue-500 hover:bg-blue-600"
+                                        onClick={(e) => {
+                                            e.preventDefault()
+                                            handleUpdateOrderStatus(order.id, 'shipping')
+                                        }}
                                     >
                                         Giao hàng
                                     </Button>
@@ -181,8 +208,11 @@ export default function SalesOrdersPage() {
                                 {order.status === 'shipping' && (
                                     <Button 
                                         size="sm" 
-                                        className="text-xs bg-purple-500 hover:bg-purple-600"
-                                        onClick={() => handleUpdateOrderStatus(order.id, 'paid')}
+                                        className="flex-1 text-xs h-8 bg-purple-500 hover:bg-purple-600"
+                                        onClick={(e) => {
+                                            e.preventDefault()
+                                            handleUpdateOrderStatus(order.id, 'paid')
+                                        }}
                                     >
                                         Thanh toán
                                     </Button>
@@ -190,8 +220,11 @@ export default function SalesOrdersPage() {
                                 {order.status === 'paid' && (
                                     <Button 
                                         size="sm" 
-                                        className="text-xs bg-emerald-500 hover:bg-emerald-600"
-                                        onClick={() => handleUpdateOrderStatus(order.id, 'completed')}
+                                        className="flex-1 text-xs h-8 bg-emerald-500 hover:bg-emerald-600"
+                                        onClick={(e) => {
+                                            e.preventDefault()
+                                            handleUpdateOrderStatus(order.id, 'completed')
+                                        }}
                                     >
                                         Hoàn thành
                                     </Button>
