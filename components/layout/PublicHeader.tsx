@@ -49,12 +49,6 @@ export function PublicHeader() {
           <Link href="/lien-he" className="text-gray-600 hover:text-[#175ead] transition-colors font-medium">
             Liên hệ
           </Link>
-          <Link href="/auth/customer-login">
-            <Button variant="outline" className="rounded-full">
-              <User className="w-4 h-4 mr-2" />
-              Đăng nhập
-            </Button>
-          </Link>
         </nav>
 
         {/* Mobile Menu Button */}
