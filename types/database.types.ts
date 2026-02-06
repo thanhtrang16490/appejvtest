@@ -17,6 +17,7 @@ export interface Database {
           phone: string | null
           manager_id: string | null
           avatar_url: string | null
+          deleted_at: string | null
           created_at?: string
         }
         Insert: {
@@ -26,6 +27,7 @@ export interface Database {
           phone?: string | null
           manager_id?: string | null
           avatar_url?: string | null
+          deleted_at?: string | null
           created_at?: string
         }
         Update: {
@@ -35,6 +37,7 @@ export interface Database {
           phone?: string | null
           manager_id?: string | null
           avatar_url?: string | null
+          deleted_at?: string | null
           created_at?: string
         }
       }
@@ -51,6 +54,7 @@ export interface Database {
           category: string | null
           description: string | null
           specifications: string | null
+          deleted_at: string | null
           created_at?: string
         }
         Insert: {
@@ -65,6 +69,7 @@ export interface Database {
           category?: string | null
           description?: string | null
           specifications?: string | null
+          deleted_at?: string | null
           created_at?: string
         }
         Update: {
@@ -79,6 +84,7 @@ export interface Database {
           category?: string | null
           description?: string | null
           specifications?: string | null
+          deleted_at?: string | null
           created_at?: string
         }
       }
@@ -91,6 +97,7 @@ export interface Database {
           phone: string | null
           assigned_sale: string | null
           avatar_url: string | null
+          deleted_at: string | null
           created_at?: string
         }
         Insert: {
@@ -101,6 +108,7 @@ export interface Database {
           phone?: string | null
           assigned_sale?: string | null
           avatar_url?: string | null
+          deleted_at?: string | null
           created_at?: string
         }
         Update: {
@@ -111,6 +119,7 @@ export interface Database {
           phone?: string | null
           assigned_sale?: string | null
           avatar_url?: string | null
+          deleted_at?: string | null
           created_at?: string
         }
       }
@@ -122,6 +131,7 @@ export interface Database {
           status: 'draft' | 'ordered' | 'shipping' | 'paid' | 'completed' | 'cancelled'
           total_amount: number
           payment_status: 'unpaid' | 'paid'
+          deleted_at: string | null
           created_at: string
         }
         Insert: {
@@ -131,6 +141,7 @@ export interface Database {
           status?: 'draft' | 'ordered' | 'shipping' | 'paid' | 'completed' | 'cancelled'
           total_amount?: number
           payment_status?: 'unpaid' | 'paid'
+          deleted_at?: string | null
           created_at?: string
         }
         Update: {
@@ -140,6 +151,7 @@ export interface Database {
           status?: 'draft' | 'ordered' | 'shipping' | 'paid' | 'completed' | 'cancelled'
           total_amount?: number
           payment_status?: 'unpaid' | 'paid'
+          deleted_at?: string | null
           created_at?: string
         }
       }
