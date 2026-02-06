@@ -13,6 +13,9 @@ import { PublicHeader } from '@/components/layout/PublicHeader'
 
 type Product = Database['public']['Tables']['products']['Row']
 
+// SEO metadata would be added in a separate metadata file for this page
+// export const metadata = { ... }
+
 export default function ProductCataloguePage() {
     const [products, setProducts] = useState<Product[]>([])
     const [searchQuery, setSearchQuery] = useState('')

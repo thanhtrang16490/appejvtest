@@ -7,12 +7,35 @@ import { Sidebar } from "@/components/layout/Sidebar";
 import { Toaster } from "@/components/ui/sonner";
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
+import { OrganizationStructuredData, WebsiteStructuredData } from "./structured-data";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "APPE JV - Quản lý bán hàng",
-  description: "Hệ thống quản lý bán hàng và đơn hàng APPE JV Việt Nam",
+  metadataBase: new URL('https://appejv.app'),
+  title: {
+    default: "APPE JV Việt Nam - Thức ăn chăn nuôi và thủy sản chất lượng cao",
+    template: "%s | APPE JV Việt Nam"
+  },
+  description: "APPE JV chuyên sản xuất và cung cấp thức ăn chăn nuôi chất lượng cao cho heo, gia cầm và thủy sản. Thành lập từ 2008, ứng dụng công nghệ tiên tiến, xuất khẩu sang Lào và khu vực.",
+  keywords: [
+    "thức ăn chăn nuôi",
+    "thức ăn heo",
+    "thức ăn gia cầm",
+    "thức ăn thủy sản",
+    "APPE JV",
+    "APPE Việt Nam",
+    "pig feed",
+    "poultry feed",
+    "fish feed",
+    "chăn nuôi",
+    "thủy sản",
+    "Hà Nam",
+    "thức ăn chất lượng cao"
+  ],
+  authors: [{ name: "APPE JV Việt Nam" }],
+  creator: "APPE JV Việt Nam",
+  publisher: "APPE JV Việt Nam",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -20,7 +43,9 @@ export const metadata: Metadata = {
     title: "APPE JV",
   },
   formatDetection: {
-    telephone: false,
+    telephone: true,
+    email: true,
+    address: true,
   },
   icons: {
     icon: [
@@ -38,6 +63,47 @@ export const metadata: Metadata = {
     initialScale: 1,
     maximumScale: 1,
     userScalable: false,
+  },
+  openGraph: {
+    type: "website",
+    locale: "vi_VN",
+    url: "https://appejv.app",
+    siteName: "APPE JV Việt Nam",
+    title: "APPE JV Việt Nam - Thức ăn chăn nuôi và thủy sản chất lượng cao",
+    description: "Chuyên sản xuất và cung cấp thức ăn chăn nuôi chất lượng cao cho heo, gia cầm và thủy sản. Thành lập từ 2008.",
+    images: [
+      {
+        url: "/appejv-logo.png",
+        width: 1200,
+        height: 630,
+        alt: "APPE JV Việt Nam Logo",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "APPE JV Việt Nam - Thức ăn chăn nuôi và thủy sản",
+    description: "Chuyên sản xuất và cung cấp thức ăn chăn nuôi chất lượng cao",
+    images: ["/appejv-logo.png"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  alternates: {
+    canonical: "https://appejv.app",
+  },
+  verification: {
+    // Add your verification codes here when available
+    // google: "your-google-verification-code",
+    // yandex: "your-yandex-verification-code",
   },
 };
 
@@ -68,6 +134,8 @@ export default async function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="APPE JV" />
+        <OrganizationStructuredData />
+        <WebsiteStructuredData />
       </head>
       <body className={inter.className}>
         <Sidebar role={role} user={user} />

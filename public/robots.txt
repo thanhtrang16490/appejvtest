@@ -6,4 +6,4 @@ Disallow: /sales/
 Disallow: /auth/
 Disallow: /api/
 
-Sitemap: https://appejv.com/sitemap.xml
+Sitemap: https://appejv.app/sitemap.xml
