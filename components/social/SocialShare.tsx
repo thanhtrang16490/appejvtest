@@ -24,8 +24,8 @@ export function SocialShare({
     whatsapp: `https://wa.me/?text=${encodeURIComponent(title + ' ' + url)}`,
   }
 
-  const handleShare = async (platform: keyof typeof shareLinks) => {
-    if (platform === 'native' && navigator.share) {
+  const handleShare = async (platform: keyof typeof shareLinks | 'native') => {
+    if (platform === 'native' && typeof window !== 'undefined' && 'share' in navigator) {
       try {
         await navigator.share({
           title,
@@ -35,7 +35,7 @@ export function SocialShare({
       } catch (err) {
         console.log('Share cancelled')
       }
-    } else {
+    } else if (platform !== 'native') {
       window.open(shareLinks[platform], '_blank', 'width=600,height=400')
     }
   }
@@ -53,7 +53,7 @@ export function SocialShare({
   return (
     <div className="flex flex-wrap gap-2">
       {/* Native Share (mobile) */}
-      {typeof navigator !== 'undefined' && navigator.share && (
+      {typeof window !== 'undefined' && 'share' in navigator && (
         <Button
           variant="outline"
           size="sm"

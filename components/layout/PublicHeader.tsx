@@ -27,16 +27,17 @@ export function PublicHeader() {
       title: 'Khám phá',
       items: [
         { href: '/', label: 'Trang chủ', icon: Home, description: 'Về trang chủ' },
+        { href: '/gioi-thieu', label: 'Giới thiệu', icon: Info, description: 'Về chúng tôi' },
         { href: '/san-pham', label: 'Sản phẩm', icon: ShoppingBag, description: 'Xem danh mục sản phẩm' },
-        { href: '#about', label: 'Giới thiệu', icon: Info, description: 'Về chúng tôi' },
+        { href: '/lien-he', label: 'Liên hệ', icon: Phone, description: 'Liên hệ với chúng tôi' },
       ]
     },
     {
       title: 'Liên hệ',
       items: [
-        { href: 'tel:19004512', label: 'Hotline: 1900 4512', icon: Phone, description: 'Gọi ngay' },
-        { href: 'mailto:info@appejv.com', label: 'Email hỗ trợ', icon: Mail, description: 'info@appejv.com' },
-        { href: '#location', label: 'Địa chỉ', icon: MapPin, description: 'Tìm cửa hàng gần bạn' },
+        { href: 'tel:+84351359520', label: 'Hotline: 0351 3595 202/203', icon: Phone, description: 'Gọi ngay' },
+        { href: 'mailto:info@appe.com.vn', label: 'Email hỗ trợ', icon: Mail, description: 'info@appe.com.vn' },
+        { href: '/lien-he', label: 'Địa chỉ', icon: MapPin, description: 'Km 50 QL1A, Phủ Lý, Hà Nam' },
       ]
     }
   ]
@@ -63,15 +64,15 @@ export function PublicHeader() {
           <Link href="/" className="text-gray-600 hover:text-[#175ead] transition-colors font-medium">
             Trang chủ
           </Link>
+          <Link href="/gioi-thieu" className="text-gray-600 hover:text-[#175ead] transition-colors font-medium">
+            Giới thiệu
+          </Link>
           <Link href="/san-pham" className="text-gray-600 hover:text-[#175ead] transition-colors font-medium">
             Sản phẩm
           </Link>
-          <a href="#about" className="text-gray-600 hover:text-[#175ead] transition-colors font-medium">
-            Giới thiệu
-          </a>
-          <a href="#contact" className="text-gray-600 hover:text-[#175ead] transition-colors font-medium">
+          <Link href="/lien-he" className="text-gray-600 hover:text-[#175ead] transition-colors font-medium">
             Liên hệ
-          </a>
+          </Link>
           <Link href="/auth/customer-login">
             <Button variant="outline" className="rounded-full">
               <User className="w-4 h-4 mr-2" />
@@ -205,8 +206,8 @@ export function PublicHeader() {
           {/* Contact Info Footer */}
           <div className="p-4 bg-gradient-to-r from-blue-50 to-cyan-50 text-center border-t border-gray-100">
             <p className="text-xs text-gray-600 mb-1">Hỗ trợ 24/7</p>
-            <p className="text-sm font-semibold text-gray-900">📞 1900 4512</p>
-            <p className="text-xs text-gray-500 mt-1">✉️ info@appejv.com</p>
+            <p className="text-sm font-semibold text-gray-900">📞 0351 3595 202/203</p>
+            <p className="text-xs text-gray-500 mt-1">✉️ info@appe.com.vn</p>
           </div>
         </div>
       </div>

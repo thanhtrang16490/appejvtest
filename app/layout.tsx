@@ -148,7 +148,7 @@ export default async function RootLayout({
         {/* Zalo Open Graph Tags */}
         <meta property="zalo:app_id" content="YOUR_ZALO_APP_ID" />
         <meta property="zalo:title" content="APPE JV Việt Nam - Thức ăn chăn nuôi chất lượng cao" />
-        <meta property="zalo:description" content="Chuyên sản xuất thức ăn heo, gia cầm, thủy sản. Liên hệ: 0351 3595 202" />
+        <meta property="zalo:description" content="Chuyên sản xuất thức ăn heo, gia cầm, thủy sản. Liên hệ: 0351 3595 202/203" />
         <meta property="zalo:image" content="https://appejv.app/zalo-og-image.png" />
         <meta property="zalo:url" content="https://appejv.app" />
         

@@ -10,6 +10,7 @@ import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { useState, useEffect } from 'react'
 import { PublicHeader } from '@/components/layout/PublicHeader'
+import { PublicFooter } from '@/components/layout/PublicFooter'
 
 type Product = Database['public']['Tables']['products']['Row']
 
@@ -19,7 +20,7 @@ type Product = Database['public']['Tables']['products']['Row']
 export default function ProductCataloguePage() {
     const [products, setProducts] = useState<Product[]>([])
     const [searchQuery, setSearchQuery] = useState('')
-    const [activeCategory, setActiveCategory] = useState('Tất cả')
+    const [activeCategory, setActiveCategory] = useState('all')
     const [loading, setLoading] = useState(true)
 
     const categories = [
@@ -43,7 +44,8 @@ export default function ProductCataloguePage() {
                 query = query.ilike('name', `%${searchQuery}%`)
             }
 
-            if (activeCategory && activeCategory !== 'Tất cả') {
+            // Filter by category using id (which matches database values)
+            if (activeCategory && activeCategory !== 'all') {
                 query = query.eq('category', activeCategory)
             }
 
@@ -94,12 +96,12 @@ export default function ProductCataloguePage() {
                         {categories.map(category => (
                             <Button
                                 key={category.id}
-                                variant={activeCategory === category.name ? "default" : "outline"}
+                                variant={activeCategory === category.id ? "default" : "outline"}
                                 size="sm"
-                                onClick={() => setActiveCategory(category.name)}
+                                onClick={() => setActiveCategory(category.id)}
                                 className={cn(
                                     "rounded-full whitespace-nowrap font-medium transition-all",
-                                    activeCategory === category.name 
+                                    activeCategory === category.id 
                                         ? "bg-gradient-to-r from-[#175ead] to-[#2575be] text-white shadow-md" 
                                         : "bg-white text-gray-700 border-gray-300 hover:border-[#2575be]"
                                 )}
@@ -157,6 +159,8 @@ export default function ProductCataloguePage() {
                     </div>
                 </div>
             </div>
+
+            <PublicFooter />
         </div>
     )
 }

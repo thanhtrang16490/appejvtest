@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PublicHeader } from "@/components/layout/PublicHeader";
+import { PublicFooter } from "@/components/layout/PublicFooter";
 import { 
   ShoppingBag, 
   Users, 
@@ -224,108 +225,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Contact Section */}
-      <section id="contact" className="py-20 px-4 bg-gradient-to-br from-gray-50 to-blue-50">
-        <div className="container mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Liên hệ với chúng tôi</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Đội ngũ chuyên gia sẵn sàng hỗ trợ bạn
-            </p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto mb-12">
-            <Card className="border-0 shadow-lg text-center bg-white hover:shadow-xl transition-shadow">
-              <CardContent className="p-8">
-                <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Phone className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="text-xl font-bold mb-3">Điện thoại</h3>
-                <p className="text-blue-600 font-semibold">+84 3513 595 202</p>
-                <p className="text-blue-600 font-semibold">+84 3513 595 203</p>
-              </CardContent>
-            </Card>
-            <Card className="border-0 shadow-lg text-center bg-white hover:shadow-xl transition-shadow">
-              <CardContent className="p-8">
-                <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Mail className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="text-xl font-bold mb-3">Email</h3>
-                <p className="text-green-600 font-semibold">info@appe.com.vn</p>
-                <a href="https://appe.com.vn" target="_blank" rel="noopener noreferrer" className="text-green-600 hover:underline text-sm">
-                  appe.com.vn
-                </a>
-              </CardContent>
-            </Card>
-            <Card className="border-0 shadow-lg text-center bg-white hover:shadow-xl transition-shadow">
-              <CardContent className="p-8">
-                <div className="w-16 h-16 bg-gradient-to-r from-[#175ead] to-[#2575be] rounded-full flex items-center justify-center mx-auto mb-4">
-                  <MapPin className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="text-xl font-bold mb-3">Địa chỉ</h3>
-                <p className="text-purple-600 font-semibold text-sm leading-relaxed">
-                  Km 50 Quốc lộ 1A, Xã Tiên Tân<br />
-                  TP. Phủ Lý, Tỉnh Hà Nam<br />
-                  Việt Nam
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12 px-4">
-        <div className="container mx-auto">
-          <div className="grid md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <img 
-                  src="/appejv-logo.png" 
-                  alt="APPE JV Logo" 
-                  className="w-10 h-10 object-contain"
-                />
-                <div>
-                  <div className="text-xl font-bold">APPE JV</div>
-                  <div className="text-xs text-gray-400">A Group</div>
-                </div>
-              </div>
-              <p className="text-gray-400 text-sm">
-                Công ty Cổ phần APPE JV Việt Nam<br />
-                Giải pháp dinh dưỡng cho chăn nuôi & thủy sản
-              </p>
-            </div>
-            <div>
-              <h4 className="font-bold mb-4">Sản phẩm</h4>
-              <ul className="space-y-2 text-gray-400 text-sm">
-                <li>Pig Feed - Thức ăn cho heo</li>
-                <li>Poultry Feed - Thức ăn gia cầm</li>
-                <li>Fish Feed - Thức ăn thủy sản</li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold mb-4">Về chúng tôi</h4>
-              <ul className="space-y-2 text-gray-400 text-sm">
-                <li>Giới thiệu công ty</li>
-                <li>Tầm nhìn & Sứ mệnh</li>
-                <li>Đối tác & Hoạt động</li>
-                <li>Tin tức APPE</li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold mb-4">Liên hệ</h4>
-              <ul className="space-y-2 text-gray-400 text-sm">
-                <li>📞 +84 3513 595 202/203</li>
-                <li>✉️ info@appe.com.vn</li>
-                <li>🌐 appe.com.vn</li>
-                <li>📍 Km 50 QL1A, Phủ Lý, Hà Nam</li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400 text-sm">
-            <p>&copy; 2024 APPE JV Việt Nam. Thành lập năm 2008. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
+      <PublicFooter />
     </div>
   );
 }
