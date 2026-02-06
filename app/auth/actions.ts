@@ -1,7 +1,6 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 
 export async function login(formData: FormData) {
@@ -26,7 +25,7 @@ export async function login(formData: FormData) {
         })
         error = result.error
     } else {
-        return { error: 'Email or Phone is required' }
+        return { error: 'Email hoặc số điện thoại là bắt buộc' }
     }
 
     if (error) {
@@ -35,37 +34,28 @@ export async function login(formData: FormData) {
 
     revalidatePath('/', 'layout')
 
-    // Check user role to decide where to redirect
+    // Return user role for client-side redirect
     try {
         const { data: { user } } = await supabase.auth.getUser()
         if (user) {
-            // Try to get profile with timeout
             const { data: profile, error: profileError } = await supabase
                 .from('profiles')
                 .select('role')
                 .eq('id', user.id)
                 .single()
 
-            // If profile query fails or no profile, redirect to customer dashboard as default
             if (profileError || !profile) {
                 console.error('Profile query error:', profileError)
-                redirect('/customer/dashboard')
+                return { success: true, role: 'customer' }
             }
 
-            // Sales staff go to sales dashboard
-            if (profile && ['sale', 'admin', 'sale_admin'].includes((profile as any).role)) {
-                redirect('/sales')
-            } else {
-                // Customers go to dashboard
-                redirect('/customer/dashboard')
-            }
+            return { success: true, role: (profile as any).role }
         } else {
-            redirect('/auth/login')
+            return { error: 'Không tìm thấy thông tin người dùng' }
         }
     } catch (err) {
-        console.error('Login redirect error:', err)
-        // Default to customer dashboard if anything fails
-        redirect('/customer/dashboard')
+        console.error('Login error:', err)
+        return { error: 'Có lỗi xảy ra khi đăng nhập' }
     }
 }
 
@@ -73,5 +63,4 @@ export async function logout() {
     const supabase = await createClient()
     await supabase.auth.signOut()
     revalidatePath('/', 'layout')
-    redirect('/')
 }

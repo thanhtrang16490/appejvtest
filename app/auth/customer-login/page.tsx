@@ -21,14 +21,26 @@ export default function CustomerLoginPage() {
         event.preventDefault()
         setLoading(true)
 
-        const formData = new FormData(event.currentTarget)
-        const result = await login(formData)
+        try {
+            const formData = new FormData(event.currentTarget)
+            const result = await login(formData)
 
-        if (result?.error) {
-            toast.error(result.error)
+            if (result?.error) {
+                toast.error(result.error)
+                setLoading(false)
+            } else if (result?.success) {
+                toast.success('Đăng nhập thành công!')
+                
+                // Redirect based on role
+                if (['sale', 'admin', 'sale_admin'].includes(result.role)) {
+                    router.push('/sales')
+                } else {
+                    router.push('/customer/dashboard')
+                }
+            }
+        } catch (error: any) {
+            toast.error('Có lỗi xảy ra khi đăng nhập')
             setLoading(false)
-        } else {
-            toast.success('Đăng nhập thành công!')
         }
     }
 
