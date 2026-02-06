@@ -39,8 +39,22 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
+    statusBarStyle: "black-translucent",
     title: "APPE JV",
+    startupImage: [
+      {
+        url: "/apple-icon-180.png",
+        media: "(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)",
+      },
+      {
+        url: "/apple-icon-180.png",
+        media: "(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)",
+      },
+      {
+        url: "/apple-icon-180.png",
+        media: "(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)",
+      },
+    ],
   },
   formatDetection: {
     telephone: true,
@@ -49,12 +63,21 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/appejv-logo.svg", type: "image/svg+xml" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
       { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
       { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
     ],
     apple: [
       { url: "/apple-icon-180.png", sizes: "180x180", type: "image/png" },
+      { url: "/apple-icon-180.png", sizes: "120x120", type: "image/png" },
+      { url: "/apple-icon-180.png", sizes: "152x152", type: "image/png" },
+    ],
+    other: [
+      {
+        rel: "apple-touch-icon-precomposed",
+        url: "/apple-icon-180.png",
+      },
     ],
   },
   themeColor: "#175ead",
@@ -138,12 +161,18 @@ export default async function RootLayout({
     <html lang="vi">
       <head>
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-        <link rel="alternate icon" href="/favicon-32x32.png" type="image/png" />
-        <link rel="apple-touch-icon" href="/apple-icon-180.png" />
+        <link rel="alternate icon" href="/favicon-32x32.png" type="image/png" sizes="32x32" />
+        <link rel="apple-touch-icon" href="/apple-icon-180.png" sizes="180x180" />
+        <link rel="apple-touch-icon-precomposed" href="/apple-icon-180.png" />
+        <link rel="mask-icon" href="/appejv-logo.svg" color="#175ead" />
         <meta name="theme-color" content="#175ead" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="APPE JV" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="application-name" content="APPE JV" />
+        <meta name="msapplication-TileColor" content="#175ead" />
+        <meta name="msapplication-TileImage" content="/icon-512.png" />
         
         {/* Zalo Open Graph Tags */}
         <meta property="zalo:app_id" content="YOUR_ZALO_APP_ID" />
