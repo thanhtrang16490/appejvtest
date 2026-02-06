@@ -8,11 +8,7 @@ import {
     Menu, 
     X, 
     Home,
-    Package,
     Phone,
-    Mail,
-    MapPin,
-    ChevronRight,
     User,
     Users,
     Info,
@@ -21,26 +17,6 @@ import {
 
 export function PublicHeader() {
   const [isOpen, setIsOpen] = useState(false)
-
-  const menuSections = [
-    {
-      title: 'Khám phá',
-      items: [
-        { href: '/', label: 'Trang chủ', icon: Home, description: 'Về trang chủ' },
-        { href: '/gioi-thieu', label: 'Giới thiệu', icon: Info, description: 'Về chúng tôi' },
-        { href: '/san-pham', label: 'Sản phẩm', icon: ShoppingBag, description: 'Xem danh mục sản phẩm' },
-        { href: '/lien-he', label: 'Liên hệ', icon: Phone, description: 'Liên hệ với chúng tôi' },
-      ]
-    },
-    {
-      title: 'Liên hệ',
-      items: [
-        { href: 'tel:+84351359520', label: 'Hotline: 0351 3595 202/203', icon: Phone, description: 'Gọi ngay' },
-        { href: 'mailto:info@appe.com.vn', label: 'Email hỗ trợ', icon: Mail, description: 'info@appe.com.vn' },
-        { href: '/lien-he', label: 'Địa chỉ', icon: MapPin, description: 'Km 50 QL1A, Phủ Lý, Hà Nam' },
-      ]
-    }
-  ]
 
   const closeMenu = () => setIsOpen(false)
 
@@ -105,12 +81,12 @@ export function PublicHeader() {
 
       {/* Mobile Drawer */}
       <div className={cn(
-        "fixed top-0 right-0 h-full w-80 bg-white border-l border-gray-200 shadow-2xl z-[70] transform transition-transform duration-300 ease-in-out md:hidden",
+        "fixed top-0 right-0 h-full w-full bg-white shadow-2xl z-[70] transform transition-transform duration-300 ease-in-out md:hidden",
         isOpen ? "translate-x-0" : "translate-x-full"
       )}>
         <div className="flex flex-col h-full">
           {/* Drawer Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-cyan-50">
+          <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-cyan-50">
             <div className="flex items-center gap-3">
               <img 
                 src="/appejv-logo.png" 
@@ -118,8 +94,8 @@ export function PublicHeader() {
                 className="w-10 h-10 object-contain"
               />
               <div>
-                <h2 className="text-xl font-bold text-gray-900">APPE JV</h2>
-                <p className="text-xs text-gray-600">Hệ thống bán hàng</p>
+                <h2 className="text-lg font-bold text-gray-900">APPE JV</h2>
+                <p className="text-xs text-gray-600">Thức ăn chăn nuôi chất lượng cao</p>
               </div>
             </div>
             <Button
@@ -128,56 +104,41 @@ export function PublicHeader() {
               className="rounded-full hover:bg-white/50"
               onClick={closeMenu}
             >
-              <X className="h-5 w-5 text-gray-600" />
+              <X className="h-6 w-6 text-gray-600" />
             </Button>
           </div>
 
-          {/* Drawer Content */}
-          <div className="flex-1 overflow-y-auto">
-            {menuSections.map((section, sectionIndex) => (
-              <div key={sectionIndex} className="py-4">
-                <h3 className="px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-                  {section.title}
-                </h3>
-                <nav className="space-y-1 px-3">
-                  {section.items.map((item, itemIndex) => (
-                    item.href.startsWith('#') ? (
-                      <a
-                        key={itemIndex}
-                        href={item.href}
-                        onClick={closeMenu}
-                        className="flex items-center gap-4 px-3 py-3 rounded-xl text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-cyan-50 hover:text-[#175ead] transition-all group"
-                      >
-                        <div className="p-2 rounded-lg bg-gray-100 group-hover:bg-[#175ead]/10 transition-colors">
-                          <item.icon className="w-5 h-5 text-gray-600 group-hover:text-[#175ead]" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-sm">{item.label}</p>
-                          <p className="text-xs text-gray-500">{item.description}</p>
-                        </div>
-                        <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-[#175ead]" />
-                      </a>
-                    ) : (
-                      <Link
-                        key={itemIndex}
-                        href={item.href}
-                        onClick={closeMenu}
-                        className="flex items-center gap-4 px-3 py-3 rounded-xl text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-cyan-50 hover:text-[#175ead] transition-all group"
-                      >
-                        <div className="p-2 rounded-lg bg-gray-100 group-hover:bg-[#175ead]/10 transition-colors">
-                          <item.icon className="w-5 h-5 text-gray-600 group-hover:text-[#175ead]" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-sm">{item.label}</p>
-                          <p className="text-xs text-gray-500">{item.description}</p>
-                        </div>
-                        <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-[#175ead]" />
-                      </Link>
-                    )
-                  ))}
-                </nav>
-              </div>
-            ))}
+          {/* Drawer Content - Main Menu */}
+          <div className="flex-1 px-4 py-6 bg-white">
+            <h3 className="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+              Menu chính
+            </h3>
+            <nav className="space-y-2">
+              <Link href="/" onClick={closeMenu} className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-cyan-50 hover:text-[#175ead] transition-all group">
+                <div className="p-2 rounded-lg bg-gray-100 group-hover:bg-[#175ead]/10 transition-colors">
+                  <Home className="w-5 h-5 text-gray-600 group-hover:text-[#175ead]" />
+                </div>
+                <span className="font-medium">Trang chủ</span>
+              </Link>
+              <Link href="/gioi-thieu" onClick={closeMenu} className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-cyan-50 hover:text-[#175ead] transition-all group">
+                <div className="p-2 rounded-lg bg-gray-100 group-hover:bg-[#175ead]/10 transition-colors">
+                  <Info className="w-5 h-5 text-gray-600 group-hover:text-[#175ead]" />
+                </div>
+                <span className="font-medium">Giới thiệu</span>
+              </Link>
+              <Link href="/san-pham" onClick={closeMenu} className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-cyan-50 hover:text-[#175ead] transition-all group">
+                <div className="p-2 rounded-lg bg-gray-100 group-hover:bg-[#175ead]/10 transition-colors">
+                  <ShoppingBag className="w-5 h-5 text-gray-600 group-hover:text-[#175ead]" />
+                </div>
+                <span className="font-medium">Sản phẩm</span>
+              </Link>
+              <Link href="/lien-he" onClick={closeMenu} className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-cyan-50 hover:text-[#175ead] transition-all group">
+                <div className="p-2 rounded-lg bg-gray-100 group-hover:bg-[#175ead]/10 transition-colors">
+                  <Phone className="w-5 h-5 text-gray-600 group-hover:text-[#175ead]" />
+                </div>
+                <span className="font-medium">Liên hệ</span>
+              </Link>
+            </nav>
           </div>
 
           {/* Drawer Footer - Login Buttons */}
@@ -188,7 +149,7 @@ export function PublicHeader() {
                 className="w-full rounded-xl border-2 border-[#2575be]/30 hover:bg-[#175ead]/5 hover:border-[#2575be] text-[#175ead] font-medium"
                 size="lg"
               >
-                <User className="w-4 h-4 mr-2" />
+                <User className="w-5 h-5 mr-2" />
                 Đăng nhập khách hàng
               </Button>
             </Link>
@@ -197,17 +158,10 @@ export function PublicHeader() {
                 className="w-full bg-gradient-to-r from-[#175ead] to-[#2575be] hover:from-blue-600 hover:to-purple-600 text-white rounded-xl shadow-lg font-medium" 
                 size="lg"
               >
-                <Users className="w-4 h-4 mr-2" />
+                <Users className="w-5 h-5 mr-2" />
                 Đăng nhập nhân viên
               </Button>
             </Link>
-          </div>
-
-          {/* Contact Info Footer */}
-          <div className="p-4 bg-gradient-to-r from-blue-50 to-cyan-50 text-center border-t border-gray-100">
-            <p className="text-xs text-gray-600 mb-1">Hỗ trợ 24/7</p>
-            <p className="text-sm font-semibold text-gray-900">📞 0351 3595 202/203</p>
-            <p className="text-xs text-gray-500 mt-1">✉️ info@appe.com.vn</p>
           </div>
         </div>
       </div>
