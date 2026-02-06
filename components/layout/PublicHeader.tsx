@@ -48,9 +48,11 @@ export function PublicHeader() {
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 group">
-          <div className="w-10 h-10 bg-gradient-to-r from-green-400 to-blue-500 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow">
-            <span className="text-white font-bold text-lg">A</span>
-          </div>
+          <img 
+            src="/appejv-logo.png" 
+            alt="APPE JV Logo" 
+            className="w-10 h-10 object-contain group-hover:scale-105 transition-transform"
+          />
           <span className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
             APPE JV
           </span>
@@ -109,9 +111,11 @@ export function PublicHeader() {
           {/* Drawer Header */}
           <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-gradient-to-r from-purple-50 to-blue-50">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-green-400 to-blue-500 rounded-xl flex items-center justify-center shadow-lg">
-                <span className="text-white font-bold text-lg">A</span>
-              </div>
+              <img 
+                src="/appejv-logo.png" 
+                alt="APPE JV Logo" 
+                className="w-10 h-10 object-contain"
+              />
               <div>
                 <h2 className="text-xl font-bold text-gray-900">APPE JV</h2>
                 <p className="text-xs text-gray-600">Hệ thống bán hàng</p>
