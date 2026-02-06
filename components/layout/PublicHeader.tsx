@@ -30,7 +30,7 @@ export function PublicHeader() {
             alt="APPE JV Logo" 
             className="w-10 h-10 object-contain group-hover:scale-105 transition-transform"
           />
-          <span className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+          <span className="text-2xl font-bold bg-gradient-to-r from-[#175ead] to-[#2575be] bg-clip-text text-transparent">
             APPE JV
           </span>
         </Link>
