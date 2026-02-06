@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PublicHeader } from "@/components/layout/PublicHeader";
 import { PublicFooter } from "@/components/layout/PublicFooter";
 import { EcosystemOrbit3D } from "@/components/ecosystem/EcosystemOrbit3D";
+import { YouTubePlayer } from "@/components/video/YouTubePlayer";
 import { 
   Award,
   ArrowRight,
@@ -207,14 +208,7 @@ export default function Home() {
           </div>
           <div className="max-w-4xl mx-auto">
             <div className="relative aspect-video rounded-2xl overflow-hidden shadow-2xl bg-gray-100">
-              <iframe
-                className="w-full h-full"
-                src="https://www.youtube.com/embed/Wu_9WTZPMwY?si=GbagrIg01IBKqdse"
-                title="YouTube video player"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                referrerPolicy="strict-origin-when-cross-origin"
-                allowFullScreen
-              />
+              <YouTubePlayer videoId="Wu_9WTZPMwY" className="w-full h-full" />
             </div>
           </div>
         </div>
@@ -238,15 +232,15 @@ export default function Home() {
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-4xl mx-auto mt-8">
             {ecosystem.filter(b => !b.isParent).map((brand, index) => (
               <Card key={index} className="border-2 border-gray-200 hover:border-[#2575be] hover:shadow-lg transition-all bg-white">
-                <CardContent className="p-3 text-center aspect-[16/9] flex flex-col items-center justify-center gap-0">
-                  <div className="w-32 h-32 mx-auto flex items-center justify-center">
+                <CardContent className="p-3 text-center aspect-[16/9] flex flex-col items-center justify-center gap-1">
+                  <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 flex items-center justify-center flex-shrink-0">
                     <img 
                       src={brand.logo} 
                       alt={`${brand.name} Logo`}
                       className="w-full h-full object-contain"
                     />
                   </div>
-                  <p className="text-sm text-gray-600">{brand.description}</p>
+                  <p className="text-xs sm:text-sm text-gray-600 leading-tight">{brand.description}</p>
                 </CardContent>
               </Card>
             ))}

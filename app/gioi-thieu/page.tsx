@@ -1,5 +1,6 @@
 import { PublicHeader } from '@/components/layout/PublicHeader'
 import { PublicFooter } from '@/components/layout/PublicFooter'
+import { YouTubePlayer } from '@/components/video/YouTubePlayer'
 import { Card, CardContent } from '@/components/ui/card'
 import { 
   Factory, 
@@ -198,15 +199,7 @@ export default function AboutPage() {
               Khám phá hành trình và cam kết của APPE JV trong việc cung cấp thức ăn chăn nuôi chất lượng cao
             </p>
             <div className="relative aspect-video rounded-2xl overflow-hidden shadow-2xl bg-white">
-              <iframe
-                className="w-full h-full"
-                src="https://www.youtube.com/embed/Wu_9WTZPMwY?si=GbagrIg01IBKqdse"
-                title="YouTube video player"
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                referrerPolicy="strict-origin-when-cross-origin"
-                allowFullScreen
-              />
+              <YouTubePlayer videoId="Wu_9WTZPMwY" className="w-full h-full" />
             </div>
           </div>
         </div>
