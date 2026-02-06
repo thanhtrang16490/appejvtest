@@ -40,33 +40,42 @@ export interface Database {
           id: number
           code: string
           name: string
+          slug: string | null
           unit: string | null
           stock: number
           image_url: string | null
           price: number
-          category: string | null // Added field
+          category: string | null
+          description: string | null
+          specifications: string | null
           created_at?: string
         }
         Insert: {
           id?: number
           code: string
           name: string
+          slug?: string | null
           unit?: string | null
           stock?: number
           image_url?: string | null
           price?: number
           category?: string | null
+          description?: string | null
+          specifications?: string | null
           created_at?: string
         }
         Update: {
           id?: number
           code?: string
           name?: string
+          slug?: string | null
           unit?: string | null
           stock?: number
           image_url?: string | null
           price?: number
           category?: string | null
+          description?: string | null
+          specifications?: string | null
           created_at?: string
         }
       }

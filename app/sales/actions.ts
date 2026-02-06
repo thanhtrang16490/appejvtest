@@ -3,6 +3,76 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 
+export async function uploadProductImage(formData: FormData) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Unauthorized' }
+
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+    if ((profile as any)?.role !== 'admin') return { error: 'Chỉ Admin mới có quyền thực hiện' }
+
+    const file = formData.get('file') as File
+    if (!file) return { error: 'No file provided' }
+
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
+    if (!validTypes.includes(file.type)) {
+        return { error: 'Chỉ chấp nhận file ảnh (JPG, PNG, WEBP)' }
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+        return { error: 'Kích thước file không được vượt quá 5MB' }
+    }
+
+    try {
+        // Generate unique filename
+        const fileExt = file.name.split('.').pop()
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
+        const filePath = `products/${fileName}`
+
+        // Upload to Supabase Storage
+        const { data, error } = await supabase.storage
+            .from('product-images')
+            .upload(filePath, file, {
+                cacheControl: '3600',
+                upsert: false
+            })
+
+        if (error) throw error
+
+        // Get public URL
+        const { data: { publicUrl } } = supabase.storage
+            .from('product-images')
+            .getPublicUrl(filePath)
+
+        return { success: true, url: publicUrl, path: filePath }
+    } catch (error: any) {
+        return { error: error.message || 'Failed to upload image' }
+    }
+}
+
+export async function deleteProductImage(imagePath: string) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Unauthorized' }
+
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+    if ((profile as any)?.role !== 'admin') return { error: 'Chỉ Admin mới có quyền thực hiện' }
+
+    try {
+        const { error } = await supabase.storage
+            .from('product-images')
+            .remove([imagePath])
+
+        if (error) throw error
+
+        return { success: true }
+    } catch (error: any) {
+        return { error: error.message || 'Failed to delete image' }
+    }
+}
+
 export async function updateStock(productId: number, newStock: number) {
     const supabase = await createClient()
 

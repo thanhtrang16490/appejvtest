@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Search, Package, Filter } from 'lucide-react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { useState, useEffect } from 'react'
 import { PublicHeader } from '@/components/layout/PublicHeader'
@@ -167,48 +168,38 @@ export default function ProductCataloguePage() {
 
 function ProductCatalogueCard({ product }: { product: Product }) {
     return (
-        <Card className="group overflow-hidden hover:shadow-xl transition-all duration-300 border-gray-200 hover:border-[#2575be]">
-            {/* Product Image */}
-            <div className="relative aspect-square bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
-                {product.image_url ? (
-                    <Image
-                        src={product.image_url}
-                        alt={product.name}
-                        fill
-                        className="object-cover group-hover:scale-110 transition-transform duration-300"
-                    />
-                ) : (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                        <Package className="h-12 w-12 md:h-20 md:w-20 text-gray-300" />
-                    </div>
-                )}
-                
-                {/* Category Badge */}
-                <div className="absolute top-2 left-2">
-                    <span className="bg-white/95 backdrop-blur-sm text-[#175ead] px-2 py-0.5 md:px-3 md:py-1 rounded-full text-[10px] md:text-xs font-semibold shadow-md">
-                        {product.category || 'Sản phẩm'}
-                    </span>
-                </div>
-            </div>
-
-            {/* Product Info */}
-            <div className="p-2 md:p-4">
-                <h3 className="font-bold text-sm md:text-lg text-gray-900 line-clamp-2 group-hover:text-[#175ead] transition-colors">
-                    {product.name}
-                </h3>
-
-                {/* Stock Status */}
-                {product.stock !== null && product.stock !== undefined && (
-                    <div className="flex items-center justify-center mt-2 md:mt-3 pt-2 md:pt-3 border-t border-gray-100">
-                        <span className={cn(
-                            "text-xs md:text-sm font-semibold",
-                            product.stock > 0 ? "text-green-600" : "text-red-600"
-                        )}>
-                            {product.stock > 0 ? '✓ Còn hàng' : '✗ Hết hàng'}
+        <Link href={`/san-pham/${product.slug || product.id}`}>
+            <Card className="group overflow-hidden hover:shadow-xl transition-all duration-300 border-gray-200 hover:border-[#2575be] cursor-pointer">
+                {/* Product Image */}
+                <div className="relative aspect-square bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
+                    {product.image_url ? (
+                        <Image
+                            src={product.image_url}
+                            alt={product.name}
+                            fill
+                            className="object-cover group-hover:scale-110 transition-transform duration-300"
+                        />
+                    ) : (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <Package className="h-12 w-12 md:h-20 md:w-20 text-gray-300" />
+                        </div>
+                    )}
+                    
+                    {/* Category Badge */}
+                    <div className="absolute top-2 left-2">
+                        <span className="bg-white/95 backdrop-blur-sm text-[#175ead] px-2 py-0.5 md:px-3 md:py-1 rounded-full text-[10px] md:text-xs font-semibold shadow-md">
+                            {product.category || 'Sản phẩm'}
                         </span>
                     </div>
-                )}
-            </div>
-        </Card>
+                </div>
+
+                {/* Product Info */}
+                <div className="p-2 md:p-4">
+                    <h3 className="font-bold text-sm md:text-lg text-gray-900 line-clamp-2 group-hover:text-[#175ead] transition-colors">
+                        {product.name}
+                    </h3>
+                </div>
+            </Card>
+        </Link>
     )
 }

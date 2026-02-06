@@ -8,10 +8,11 @@ import { updateStock, deleteProduct } from '@/app/sales/actions'
 import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
-import { Search, AlertCircle, Package, Edit, Trash2, Plus } from 'lucide-react'
+import { Search, AlertCircle, Package, Edit, Trash2, Plus, ChevronRight } from 'lucide-react'
 import { formatCurrency, cn } from '@/lib/utils'
 import { ProductDialog } from './ProductDialog'
 import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 
 type Product = Database['public']['Tables']['products']['Row']
 
@@ -118,58 +119,31 @@ export function InventoryTable({ initialProducts, isAdmin = false }: { initialPr
             {/* Mobile View: Cards */}
             <div className="grid grid-cols-1 gap-4 md:hidden">
                 {filteredProducts.map((product) => (
-                    <Card key={product.id} className="border-none shadow-md overflow-hidden bg-white">
-                        <div className={cn("h-1 w-full", product.stock < 10 ? "bg-destructive" : "bg-emerald-500/20")} />
-                        <CardContent className="p-4 space-y-4">
-                            <div className="flex justify-between items-start gap-4">
-                                <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
-                                            {product.code}
-                                        </span>
-                                        <StockStatus stock={product.stock} />
-                                    </div>
-                                    <h3 className="font-bold text-lg leading-tight truncate">{product.name}</h3>
-                                    <p className="text-xs text-muted-foreground mt-1">
-                                        {formatCurrency(product.price)} / {product.unit || 'đơn vị'}
-                                    </p>
-                                </div>
-                                <div className="flex flex-col gap-2">
-                                    {isAdmin && (
-                                        <div className="flex gap-1">
-                                            <Button variant="ghost" size="icon-xs" onClick={() => setEditingProduct(product)}>
-                                                <Edit className="w-3.5 h-3.5" />
-                                            </Button>
-                                            <Button variant="ghost" size="icon-xs" className="text-destructive" onClick={() => handleDelete(product.id)}>
-                                                <Trash2 className="w-3.5 h-3.5" />
-                                            </Button>
+                    <Link key={product.id} href={`/sales/inventory/${product.id}`}>
+                        <Card className="border-none shadow-md overflow-hidden bg-white hover:shadow-lg transition-all active:scale-[0.99]">
+                            <div className={cn("h-1 w-full", product.stock < 10 ? "bg-destructive" : "bg-emerald-500/20")} />
+                            <CardContent className="p-4">
+                                <div className="flex justify-between items-start gap-4">
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                                                {product.code}
+                                            </span>
+                                            <StockStatus stock={product.stock} />
                                         </div>
-                                    )}
-                                    <div className="p-2 bg-muted rounded-xl self-end">
-                                        <Package className="w-5 h-5 text-muted-foreground/50" />
+                                        <h3 className="font-bold text-lg leading-tight truncate">{product.name}</h3>
+                                        <p className="text-xs text-muted-foreground mt-1">
+                                            {formatCurrency(product.price)} / {product.unit || 'đơn vị'}
+                                        </p>
+                                        <p className="text-sm font-medium text-gray-600 mt-2">
+                                            Tồn kho: <span className="text-gray-900">{product.stock} {product.unit || 'đơn vị'}</span>
+                                        </p>
                                     </div>
+                                    <ChevronRight className="w-5 h-5 text-gray-300 flex-shrink-0" />
                                 </div>
-                            </div>
-
-                            <div className="flex items-center justify-between pt-2 border-t border-dashed">
-                                <span className="text-sm font-medium">Số lượng tồn kho</span>
-                                <div className="flex items-center gap-2">
-                                    <Input
-                                        type="number"
-                                        defaultValue={product.stock}
-                                        className="h-10 w-24 text-center font-bold bg-muted/50 border-none rounded-xl"
-                                        onBlur={(e) => handleStockUpdate(product.id, e.target.value)}
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter') {
-                                                handleStockUpdate(product.id, e.currentTarget.value)
-                                                e.currentTarget.blur()
-                                            }
-                                        }}
-                                    />
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
+                            </CardContent>
+                        </Card>
+                    </Link>
                 ))}
             </div>
 
@@ -187,7 +161,7 @@ export function InventoryTable({ initialProducts, isAdmin = false }: { initialPr
                     </TableHeader>
                     <TableBody>
                         {filteredProducts.map((product) => (
-                            <TableRow key={product.id} className="hover:bg-muted/30 transition-colors border-muted/50">
+                            <TableRow key={product.id} className="hover:bg-muted/30 transition-colors border-muted/50 cursor-pointer" onClick={() => window.location.href = `/sales/inventory/${product.id}`}>
                                 <TableCell className="font-mono text-xs pl-6">{product.code}</TableCell>
                                 <TableCell>
                                     <div className="font-bold">{product.name}</div>
@@ -199,32 +173,10 @@ export function InventoryTable({ initialProducts, isAdmin = false }: { initialPr
                                     <StockStatus stock={product.stock} />
                                 </TableCell>
                                 <TableCell>
-                                    <Input
-                                        type="number"
-                                        defaultValue={product.stock}
-                                        className="h-9 w-24 text-center font-medium bg-muted/50 border-none focus-visible:ring-primary/20 rounded-lg"
-                                        onBlur={(e) => handleStockUpdate(product.id, e.target.value)}
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter') {
-                                                handleStockUpdate(product.id, e.currentTarget.value)
-                                                e.currentTarget.blur()
-                                            }
-                                        }}
-                                    />
+                                    <span className="font-medium">{product.stock} {product.unit || 'đơn vị'}</span>
                                 </TableCell>
                                 <TableCell className="pr-6">
-                                    <div className="flex justify-end gap-1">
-                                        {isAdmin && (
-                                            <>
-                                                <Button variant="ghost" size="icon-sm" onClick={() => setEditingProduct(product)}>
-                                                    <Edit className="w-4 h-4" />
-                                                </Button>
-                                                <Button variant="ghost" size="icon-sm" className="text-destructive" onClick={() => handleDelete(product.id)}>
-                                                    <Trash2 className="w-4 h-4" />
-                                                </Button>
-                                            </>
-                                        )}
-                                    </div>
+                                    <ChevronRight className="w-5 h-5 text-gray-300 ml-auto" />
                                 </TableCell>
                             </TableRow>
                         ))}

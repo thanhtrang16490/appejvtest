@@ -1,9 +1,31 @@
 import { MetadataRoute } from 'next'
+import { createClient } from '@/lib/supabase/server'
 
-export default function sitemap(): MetadataRoute.Sitemap {
+type ProductForSitemap = {
+  id: number
+  slug: string | null
+  created_at: string
+}
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://appejv.app'
   
-  return [
+  // Fetch all products with slugs
+  const supabase = await createClient()
+  const { data: products } = await supabase
+    .from('products')
+    .select('slug, id, created_at')
+    .order('id', { ascending: true })
+  
+  // Generate product URLs
+  const productUrls: MetadataRoute.Sitemap = ((products || []) as ProductForSitemap[]).map((product) => ({
+    url: `${baseUrl}/san-pham/${product.slug || product.id}`,
+    lastModified: product.created_at ? new Date(product.created_at) : new Date(),
+    changeFrequency: 'weekly' as const,
+    priority: 0.7,
+  }))
+  
+  const staticUrls: MetadataRoute.Sitemap = [
     {
       url: baseUrl,
       lastModified: new Date(),
@@ -41,4 +63,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.3,
     },
   ]
+  
+  return [...staticUrls, ...productUrls]
 }
