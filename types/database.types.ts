@@ -166,6 +166,44 @@ export interface Database {
           price_at_order?: number
         }
       }
+      notifications: {
+        Row: {
+          id: string
+          user_id: string
+          type: 'success' | 'warning' | 'info' | 'error'
+          category: 'order' | 'inventory' | 'customer' | 'system'
+          title: string
+          message: string
+          read: boolean
+          metadata: Json
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          type: 'success' | 'warning' | 'info' | 'error'
+          category: 'order' | 'inventory' | 'customer' | 'system'
+          title: string
+          message: string
+          read?: boolean
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          type?: 'success' | 'warning' | 'info' | 'error'
+          category?: 'order' | 'inventory' | 'customer' | 'system'
+          title?: string
+          message?: string
+          read?: boolean
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+        }
+      }
     }
     Views: {
       [_ in never]: never
