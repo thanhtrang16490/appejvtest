@@ -3,17 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PublicHeader } from "@/components/layout/PublicHeader";
 import { PublicFooter } from "@/components/layout/PublicFooter";
+import { EcosystemOrbit3D } from "@/components/ecosystem/EcosystemOrbit3D";
 import { 
-  ShoppingBag, 
-  Users, 
-  TrendingUp, 
   Award,
-  Phone,
-  Mail,
-  MapPin,
-  Star,
   ArrowRight,
-  CheckCircle,
   Fish,
   Bird,
   Beef,
@@ -23,6 +16,45 @@ import {
 } from "lucide-react";
 
 export default function Home() {
+  const ecosystem = [
+    {
+      name: "A Group",
+      logo: "/appejv-logo.png",
+      description: "Tập đoàn hàng đầu trong lĩnh vực nông nghiệp và thực phẩm",
+      isParent: true
+    },
+    {
+      name: "APPE",
+      logo: "/appe-logo.png",
+      description: "Thức ăn chăn nuôi chất lượng cao"
+    },
+    {
+      name: "AFARM",
+      logo: "/afarm-logo.png",
+      description: "Trang trại chăn nuôi công nghệ cao"
+    },
+    {
+      name: "AFOOD",
+      logo: "/afood-logo.png",
+      description: "Chế biến thực phẩm an toàn"
+    },
+    {
+      name: "AGRIL",
+      logo: "/agril-logo.png",
+      description: "Chuỗi nhà hàng 5 sao"
+    },
+    {
+      name: "APHAMA",
+      logo: "/aphama-logo.png",
+      description: "Dược thú y và sinh học"
+    },
+    {
+      name: "AVAC",
+      logo: "/avac-logo.png",
+      description: "Vaccine và sinh phẩm"
+    }
+  ]
+
   const features = [
     {
       icon: Award,
@@ -179,11 +211,55 @@ export default function Home() {
                 className="w-full h-full"
                 src="https://www.youtube.com/embed/Wu_9WTZPMwY?si=GbagrIg01IBKqdse"
                 title="YouTube video player"
-                frameBorder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 referrerPolicy="strict-origin-when-cross-origin"
                 allowFullScreen
               />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* A Group Ecosystem */}
+      <section className="py-12 px-4 bg-gradient-to-br from-gray-50 to-blue-50 overflow-hidden">
+        <div className="container mx-auto">
+          <div className="text-center mb-8">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">Hệ sinh thái A Group</h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              APPE là thành viên của hệ sinh thái A Group - tập đoàn hàng đầu trong lĩnh vực nông nghiệp, 
+              chăn nuôi và thực phẩm tại Việt Nam
+            </p>
+          </div>
+
+          {/* 3D Orbital Ecosystem Visualization with Three.js */}
+          <EcosystemOrbit3D brands={ecosystem} />
+
+          {/* Brand Cards Below */}
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-4xl mx-auto mt-8">
+            {ecosystem.filter(b => !b.isParent).map((brand, index) => (
+              <Card key={index} className="border-2 border-gray-200 hover:border-[#2575be] hover:shadow-lg transition-all bg-white">
+                <CardContent className="p-3 text-center aspect-[16/9] flex flex-col items-center justify-center gap-0">
+                  <div className="w-32 h-32 mx-auto flex items-center justify-center">
+                    <img 
+                      src={brand.logo} 
+                      alt={`${brand.name} Logo`}
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                  <p className="text-sm text-gray-600">{brand.description}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          <div className="mt-8 text-center">
+            <p className="text-gray-600 mb-4">
+              Cùng nhau xây dựng chuỗi giá trị nông nghiệp bền vững từ trang trại đến bàn ăn
+            </p>
+            <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
+              <span className="w-12 h-0.5 bg-gradient-to-r from-transparent to-[#175ead]"></span>
+              <span className="font-semibold text-[#175ead]">Farm to Fork</span>
+              <span className="w-12 h-0.5 bg-gradient-to-l from-transparent to-[#175ead]"></span>
             </div>
           </div>
         </div>

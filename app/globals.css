@@ -134,3 +134,42 @@
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
 }
+
+/* Ecosystem orbital animation with 3D effect */
+@keyframes orbit {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes orbit3d {
+  from {
+    transform: rotateX(60deg) rotateZ(0deg);
+  }
+  to {
+    transform: rotateX(60deg) rotateZ(360deg);
+  }
+}
+
+.ecosystem-orbit {
+  animation: orbit 20s linear infinite;
+}
+
+/* 3D perspective container */
+.perspective-container {
+  perspective: 1200px;
+  perspective-origin: center center;
+}
+
+/* Floating animation for satellites */
+@keyframes float {
+  0%, 100% {
+    transform: translateZ(0px);
+  }
+  50% {
+    transform: translateZ(30px);
+  }
+}
