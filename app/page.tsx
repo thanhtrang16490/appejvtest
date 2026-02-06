@@ -164,6 +164,31 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Company Video */}
+      <section className="py-20 px-4 bg-white">
+        <div className="container mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">Khám phá APPE JV</h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Tìm hiểu về hành trình và cam kết của chúng tôi trong việc cung cấp thức ăn chăn nuôi chất lượng cao
+            </p>
+          </div>
+          <div className="max-w-4xl mx-auto">
+            <div className="relative aspect-video rounded-2xl overflow-hidden shadow-2xl bg-gray-100">
+              <iframe
+                className="w-full h-full"
+                src="https://www.youtube.com/embed/Wu_9WTZPMwY?si=GbagrIg01IBKqdse"
+                title="YouTube video player"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                referrerPolicy="strict-origin-when-cross-origin"
+                allowFullScreen
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Features Section */}
       <section id="about" className="py-20 px-4">
         <div className="container mx-auto">

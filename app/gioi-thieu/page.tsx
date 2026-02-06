@@ -187,6 +187,31 @@ export default function AboutPage() {
         </div>
       </section>
 
+      {/* Company Video */}
+      <section className="py-16 bg-gradient-to-r from-blue-50 to-cyan-50">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-3xl md:text-4xl font-bold text-center mb-4 text-gray-900">
+              Video giới thiệu
+            </h2>
+            <p className="text-center text-gray-600 mb-12">
+              Khám phá hành trình và cam kết của APPE JV trong việc cung cấp thức ăn chăn nuôi chất lượng cao
+            </p>
+            <div className="relative aspect-video rounded-2xl overflow-hidden shadow-2xl bg-white">
+              <iframe
+                className="w-full h-full"
+                src="https://www.youtube.com/embed/Wu_9WTZPMwY?si=GbagrIg01IBKqdse"
+                title="YouTube video player"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                referrerPolicy="strict-origin-when-cross-origin"
+                allowFullScreen
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Products Section */}
       <section className="py-16">
         <div className="container mx-auto px-4">
