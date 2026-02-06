@@ -225,7 +225,7 @@ export default function ProfilePage() {
                     {/* Profile Header */}
                     <div className="text-center pt-8 pb-4">
                         <Avatar className="w-24 h-24 mx-auto mb-4 border-4 border-white shadow-xl">
-                            <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${customer?.name || user.phone}&backgroundColor=3b82f6`} />
+                            <AvatarImage src={customer?.avatar_url || undefined} alt={customer?.name || 'Avatar'} />
                             <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white text-2xl font-bold">
                                 {customer?.name?.[0] || user.phone?.[0] || 'T'}
                             </AvatarFallback>

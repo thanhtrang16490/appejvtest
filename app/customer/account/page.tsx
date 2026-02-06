@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { User, LogOut, MapPin, Phone, Sparkles, Settings, CreditCard, Bell, HelpCircle } from 'lucide-react'
 import { logout } from '@/app/auth/actions'
 import { EditProfileSheet } from '@/components/account/EditProfileSheet'
@@ -143,9 +144,12 @@ export default function AccountPage() {
                     {/* Profile Card */}
                     <Card className="bg-white rounded-2xl shadow-sm border-0">
                         <CardHeader className="flex flex-row items-center gap-4 space-y-0 pb-2">
-                            <div className="h-16 w-16 rounded-full bg-gradient-to-r from-[#175ead] to-[#2575be] flex items-center justify-center text-2xl font-bold text-white">
-                                {customer?.name?.[0] || user.phone?.[0] || 'U'}
-                            </div>
+                            <Avatar className="h-16 w-16 border-2 border-gray-100">
+                                <AvatarImage src={customer?.avatar_url || undefined} alt={customer?.name || 'Avatar'} />
+                                <AvatarFallback className="bg-gradient-to-r from-[#175ead] to-[#2575be] text-2xl font-bold text-white">
+                                    {customer?.name?.[0] || user.phone?.[0] || 'U'}
+                                </AvatarFallback>
+                            </Avatar>
                             <div className="flex-1">
                                 <CardTitle className="text-xl text-gray-900">
                                     {customer?.name || 'Người dùng'}
@@ -157,6 +161,7 @@ export default function AccountPage() {
                             <EditProfileSheet
                                 currentName={customer?.name || ''}
                                 currentAddress={customer?.address || ''}
+                                currentAvatar={customer?.avatar_url}
                             />
                         </CardHeader>
                         <CardContent className="grid gap-4 pt-4">

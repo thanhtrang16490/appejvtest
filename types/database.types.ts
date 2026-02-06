@@ -16,6 +16,7 @@ export interface Database {
           role: 'sale' | 'customer' | 'admin' | 'sale_admin'
           phone: string | null
           manager_id: string | null
+          avatar_url: string | null
           created_at?: string
         }
         Insert: {
@@ -24,6 +25,7 @@ export interface Database {
           role: 'sale' | 'customer' | 'admin' | 'sale_admin'
           phone?: string | null
           manager_id?: string | null
+          avatar_url?: string | null
           created_at?: string
         }
         Update: {
@@ -32,6 +34,7 @@ export interface Database {
           role?: 'sale' | 'customer' | 'admin' | 'sale_admin'
           phone?: string | null
           manager_id?: string | null
+          avatar_url?: string | null
           created_at?: string
         }
       }
@@ -87,6 +90,7 @@ export interface Database {
           address: string | null
           phone: string | null
           assigned_sale: string | null
+          avatar_url: string | null
           created_at?: string
         }
         Insert: {
@@ -96,6 +100,7 @@ export interface Database {
           address?: string | null
           phone?: string | null
           assigned_sale?: string | null
+          avatar_url?: string | null
           created_at?: string
         }
         Update: {
@@ -105,6 +110,7 @@ export interface Database {
           address?: string | null
           phone?: string | null
           assigned_sale?: string | null
+          avatar_url?: string | null
           created_at?: string
         }
       }

@@ -206,3 +206,111 @@ USING (
 **Ngày tạo:** 2026-02-07
 **Version:** 1.0.0
 **Tác giả:** APPE JV Development Team
+
+
+---
+
+## Thiết lập Storage cho Avatars
+
+### Bước 1: Tạo Storage Bucket cho Avatars
+
+1. Vào **Storage** trong Supabase Dashboard
+2. Click **New bucket**
+3. Điền thông tin:
+   - **Name**: `avatars`
+   - **Public bucket**: ✅ Check (để avatar có thể truy cập công khai)
+   - **File size limit**: 2MB
+   - **Allowed MIME types**: `image/jpeg, image/jpg, image/png, image/webp`
+4. Click **Create bucket**
+
+### Bước 2: Thiết lập Storage Policies cho Avatars
+
+Vào tab **Policies** của bucket `avatars` và tạo các policies sau:
+
+#### Policy 1: Public Read Access
+
+```sql
+CREATE POLICY "Public can view avatars"
+ON storage.objects FOR SELECT
+TO public
+USING (bucket_id = 'avatars');
+```
+
+#### Policy 2: Authenticated Upload
+
+```sql
+CREATE POLICY "Authenticated users can upload avatars"
+ON storage.objects FOR INSERT
+TO authenticated
+WITH CHECK (bucket_id = 'avatars');
+```
+
+#### Policy 3: Users can update their own avatars
+
+```sql
+CREATE POLICY "Users can update their own avatars"
+ON storage.objects FOR UPDATE
+TO authenticated
+USING (bucket_id = 'avatars');
+```
+
+#### Policy 4: Users can delete their own avatars
+
+```sql
+CREATE POLICY "Users can delete their own avatars"
+ON storage.objects FOR DELETE
+TO authenticated
+USING (bucket_id = 'avatars');
+```
+
+### Bước 3: Test Avatar Upload
+
+1. Đăng nhập với tài khoản customer hoặc user
+2. Vào trang **Tài khoản**
+3. Click nút **Chỉnh sửa**
+4. Click vào avatar hoặc nút **Tải ảnh lên**
+5. Chọn file ảnh (JPG, PNG, WEBP - max 2MB)
+6. Ảnh sẽ được upload và hiển thị ngay
+
+### Cấu trúc thư mục Avatars
+
+```
+avatars/
+  └── avatars/
+      ├── 1234567890-abc123.jpg
+      ├── 1234567891-def456.png
+      └── ...
+```
+
+### Giới hạn và Quy tắc cho Avatars
+
+- **Kích thước file tối đa**: 2MB
+- **Định dạng cho phép**: JPG, JPEG, PNG, WEBP
+- **Quyền upload**: Authenticated users (đã đăng nhập)
+- **Quyền xem**: Public (mọi người)
+- **Quyền xóa/sửa**: Chủ sở hữu avatar
+
+---
+
+## Tổng kết Storage Buckets
+
+Sau khi hoàn thành, bạn sẽ có 2 buckets:
+
+| Bucket | Mục đích | Max Size | Quyền Upload | Quyền Xem |
+|--------|----------|----------|--------------|-----------|
+| `product-images` | Ảnh sản phẩm | 5MB | Admin only | Public |
+| `avatars` | Avatar người dùng | 2MB | Authenticated | Public |
+
+### Migration SQL cần chạy
+
+Đừng quên chạy migration để thêm cột `avatar_url`:
+
+```bash
+# File: supabase-add-avatar-migration.sql
+```
+
+Xem chi tiết trong file `supabase-add-avatar-migration.sql`
+
+---
+
+**Cập nhật:** 2026-02-07 - Thêm avatar storage
