@@ -27,7 +27,7 @@ export function PublicHeader() {
       title: 'Khám phá',
       items: [
         { href: '/', label: 'Trang chủ', icon: Home, description: 'Về trang chủ' },
-        { href: '/catalog', label: 'Sản phẩm', icon: ShoppingBag, description: 'Xem danh mục sản phẩm' },
+        { href: '/san-pham', label: 'Sản phẩm', icon: ShoppingBag, description: 'Xem danh mục sản phẩm' },
         { href: '#about', label: 'Giới thiệu', icon: Info, description: 'Về chúng tôi' },
       ]
     },
@@ -60,16 +60,16 @@ export function PublicHeader() {
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-8">
-          <Link href="/" className="text-gray-600 hover:text-blue-600 transition-colors font-medium">
+          <Link href="/" className="text-gray-600 hover:text-[#175ead] transition-colors font-medium">
             Trang chủ
           </Link>
-          <Link href="/catalog" className="text-gray-600 hover:text-blue-600 transition-colors font-medium">
+          <Link href="/san-pham" className="text-gray-600 hover:text-[#175ead] transition-colors font-medium">
             Sản phẩm
           </Link>
-          <a href="#about" className="text-gray-600 hover:text-blue-600 transition-colors font-medium">
+          <a href="#about" className="text-gray-600 hover:text-[#175ead] transition-colors font-medium">
             Giới thiệu
           </a>
-          <a href="#contact" className="text-gray-600 hover:text-blue-600 transition-colors font-medium">
+          <a href="#contact" className="text-gray-600 hover:text-[#175ead] transition-colors font-medium">
             Liên hệ
           </a>
           <Link href="/auth/customer-login">
@@ -109,7 +109,7 @@ export function PublicHeader() {
       )}>
         <div className="flex flex-col h-full">
           {/* Drawer Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-gradient-to-r from-purple-50 to-blue-50">
+          <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-cyan-50">
             <div className="flex items-center gap-3">
               <img 
                 src="/appejv-logo.png" 
@@ -145,32 +145,32 @@ export function PublicHeader() {
                         key={itemIndex}
                         href={item.href}
                         onClick={closeMenu}
-                        className="flex items-center gap-4 px-3 py-3 rounded-xl text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:text-blue-600 transition-all group"
+                        className="flex items-center gap-4 px-3 py-3 rounded-xl text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-cyan-50 hover:text-[#175ead] transition-all group"
                       >
-                        <div className="p-2 rounded-lg bg-gray-100 group-hover:bg-blue-100 transition-colors">
-                          <item.icon className="w-5 h-5 text-gray-600 group-hover:text-blue-600" />
+                        <div className="p-2 rounded-lg bg-gray-100 group-hover:bg-[#175ead]/10 transition-colors">
+                          <item.icon className="w-5 h-5 text-gray-600 group-hover:text-[#175ead]" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="font-medium text-sm">{item.label}</p>
                           <p className="text-xs text-gray-500">{item.description}</p>
                         </div>
-                        <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-blue-600" />
+                        <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-[#175ead]" />
                       </a>
                     ) : (
                       <Link
                         key={itemIndex}
                         href={item.href}
                         onClick={closeMenu}
-                        className="flex items-center gap-4 px-3 py-3 rounded-xl text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:text-blue-600 transition-all group"
+                        className="flex items-center gap-4 px-3 py-3 rounded-xl text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-cyan-50 hover:text-[#175ead] transition-all group"
                       >
-                        <div className="p-2 rounded-lg bg-gray-100 group-hover:bg-blue-100 transition-colors">
-                          <item.icon className="w-5 h-5 text-gray-600 group-hover:text-blue-600" />
+                        <div className="p-2 rounded-lg bg-gray-100 group-hover:bg-[#175ead]/10 transition-colors">
+                          <item.icon className="w-5 h-5 text-gray-600 group-hover:text-[#175ead]" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="font-medium text-sm">{item.label}</p>
                           <p className="text-xs text-gray-500">{item.description}</p>
                         </div>
-                        <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-blue-600" />
+                        <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-[#175ead]" />
                       </Link>
                     )
                   ))}
@@ -184,7 +184,7 @@ export function PublicHeader() {
             <Link href="/auth/customer-login" onClick={closeMenu}>
               <Button 
                 variant="outline" 
-                className="w-full rounded-xl border-2 border-blue-200 hover:bg-blue-50 hover:border-blue-300 text-blue-600 font-medium"
+                className="w-full rounded-xl border-2 border-[#2575be]/30 hover:bg-[#175ead]/5 hover:border-[#2575be] text-[#175ead] font-medium"
                 size="lg"
               >
                 <User className="w-4 h-4 mr-2" />
@@ -193,7 +193,7 @@ export function PublicHeader() {
             </Link>
             <Link href="/auth/login" onClick={closeMenu}>
               <Button 
-                className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white rounded-xl shadow-lg font-medium" 
+                className="w-full bg-gradient-to-r from-[#175ead] to-[#2575be] hover:from-blue-600 hover:to-purple-600 text-white rounded-xl shadow-lg font-medium" 
                 size="lg"
               >
                 <Users className="w-4 h-4 mr-2" />
@@ -203,7 +203,7 @@ export function PublicHeader() {
           </div>
 
           {/* Contact Info Footer */}
-          <div className="p-4 bg-gradient-to-r from-purple-50 to-blue-50 text-center border-t border-gray-100">
+          <div className="p-4 bg-gradient-to-r from-blue-50 to-cyan-50 text-center border-t border-gray-100">
             <p className="text-xs text-gray-600 mb-1">Hỗ trợ 24/7</p>
             <p className="text-sm font-semibold text-gray-900">📞 1900 4512</p>
             <p className="text-xs text-gray-500 mt-1">✉️ info@appejv.com</p>

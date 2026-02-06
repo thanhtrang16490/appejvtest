@@ -109,7 +109,7 @@ export function InventoryTable({ initialProducts, isAdmin = false }: { initialPr
                             className={cn(
                                 "rounded-full whitespace-nowrap text-sm font-medium",
                                 categoryFilter === category 
-                                    ? "bg-blue-500 text-white" 
+                                    ? "bg-[#175ead] text-white" 
                                     : "bg-white text-gray-600 border-gray-200"
                             )}
                         >

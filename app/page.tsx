@@ -104,7 +104,7 @@ export default function Home() {
           </div>
           <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
             Giải pháp 
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-green-600"> dinh dưỡng</span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#175ead] to-[#2575be]"> dinh dưỡng</span>
             <br />cho chăn nuôi & thủy sản
           </h1>
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
@@ -112,8 +112,8 @@ export default function Home() {
             giúp nâng cao hiệu quả chăn nuôi tại Việt Nam và khu vực.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/catalog">
-              <Button size="lg" className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white px-8 py-4 text-lg">
+            <Link href="/san-pham">
+              <Button size="lg" className="bg-gradient-to-r from-[#175ead] to-[#2575be] hover:from-blue-700 hover:to-green-700 text-white px-8 py-4 text-lg">
                 Khám phá sản phẩm
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
@@ -212,7 +212,7 @@ export default function Home() {
                     <h3 className="text-2xl font-bold text-gray-900 mb-4">{product.title}</h3>
                   </div>
                   <p className="text-gray-600 text-center mb-6">{product.description}</p>
-                  <Link href="/catalog">
+                  <Link href="/san-pham">
                     <Button variant="outline" className="w-full">
                       Xem chi tiết
                     </Button>
@@ -258,7 +258,7 @@ export default function Home() {
             </Card>
             <Card className="border-0 shadow-lg text-center bg-white hover:shadow-xl transition-shadow">
               <CardContent className="p-8">
-                <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-16 h-16 bg-gradient-to-r from-[#175ead] to-[#2575be] rounded-full flex items-center justify-center mx-auto mb-4">
                   <MapPin className="w-8 h-8 text-white" />
                 </div>
                 <h3 className="text-xl font-bold mb-3">Địa chỉ</h3>

@@ -156,10 +156,10 @@ export function CustomerHome() {
     }
 
     return (
-        <div className="bg-gradient-to-br from-purple-50 to-blue-50 min-h-screen">
+        <div className="bg-gradient-to-br from-blue-50 to-cyan-50 min-h-screen">
             {/* Fixed Header */}
             <div className={cn(
-                "fixed top-0 left-0 right-0 z-50 bg-gradient-to-br from-purple-50 to-blue-50 transition-transform duration-300",
+                "fixed top-0 left-0 right-0 z-50 bg-gradient-to-br from-blue-50 to-cyan-50 transition-transform duration-300",
                 isHeaderVisible ? "translate-y-0" : "-translate-y-full"
             )}>
                 {/* Logo and AI Assistant Row */}
@@ -172,7 +172,7 @@ export function CustomerHome() {
                     </div>
                     <Button 
                         size="sm" 
-                        className="bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-full px-4 py-2 text-sm font-medium"
+                        className="bg-gradient-to-r from-[#175ead] to-[#2575be] text-white rounded-full px-4 py-2 text-sm font-medium"
                     >
                         <Sparkles className="w-4 h-4 mr-1" />
                         Trợ lý AI
@@ -181,7 +181,7 @@ export function CustomerHome() {
             </div>
 
             {/* Fixed Filter Tabs */}
-            <div className="fixed top-20 left-0 right-0 z-40 bg-gradient-to-br from-purple-50 to-blue-50 px-4 pb-2">
+            <div className="fixed top-20 left-0 right-0 z-40 bg-gradient-to-br from-blue-50 to-cyan-50 px-4 pb-2">
                 <div className="flex gap-2 overflow-x-auto">
                     {filterTabs.map((tab) => (
                         <Button
@@ -192,7 +192,7 @@ export function CustomerHome() {
                             className={cn(
                                 "rounded-full whitespace-nowrap text-sm font-medium",
                                 activeFilter === tab.id 
-                                    ? "bg-blue-500 text-white" 
+                                    ? "bg-[#175ead] text-white" 
                                     : "bg-white text-gray-600 border-gray-200"
                             )}
                         >
@@ -233,7 +233,7 @@ export function CustomerHome() {
                                 </div>
                             </div>
                             <div className="flex justify-between items-center mt-4">
-                                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                <div className="w-2 h-2 bg-[#175ead] rounded-full"></div>
                                 <span className="text-xs text-gray-500">
                                     {new Date().toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' })}
                                 </span>

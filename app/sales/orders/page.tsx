@@ -139,7 +139,7 @@ export default function SalesOrdersPage() {
                             <div className="flex items-center gap-3">
                                 <div className={cn("w-1.5 h-6 rounded-full", order.payment_status === 'paid' ? 'bg-emerald-500' : 'bg-rose-500')} title={order.payment_status === 'paid' ? 'Đã thanh toán' : 'Chưa thanh toán'} />
                                 <div className="p-3 bg-gray-100 rounded-xl">
-                                    <ShoppingBag className="w-5 h-5 text-blue-500" />
+                                    <ShoppingBag className="w-5 h-5 text-[#175ead]" />
                                 </div>
                                 <div className="min-w-0">
                                     <h3 className="text-sm font-semibold text-gray-900 truncate">{order.customers?.name || 'Không xác định'}</h3>
@@ -168,7 +168,7 @@ export default function SalesOrdersPage() {
                                 {order.status === 'pending' && (
                                     <Button 
                                         size="sm" 
-                                        className="text-xs bg-blue-500 hover:bg-blue-600"
+                                        className="text-xs bg-[#175ead] hover:bg-blue-600"
                                         onClick={() => handleUpdateOrderStatus(order.id, 'processing')}
                                     >
                                         Xử lý
@@ -199,7 +199,7 @@ export default function SalesOrdersPage() {
 
     if (loading) {
         return (
-            <div className="bg-gradient-to-br from-purple-50 to-blue-50 min-h-screen flex items-center justify-center">
+            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 min-h-screen flex items-center justify-center">
                 <div className="text-gray-500">Đang tải...</div>
             </div>
         )
@@ -207,7 +207,7 @@ export default function SalesOrdersPage() {
 
     if (!user || !profile) {
         return (
-            <div className="bg-gradient-to-br from-purple-50 to-blue-50 min-h-screen flex items-center justify-center">
+            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 min-h-screen flex items-center justify-center">
                 <div className="text-center">
                     <p className="text-gray-600 mb-4">Vui lòng đăng nhập</p>
                     <Button onClick={() => router.push('/auth/login')}>
@@ -222,10 +222,10 @@ export default function SalesOrdersPage() {
     const isSaleAdmin = (profile as any).role === 'sale_admin'
 
     return (
-        <div className="bg-gradient-to-br from-purple-50 to-blue-50 min-h-screen">
+        <div className="bg-gradient-to-br from-blue-50 to-cyan-50 min-h-screen">
             {/* Fixed Header */}
             <div className={cn(
-                "fixed top-0 left-0 right-0 z-50 bg-gradient-to-br from-purple-50 to-blue-50 transition-transform duration-300",
+                "fixed top-0 left-0 right-0 z-50 bg-gradient-to-br from-blue-50 to-cyan-50 transition-transform duration-300",
                 isHeaderVisible ? "translate-y-0" : "-translate-y-full"
             )}>
                 {/* Logo and AI Assistant Row */}
@@ -239,7 +239,7 @@ export default function SalesOrdersPage() {
                     <div className="flex items-center gap-2">
                         <Button 
                             size="sm" 
-                            className="bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-full px-4 py-2 text-sm font-medium"
+                            className="bg-gradient-to-r from-[#175ead] to-[#2575be] text-white rounded-full px-4 py-2 text-sm font-medium"
                         >
                             <Sparkles className="w-4 h-4 mr-1" />
                             Trợ lý AI
@@ -258,7 +258,7 @@ export default function SalesOrdersPage() {
                         <p className="text-sm text-gray-600">Quản lý và theo dõi tiến độ đơn hàng</p>
                     </div>
                     <Link href="/sales/orders/new">
-                        <Button size="sm" className="bg-blue-500 hover:bg-blue-600 rounded-full">
+                        <Button size="sm" className="bg-[#175ead] hover:bg-blue-600 rounded-full">
                             <Plus className="w-4 h-4 mr-1" />
                             Tạo mới
                         </Button>
@@ -273,19 +273,19 @@ export default function SalesOrdersPage() {
                         <TabsList className="grid w-full grid-cols-3 h-12 bg-white/80 p-1 rounded-2xl shadow-sm">
                             <TabsTrigger 
                                 value="pending" 
-                                className="rounded-xl data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-sm font-medium text-sm"
+                                className="rounded-xl data-[state=active]:bg-[#175ead] data-[state=active]:text-white data-[state=active]:shadow-sm font-medium text-sm"
                             >
                                 Chờ xử lý
                             </TabsTrigger>
                             <TabsTrigger 
                                 value="processing" 
-                                className="rounded-xl data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-sm font-medium text-sm"
+                                className="rounded-xl data-[state=active]:bg-[#175ead] data-[state=active]:text-white data-[state=active]:shadow-sm font-medium text-sm"
                             >
                                 Đang xử lý
                             </TabsTrigger>
                             <TabsTrigger 
                                 value="completed" 
-                                className="rounded-xl data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-sm font-medium text-sm"
+                                className="rounded-xl data-[state=active]:bg-[#175ead] data-[state=active]:text-white data-[state=active]:shadow-sm font-medium text-sm"
                             >
                                 Hoàn thành
                             </TabsTrigger>

@@ -72,7 +72,7 @@ export function BottomNav({ role = 'sale' }: { role?: string }) {
                                 <div className={cn(
                                     "flex flex-col items-center justify-center transition-all",
                                     isCenter 
-                                        ? "w-14 h-14 bg-blue-500 rounded-full shadow-lg" 
+                                        ? "w-14 h-14 bg-[#175ead] rounded-full shadow-lg" 
                                         : "py-2"
                                 )}>
                                     <item.icon className={cn(
@@ -80,13 +80,13 @@ export function BottomNav({ role = 'sale' }: { role?: string }) {
                                         isCenter 
                                             ? "h-6 w-6 text-white" 
                                             : isActive 
-                                                ? "h-5 w-5 text-blue-500 stroke-[2.5px]" 
+                                                ? "h-5 w-5 text-[#175ead] stroke-[2.5px]" 
                                                 : "h-5 w-5 text-gray-400"
                                     )} />
                                     {!isCenter && (
                                         <span className={cn(
                                             "text-[10px] font-medium leading-none truncate w-full text-center mt-1",
-                                            isActive ? "text-blue-500" : "text-gray-400"
+                                            isActive ? "text-[#175ead]" : "text-gray-400"
                                         )}>
                                             {item.name}
                                         </span>

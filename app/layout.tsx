@@ -11,8 +11,34 @@ import { cn } from "@/lib/utils";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Sales Order App",
-  description: "Mobile-first Sales Order Management System",
+  title: "APPE JV - Quản lý bán hàng",
+  description: "Hệ thống quản lý bán hàng và đơn hàng APPE JV Việt Nam",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "APPE JV",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  icons: {
+    icon: [
+      { url: "/appejv-logo.svg", type: "image/svg+xml" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-icon-180.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
+  themeColor: "#175ead",
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+  },
 };
 
 export default async function RootLayout({
@@ -33,7 +59,16 @@ export default async function RootLayout({
   const isSalesUser = user && ['sale', 'admin', 'sale_admin'].includes(role)
 
   return (
-    <html lang="en">
+    <html lang="vi">
+      <head>
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="alternate icon" href="/favicon-32x32.png" type="image/png" />
+        <link rel="apple-touch-icon" href="/apple-icon-180.png" />
+        <meta name="theme-color" content="#175ead" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="APPE JV" />
+      </head>
       <body className={inter.className}>
         <Sidebar role={role} user={user} />
         <ConditionalSidebarLayout user={user} role={role}>

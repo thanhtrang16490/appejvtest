@@ -24,14 +24,14 @@ const profileMenuItems = [
         label: 'Chủ quán Thanh Trang',
         subtitle: '',
         hasArrow: true,
-        color: 'text-blue-500'
+        color: 'text-[#175ead]'
     },
     {
         icon: QrCode,
         label: 'Quét QR để vào quán khác',
         subtitle: '',
         hasArrow: true,
-        color: 'text-blue-500'
+        color: 'text-[#175ead]'
     }
 ]
 
@@ -51,14 +51,14 @@ const managementItems = [
         label: 'Thêm QR để bật loa báo tíng tíng',
         subtitle: '',
         hasArrow: false,
-        color: 'text-blue-500'
+        color: 'text-[#175ead]'
     },
     {
         icon: Plus,
         label: 'Thêm nhân viên',
         subtitle: '',
         hasArrow: true,
-        color: 'text-blue-500'
+        color: 'text-[#175ead]'
     },
     {
         icon: Shield,
@@ -75,7 +75,7 @@ const supportItems = [
         label: 'Gọi tổng đài',
         subtitle: '1900 4512',
         hasArrow: false,
-        color: 'text-blue-500'
+        color: 'text-[#175ead]'
     }
 ]
 
@@ -211,7 +211,7 @@ export default function ProfilePage() {
                     </div>
                     <Button 
                         size="sm" 
-                        className="bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-full px-4 py-2 text-sm font-medium"
+                        className="bg-gradient-to-r from-[#175ead] to-[#2575be] text-white rounded-full px-4 py-2 text-sm font-medium"
                     >
                         <Sparkles className="w-4 h-4 mr-1" />
                         Trợ lý AI

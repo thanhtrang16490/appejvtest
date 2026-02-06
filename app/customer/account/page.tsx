@@ -88,7 +88,7 @@ export default function AccountPage() {
 
     if (loading) {
         return (
-            <div className="bg-gradient-to-br from-purple-50 to-blue-50 min-h-screen flex items-center justify-center">
+            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 min-h-screen flex items-center justify-center">
                 <div className="text-gray-500">Đang tải...</div>
             </div>
         )
@@ -96,7 +96,7 @@ export default function AccountPage() {
 
     if (!user) {
         return (
-            <div className="bg-gradient-to-br from-purple-50 to-blue-50 min-h-screen flex items-center justify-center">
+            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 min-h-screen flex items-center justify-center">
                 <div className="text-center">
                     <p className="text-gray-600 mb-4">Vui lòng đăng nhập</p>
                     <Button onClick={() => router.push('/auth/customer-login')}>
@@ -108,10 +108,10 @@ export default function AccountPage() {
     }
 
     return (
-        <div className="bg-gradient-to-br from-purple-50 to-blue-50 min-h-screen">
+        <div className="bg-gradient-to-br from-blue-50 to-cyan-50 min-h-screen">
             {/* Fixed Header */}
             <div className={cn(
-                "fixed top-0 left-0 right-0 z-50 bg-gradient-to-br from-purple-50 to-blue-50 transition-transform duration-300",
+                "fixed top-0 left-0 right-0 z-50 bg-gradient-to-br from-blue-50 to-cyan-50 transition-transform duration-300",
                 isHeaderVisible ? "translate-y-0" : "-translate-y-full"
             )}>
                 {/* Logo and AI Assistant Row */}
@@ -124,7 +124,7 @@ export default function AccountPage() {
                     </div>
                     <Button 
                         size="sm" 
-                        className="bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-full px-4 py-2 text-sm font-medium"
+                        className="bg-gradient-to-r from-[#175ead] to-[#2575be] text-white rounded-full px-4 py-2 text-sm font-medium"
                     >
                         <Sparkles className="w-4 h-4 mr-1" />
                         Trợ lý AI
@@ -143,7 +143,7 @@ export default function AccountPage() {
                     {/* Profile Card */}
                     <Card className="bg-white rounded-2xl shadow-sm border-0">
                         <CardHeader className="flex flex-row items-center gap-4 space-y-0 pb-2">
-                            <div className="h-16 w-16 rounded-full bg-gradient-to-r from-purple-400 to-blue-400 flex items-center justify-center text-2xl font-bold text-white">
+                            <div className="h-16 w-16 rounded-full bg-gradient-to-r from-[#175ead] to-[#2575be] flex items-center justify-center text-2xl font-bold text-white">
                                 {customer?.name?.[0] || user.phone?.[0] || 'U'}
                             </div>
                             <div className="flex-1">

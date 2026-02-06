@@ -133,7 +133,7 @@ export function NotificationModal({ user, role }: NotificationModalProps) {
             case 'success': return 'text-green-500'
             case 'warning': return 'text-yellow-500'
             case 'error': return 'text-red-500'
-            default: return 'text-blue-500'
+            default: return 'text-[#175ead]'
         }
     }
 
@@ -283,7 +283,7 @@ export function NotificationModal({ user, role }: NotificationModalProps) {
                                                     </h3>
                                                     <div className="flex items-center gap-2 ml-2">
                                                         {!notification.read && (
-                                                            <div className="w-2 h-2 bg-blue-500 rounded-full" />
+                                                            <div className="w-2 h-2 bg-[#175ead] rounded-full" />
                                                         )}
                                                         <Button
                                                             size="sm"

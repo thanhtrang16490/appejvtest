@@ -39,7 +39,7 @@ export default async function MenuPage() {
             description: 'Xem xu hướng bán hàng, doanh thu và tỷ trọng sản phẩm.',
             href: '/sales/reports',
             icon: BarChart3,
-            color: 'text-blue-500',
+            color: 'text-[#175ead]',
             bg: 'bg-blue-50'
         },
         ...((isAdmin || isSaleAdmin) ? [{

@@ -78,10 +78,10 @@ export default function CatalogPage() {
     }
 
     return (
-        <div className="bg-gradient-to-br from-purple-50 to-blue-50 min-h-screen">
+        <div className="bg-gradient-to-br from-blue-50 to-cyan-50 min-h-screen">
             {/* Fixed Header */}
             <div className={cn(
-                "fixed top-0 left-0 right-0 z-50 bg-gradient-to-br from-purple-50 to-blue-50 transition-transform duration-300",
+                "fixed top-0 left-0 right-0 z-50 bg-gradient-to-br from-blue-50 to-cyan-50 transition-transform duration-300",
                 isHeaderVisible ? "translate-y-0" : "-translate-y-full"
             )}>
                 {/* Logo and AI Assistant Row */}
@@ -94,7 +94,7 @@ export default function CatalogPage() {
                     </div>
                     <Button 
                         size="sm" 
-                        className="bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-full px-4 py-2 text-sm font-medium"
+                        className="bg-gradient-to-r from-[#175ead] to-[#2575be] text-white rounded-full px-4 py-2 text-sm font-medium"
                     >
                         <Sparkles className="w-4 h-4 mr-1" />
                         Trợ lý AI
@@ -103,7 +103,7 @@ export default function CatalogPage() {
             </div>
 
             {/* Fixed Search and Category Filter */}
-            <div className="fixed top-20 left-0 right-0 z-40 bg-gradient-to-br from-purple-50 to-blue-50 px-4 pb-2">
+            <div className="fixed top-20 left-0 right-0 z-40 bg-gradient-to-br from-blue-50 to-cyan-50 px-4 pb-2">
                 <div className="flex flex-col gap-3">
                     <h1 className="text-2xl font-bold text-gray-900">Danh mục sản phẩm</h1>
                     
@@ -131,7 +131,7 @@ export default function CatalogPage() {
                                 className={cn(
                                     "rounded-full whitespace-nowrap text-sm font-medium",
                                     activeCategory === category 
-                                        ? "bg-blue-500 text-white" 
+                                        ? "bg-[#175ead] text-white" 
                                         : "bg-white text-gray-600 border-gray-200"
                                 )}
                             >

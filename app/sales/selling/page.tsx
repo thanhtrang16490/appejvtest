@@ -163,7 +163,7 @@ export default function SellingPage() {
 
     if (loading) {
         return (
-            <div className="bg-gradient-to-br from-purple-50 to-blue-50 min-h-screen flex items-center justify-center">
+            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 min-h-screen flex items-center justify-center">
                 <div className="text-gray-500">Đang tải...</div>
             </div>
         )
@@ -171,7 +171,7 @@ export default function SellingPage() {
 
     if (!user || !profile) {
         return (
-            <div className="bg-gradient-to-br from-purple-50 to-blue-50 min-h-screen flex items-center justify-center">
+            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 min-h-screen flex items-center justify-center">
                 <div className="text-center">
                     <p className="text-gray-600 mb-4">Vui lòng đăng nhập</p>
                     <Button onClick={() => router.push('/auth/login')}>
@@ -183,10 +183,10 @@ export default function SellingPage() {
     }
 
     return (
-        <div className="bg-gradient-to-br from-purple-50 to-blue-50 min-h-screen">
+        <div className="bg-gradient-to-br from-blue-50 to-cyan-50 min-h-screen">
             {/* Fixed Header */}
             <div className={cn(
-                "fixed top-0 left-0 right-0 z-50 bg-gradient-to-br from-purple-50 to-blue-50 transition-transform duration-300",
+                "fixed top-0 left-0 right-0 z-50 bg-gradient-to-br from-blue-50 to-cyan-50 transition-transform duration-300",
                 isHeaderVisible ? "translate-y-0" : "-translate-y-full"
             )}>
                 {/* Logo and AI Assistant Row */}
@@ -200,7 +200,7 @@ export default function SellingPage() {
                     <div className="flex items-center gap-2">
                         <Button 
                             size="sm" 
-                            className="bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-full px-4 py-2 text-sm font-medium"
+                            className="bg-gradient-to-r from-[#175ead] to-[#2575be] text-white rounded-full px-4 py-2 text-sm font-medium"
                         >
                             <Sparkles className="w-4 h-4 mr-1" />
                             Trợ lý AI
@@ -230,7 +230,7 @@ export default function SellingPage() {
                         </div>
                         <div className="relative">
                             <Button 
-                                className="bg-blue-500 text-white rounded-full px-4 py-2 relative"
+                                className="bg-[#175ead] text-white rounded-full px-4 py-2 relative"
                                 onClick={() => {/* TODO: Open cart */}}
                             >
                                 <ShoppingCart className="w-4 h-4 mr-2" />
@@ -266,7 +266,7 @@ export default function SellingPage() {
                                 className={cn(
                                     "rounded-full whitespace-nowrap text-sm font-medium",
                                     selectedCategory === category.id 
-                                        ? "bg-blue-500 text-white" 
+                                        ? "bg-[#175ead] text-white" 
                                         : "bg-white text-gray-600 border-gray-200"
                                 )}
                             >
@@ -328,7 +328,7 @@ export default function SellingPage() {
                                                 </span>
                                                 <Button
                                                     size="sm"
-                                                    className="w-8 h-8 p-0 rounded-full bg-blue-500 text-white"
+                                                    className="w-8 h-8 p-0 rounded-full bg-[#175ead] text-white"
                                                     onClick={() => addToCart(product)}
                                                     disabled={cartQuantity >= product.stock}
                                                 >
@@ -338,7 +338,7 @@ export default function SellingPage() {
                                         ) : (
                                             <Button
                                                 size="sm"
-                                                className="w-full bg-blue-500 text-white rounded-xl"
+                                                className="w-full bg-[#175ead] text-white rounded-xl"
                                                 onClick={() => addToCart(product)}
                                                 disabled={product.stock === 0}
                                             >
@@ -371,7 +371,7 @@ export default function SellingPage() {
                                 {formatCurrency(getTotalAmount())}
                             </p>
                         </div>
-                        <Button className="bg-blue-500 text-white rounded-xl px-6">
+                        <Button className="bg-[#175ead] text-white rounded-xl px-6">
                             Thanh toán
                         </Button>
                     </div>

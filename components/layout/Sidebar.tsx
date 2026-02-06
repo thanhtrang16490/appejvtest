@@ -78,7 +78,7 @@ export function Sidebar({ role = 'customer', user }: SidebarProps) {
 
             {/* AI Assistant Button */}
             <div className="px-4 pb-4">
-                <Button className="w-full bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl py-3 font-medium shadow-lg hover:shadow-xl transition-all">
+                <Button className="w-full bg-gradient-to-r from-[#175ead] to-[#2575be] text-white rounded-xl py-3 font-medium shadow-lg hover:shadow-xl transition-all">
                     <Sparkles className="w-4 h-4 mr-2" />
                     Trợ lý AI
                 </Button>
