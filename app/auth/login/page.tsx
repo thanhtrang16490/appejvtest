@@ -92,7 +92,7 @@ export default function LoginPage() {
                     {/* Welcome Text */}
                     <div className="mb-8">
                         <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                            {isForgotPassword ? 'Quên mật khẩu?' : 'Xin chào!'}
+                            {isForgotPassword ? 'Quên mật khẩu?' : 'Bạn là nhân viên '}
                         </h1>
                         <p className="text-gray-600">
                             {isForgotPassword 

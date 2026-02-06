@@ -63,7 +63,7 @@ export default function CustomerLoginPage() {
                         full_name: name,
                         phone,
                         role: 'customer'
-                    })
+                    } as any)
 
                 if (profileError) throw profileError
 
