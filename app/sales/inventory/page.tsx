@@ -7,6 +7,7 @@ import { Database } from '@/types/database.types'
 import { Sparkles, Plus } from 'lucide-react'
 import { HeaderMenu } from '@/components/layout/HeaderMenu'
 import { NotificationModal } from '@/components/layout/NotificationModal'
+import { InventoryLoading } from '@/components/loading/InventoryLoading'
 import { cn } from '@/lib/utils'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
@@ -68,8 +69,10 @@ export default function InventoryPage() {
 
     if (loading) {
         return (
-            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 min-h-screen flex items-center justify-center">
-                <div className="text-gray-500">Đang tải...</div>
+            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 min-h-screen">
+                <div className="pt-24 pb-20 px-4">
+                    <InventoryLoading />
+                </div>
             </div>
         )
     }

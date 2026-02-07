@@ -8,6 +8,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { TrendingUp, Package, Tag, Wallet, Sparkles, BarChart3, ChevronDown } from 'lucide-react'
 import { HeaderMenu } from '@/components/layout/HeaderMenu'
 import { NotificationModal } from '@/components/layout/NotificationModal'
+import { ReportsLoading } from '@/components/loading/ReportsLoading'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useScrollHeader } from '@/hooks/useScrollHeader'
@@ -299,8 +300,10 @@ export default function ReportsPage() {
 
     if (loading) {
         return (
-            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 min-h-screen flex items-center justify-center">
-                <div className="text-gray-500">Đang tải...</div>
+            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 min-h-screen">
+                <div className="pt-24 pb-20 px-4">
+                    <ReportsLoading />
+                </div>
             </div>
         )
     }

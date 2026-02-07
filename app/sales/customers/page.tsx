@@ -10,6 +10,7 @@ import { Search, ChevronRight, Phone, MapPin, Users, Sparkles } from 'lucide-rea
 import { HeaderMenu } from '@/components/layout/HeaderMenu'
 import { NotificationModal } from '@/components/layout/NotificationModal'
 import { CustomerListActions } from '@/components/sales/CustomerListActions'
+import { CustomersLoading } from '@/components/loading/CustomersLoading'
 import { cn } from '@/lib/utils'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
@@ -137,8 +138,10 @@ export default function SalesCustomersPage() {
 
     if (loading) {
         return (
-            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 min-h-screen flex items-center justify-center">
-                <div className="text-gray-500">Đang tải...</div>
+            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 min-h-screen">
+                <div className="pt-24 pb-20 px-4">
+                    <CustomersLoading />
+                </div>
             </div>
         )
     }

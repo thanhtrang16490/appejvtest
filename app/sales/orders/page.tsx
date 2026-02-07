@@ -10,6 +10,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { ShoppingBag, Plus, Sparkles } from 'lucide-react'
 import { HeaderMenu } from '@/components/layout/HeaderMenu'
 import { NotificationModal } from '@/components/layout/NotificationModal'
+import { OrdersLoading } from '@/components/loading/OrdersLoading'
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { updateOrderStatus } from './actions'
@@ -245,8 +246,10 @@ export default function SalesOrdersPage() {
 
     if (loading) {
         return (
-            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 min-h-screen flex items-center justify-center">
-                <div className="text-gray-500">Đang tải...</div>
+            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 min-h-screen">
+                <div className="pt-24 pb-20 px-4">
+                    <OrdersLoading />
+                </div>
             </div>
         )
     }
