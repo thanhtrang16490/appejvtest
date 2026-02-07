@@ -5,6 +5,7 @@ import { ConditionalBottomNav } from "@/components/layout/ConditionalBottomNav";
 import { ConditionalSidebarLayout } from "@/components/layout/ConditionalSidebarLayout";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Toaster } from "@/components/ui/sonner";
+import { QueryProvider } from "@/lib/providers/query-provider";
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 import { OrganizationStructuredData, WebsiteStructuredData } from "./structured-data";
@@ -184,8 +185,10 @@ export default async function RootLayout({
         <WebsiteStructuredData />
       </head>
       <body className={inter.className}>
-        <LayoutContent>{children}</LayoutContent>
-        <Toaster />
+        <QueryProvider>
+          <LayoutContent>{children}</LayoutContent>
+          <Toaster />
+        </QueryProvider>
       </body>
     </html>
   );
