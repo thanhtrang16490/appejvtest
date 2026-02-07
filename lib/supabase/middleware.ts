@@ -11,6 +11,9 @@ export async function updateSession(request: NextRequest) {
         },
     })
 
+    // Add pathname to headers for layout to check
+    response.headers.set('x-pathname', request.nextUrl.pathname)
+
     // Apply security headers
     response = setSecurityHeaders(response)
 

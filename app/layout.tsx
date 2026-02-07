@@ -8,6 +8,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 import { OrganizationStructuredData, WebsiteStructuredData } from "./structured-data";
+import { headers } from "next/headers";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -191,6 +192,17 @@ export default async function RootLayout({
 }
 
 async function LayoutContent({ children }: { children: React.ReactNode }) {
+  // Get pathname to check if we're on auth pages
+  const headersList = await headers();
+  const pathname = headersList.get('x-pathname') || '';
+  
+  // Skip user/role fetching for auth pages to prevent hydration issues
+  const isAuthPage = pathname.startsWith('/auth');
+  
+  if (isAuthPage) {
+    return <>{children}</>;
+  }
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
