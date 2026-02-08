@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+vendor/
+
+# Build outputs
+.next/
+dist/
+build/
+bin/
+
+# Environment
+.env
+.env.local
+.env*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Mobile
+appejv-ios/Pods/
+appejv-ios/*.xcworkspace
+appejv-android/.gradle/
+appejv-android/local.properties
+
+# Testing
+coverage/
+.nyc_output/
+
+# Misc
+*.pem

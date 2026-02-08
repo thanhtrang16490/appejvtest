@@ -1,0 +1,23 @@
+{
+  "name": "appejv-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "appejv-web",
+    "appejv-app"
+  ],
+  "scripts": {
+    "dev:web": "cd appejv-web && npm run dev",
+    "dev:app": "cd appejv-app && npm run dev",
+    "dev:api": "cd appejv-api && go run cmd/server/main.go",
+    "build:web": "cd appejv-web && npm run build",
+    "build:app": "cd appejv-app && npm run build",
+    "build:api": "cd appejv-api && go build -o bin/server cmd/server/main.go",
+    "dev:all": "concurrently \"npm run dev:web\" \"npm run dev:app\" \"npm run dev:api\"",
+    "lint": "npm run lint --workspaces",
+    "test": "npm run test --workspaces"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
