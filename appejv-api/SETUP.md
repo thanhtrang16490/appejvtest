@@ -123,10 +123,10 @@ Xem chi tiết trong [README.md](./README.md)
 # Get products
 curl http://localhost:8080/api/v1/products
 
-# Login
+# Login (use real credentials from Supabase)
 curl -X POST http://localhost:8080/api/v1/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"sale@demo.com","password":"demo123"}'
+  -d '{"email":"your-email@example.com","password":"your-password"}'
 
 # Get customers (cần token)
 curl http://localhost:8080/api/v1/customers \

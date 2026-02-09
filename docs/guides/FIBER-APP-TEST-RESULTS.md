@@ -29,15 +29,15 @@
 
 ### 1. Login ✅
 ```bash
-Email: admin@demo.com
-User ID: f898aa0f-7108-4453-88da-b11dafcaad39
+User authenticated successfully
+User ID: [user-id-from-supabase]
 Token: eyJhbGciOiJFUzI1NiIs...
 ```
 
 ### 2. Get Profile ✅
 ```json
 {
-  "id": "f898aa0f-7108-4453-88da-b11dafcaad39",
+  "id": "[user-id]",
   "full_name": "Quản Lý",
   "role": "admin",
   "phone": "+84900000002"

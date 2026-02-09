@@ -179,9 +179,11 @@ export default function AccountPage() {
                 {/* Logo and AI Assistant Row */}
                 <div className="flex items-center justify-between p-4 pt-6">
                     <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-gradient-to-r from-green-400 to-blue-500 rounded-lg flex items-center justify-center">
-                            <span className="text-white font-bold text-xs">A</span>
-                        </div>
+                        <img 
+                            src="/appejv-logo.png" 
+                            alt="APPE JV Logo" 
+                            className="w-10 h-10 object-contain"
+                        />
                         <span className="text-xl font-bold text-gray-900">APPE JV</span>
                     </div>
                     {mounted && (

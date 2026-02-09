@@ -105,29 +105,23 @@ curl http://localhost:3000/auth/login
 
 ### Users
 
-**Admin:**
-- Email: admin@demo.com
+Create test users through Supabase Dashboard with appropriate roles:
+
+**Admin Role:**
 - Role: admin
-- Access: All endpoints
+- Access: All endpoints and features
 
-**Sales:**
-- Email: sale@demo.com
-- Role: sale
-- Access: Sales endpoints
+**Sale Role:**
+- Role: sale  
+- Access: Sales endpoints (orders, customers, inventory, reports)
 
-**Customer:**
-- Email: customer@demo.com
+**Customer Role:**
 - Role: customer
-- Access: Customer endpoints
+- Access: Customer portal (view products, place orders, view order history)
 
 ### Products
 
-Sample products in database:
-- Arabica Special (Coffee)
-- Premium Coffee Beans (Coffee)
-- Green Tea Matcha (Tea)
-- HH cho lợn sữa (Lợn)
-- HH cho gà siêu thịt (Gà)
+Products are managed through the inventory system. Use the admin/sale interface to add products.
 
 ## Performance Testing
 

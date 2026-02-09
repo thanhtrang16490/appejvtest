@@ -1,1 +1,0 @@
-docs/testing/test-with-login.sh

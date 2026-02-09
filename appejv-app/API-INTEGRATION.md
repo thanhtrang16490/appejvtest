@@ -42,8 +42,8 @@ if (response.data) {
 
 // Login
 const loginResponse = await authApi.login({
-  email: 'sale@demo.com',
-  password: 'demo123'
+  email: 'user@example.com',
+  password: 'your-password'
 })
 if (loginResponse.data) {
   const { access_token, user } = loginResponse.data
@@ -133,8 +133,8 @@ export default async function ProductsPage() {
 import { authApi } from '@/lib/api'
 
 const response = await authApi.login({
-  email: 'sale@demo.com',
-  password: 'demo123'
+  email: 'user@example.com',
+  password: 'your-password'
 })
 
 if (response.data) {

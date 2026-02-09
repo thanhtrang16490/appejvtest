@@ -140,17 +140,12 @@ Open browser: http://localhost:3000
 
 ### Default Users
 
-**Admin:**
-- Email: admin@demo.com
-- Password: (check Supabase)
+Create real user accounts through Supabase Dashboard or Authentication UI.
 
-**Sales:**
-- Email: sale@demo.com
-- Password: (check Supabase)
-
-**Customer:**
-- Email: customer@demo.com
-- Password: (check Supabase)
+**Roles:**
+- **admin** - Full access to all features
+- **sale** - Access to sales features
+- **customer** - Access to customer portal
 
 ## Troubleshooting
 
