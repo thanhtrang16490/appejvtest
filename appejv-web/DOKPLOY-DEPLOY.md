@@ -104,9 +104,9 @@ Astro builds to `dist/` folder with:
 
 File `nixpacks.toml` đã được tạo với:
 - Node.js 20
-- npm ci (faster than npm install)
-- npm run build
-- npm run preview (production server)
+- npm install --legacy-peer-deps (fix React dependency conflict)
+- npm run build (build static site to dist/)
+- serve dist (serve static files with serve package)
 
 ## 📝 Post-Deployment Checklist
 
@@ -149,18 +149,18 @@ npm install
 npm run build
 ```
 
-### Issue: Preview server doesn't start
+### Issue: Preview server doesn't start or blocked host error
 
-**Check logs:**
+**Error:** "This host is not allowed"
+
+**Solution:** Use static file server instead of preview server.
+
+**Updated start command:**
 ```bash
-# In Dokploy dashboard
-Application → Logs
+serve dist -l $PORT
 ```
 
-**Verify start command:**
-```bash
-npm run preview -- --host 0.0.0.0 --port 4321
-```
+This serves the built static files from `dist/` folder.
 
 ### Issue: API calls fail
 
