@@ -1,0 +1,9 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+Disallow: /customer/
+Disallow: /sales/
+Disallow: /auth/
+Disallow: /api/
+
+Sitemap: https://appejv.app/sitemap.xml

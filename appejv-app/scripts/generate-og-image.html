@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generate OG Image - APPE JV</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #175ead;
+            margin-bottom: 20px;
+        }
+        .og-preview {
+            width: 1200px;
+            height: 630px;
+            background: linear-gradient(135deg, #175ead 0%, #2575be 100%);
+            position: relative;
+            margin: 20px 0;
+            border-radius: 10px;
+            overflow: hidden;
+            transform: scale(0.5);
+            transform-origin: top left;
+        }
+        .og-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: white;
+            width: 90%;
+        }
+        .og-logo {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 40px;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        .og-title {
+            font-size: 72px;
+            font-weight: bold;
+            margin-bottom: 30px;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .og-description {
+            font-size: 36px;
+            opacity: 0.95;
+            line-height: 1.4;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .og-footer {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 28px;
+            opacity: 0.9;
+        }
+        button {
+            background: #175ead;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+        }
+        button:hover {
+            background: #2575be;
+        }
+        canvas {
+            display: none;
+        }
+        .instructions {
+            background: #f0f7ff;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #175ead;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Generate Open Graph Image</h1>
+        
+        <div class="instructions">
+            <h3>Hướng dẫn:</h3>
+            <ol>
+                <li>Nhấn "Generate OG Image" để tạo hình ảnh 1200x630px</li>
+                <li>Hình ảnh sẽ tự động download</li>
+                <li>Đổi tên file thành <code>og-image.png</code></li>
+                <li>Copy vào thư mục <code>public/</code></li>
+                <li>Tạo thêm các biến thể cho từng trang nếu cần</li>
+            </ol>
+        </div>
+
+        <button onclick="generateOGImage()">Generate OG Image (1200x630)</button>
+        <button onclick="generateZaloImage()">Generate Zalo Image (1200x630)</button>
+        <button onclick="generateFacebookImage()">Generate Facebook Image (1200x630)</button>
+
+        <h3>Preview (50% scale):</h3>
+        <div id="preview"></div>
+
+        <canvas id="canvas" width="1200" height="630"></canvas>
+    </div>
+
+    <script>
+        const logoSVG = `<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #175ead;
+      }
+      .cls-2 {
+        fill: #2575be;
+      }
+    </style>
+  </defs>
+  <path class="cls-2" d="M268.42,450.35c-24.47-7.16-51-5.56-78.01-8.92-37.41-4.66-73.39-11.52-110.86-21.51-2.2-3.44-6.56-5.03-11.44-8.34,11.52-15.66,25.3-30.38,38.98-44.34,5.09.21,11.93-2.02,18.03-.72,62.03,13.13,126.21,16.42,191.64,19.03,51.01,6.19,102.85,2.44,158.33-2.69-66.1-100.7-154.28-172.65-278.86-106.86,41.18-49.01,91.68-85.61,146.44-112.5,34.15-16.77,68.39-17.97,103.24-3.44,34.19,14.26,63.98,34.32,92.87,58.2,91.89,78.06,164.98,178.23,232.23,280.9l-216.96.47-29.51-52.24c-82.73,2.48-163.16,4.43-245.28-.07-4.16-.23-7.17,1.38-10.84,3.04Z"/>
+  <path class="cls-1" d="M316.76,385.54c-65.43-2.6-129.61-5.89-191.64-19.03,25.79-33.13,59.21-60.36,97-80.96,55.62-30.31,123.58-22.85,166.18,23.79-26.17,25.64-53.02,47.82-71.54,76.2Z"/>
+  <path class="cls-1" d="M268.42,450.35c-8.63,16.94-17.42,33.43-24.93,53.3l-214.49-.44c15.28-32.32,34.89-56.3,50.55-83.29,37.47,9.99,73.45,16.85,110.86,21.51,27.01,3.36,53.54,1.76,78.01,8.92Z"/>
+</svg>`;
+
+        function generateOGImage() {
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Background gradient
+            const gradient = ctx.createLinearGradient(0, 0, 1200, 630);
+            gradient.addColorStop(0, '#175ead');
+            gradient.addColorStop(1, '#2575be');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 1200, 630);
+            
+            // Logo background
+            ctx.fillStyle = 'white';
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+            ctx.shadowBlur = 20;
+            ctx.shadowOffsetY = 10;
+            roundRect(ctx, 500, 100, 200, 200, 20);
+            ctx.shadowBlur = 0;
+            ctx.shadowOffsetY = 0;
+            
+            // Load and draw logo
+            const img = new Image();
+            const blob = new Blob([logoSVG], { type: 'image/svg+xml' });
+            const url = URL.createObjectURL(blob);
+            
+            img.onload = function() {
+                ctx.drawImage(img, 530, 130, 140, 140);
+                
+                // Title
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 72px system-ui, -apple-system, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+                ctx.shadowBlur = 10;
+                ctx.fillText('APPE JV Việt Nam', 600, 380);
+                
+                // Description
+                ctx.font = '36px system-ui, -apple-system, sans-serif';
+                ctx.fillText('Thức ăn chăn nuôi & thủy sản', 600, 450);
+                ctx.fillText('chất lượng cao', 600, 500);
+                
+                // Footer
+                ctx.font = '28px system-ui, -apple-system, sans-serif';
+                ctx.fillText('appejv.app', 600, 580);
+                
+                ctx.shadowBlur = 0;
+                
+                // Download
+                downloadCanvas(canvas, 'og-image.png');
+                
+                // Show preview
+                showPreview(canvas);
+                
+                URL.revokeObjectURL(url);
+            };
+            img.src = url;
+        }
+
+        function generateZaloImage() {
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Zalo-optimized gradient (brighter)
+            const gradient = ctx.createLinearGradient(0, 0, 1200, 630);
+            gradient.addColorStop(0, '#2575be');
+            gradient.addColorStop(1, '#3d8dd1');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 1200, 630);
+            
+            // Logo background
+            ctx.fillStyle = 'white';
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+            ctx.shadowBlur = 25;
+            ctx.shadowOffsetY = 12;
+            roundRect(ctx, 480, 80, 240, 240, 25);
+            ctx.shadowBlur = 0;
+            ctx.shadowOffsetY = 0;
+            
+            // Load and draw logo
+            const img = new Image();
+            const blob = new Blob([logoSVG], { type: 'image/svg+xml' });
+            const url = URL.createObjectURL(blob);
+            
+            img.onload = function() {
+                ctx.drawImage(img, 520, 120, 160, 160);
+                
+                // Title (larger for Zalo)
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 80px system-ui, -apple-system, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+                ctx.shadowBlur = 15;
+                ctx.fillText('APPE JV', 600, 400);
+                
+                // Description
+                ctx.font = '42px system-ui, -apple-system, sans-serif';
+                ctx.fillText('Thức ăn chăn nuôi chất lượng cao', 600, 470);
+                
+                // Call to action
+                ctx.font = 'bold 32px system-ui, -apple-system, sans-serif';
+                ctx.fillStyle = '#FFD700';
+                ctx.fillText('☎ 0351 3595 202', 600, 550);
+                
+                ctx.shadowBlur = 0;
+                
+                downloadCanvas(canvas, 'zalo-og-image.png');
+                showPreview(canvas);
+                
+                URL.revokeObjectURL(url);
+            };
+            img.src = url;
+        }
+
+        function generateFacebookImage() {
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Facebook-optimized (high contrast)
+            const gradient = ctx.createLinearGradient(0, 0, 1200, 630);
+            gradient.addColorStop(0, '#145a9d');
+            gradient.addColorStop(1, '#175ead');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 1200, 630);
+            
+            // Pattern overlay
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+            for (let i = 0; i < 1200; i += 60) {
+                for (let j = 0; j < 630; j += 60) {
+                    ctx.fillRect(i, j, 30, 30);
+                }
+            }
+            
+            // Logo background
+            ctx.fillStyle = 'white';
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+            ctx.shadowBlur = 30;
+            ctx.shadowOffsetY = 15;
+            roundRect(ctx, 470, 70, 260, 260, 30);
+            ctx.shadowBlur = 0;
+            ctx.shadowOffsetY = 0;
+            
+            // Load and draw logo
+            const img = new Image();
+            const blob = new Blob([logoSVG], { type: 'image/svg+xml' });
+            const url = URL.createObjectURL(blob);
+            
+            img.onload = function() {
+                ctx.drawImage(img, 520, 120, 160, 160);
+                
+                // Title
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 76px system-ui, -apple-system, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                ctx.shadowBlur = 12;
+                ctx.fillText('APPE JV Việt Nam', 600, 410);
+                
+                // Tagline
+                ctx.font = '38px system-ui, -apple-system, sans-serif';
+                ctx.fillText('Đối tác tin cậy của người chăn nuôi', 600, 480);
+                
+                // Website
+                ctx.font = 'bold 30px system-ui, -apple-system, sans-serif';
+                ctx.fillStyle = '#FFD700';
+                ctx.fillText('🌐 appejv.app', 600, 560);
+                
+                ctx.shadowBlur = 0;
+                
+                downloadCanvas(canvas, 'facebook-og-image.png');
+                showPreview(canvas);
+                
+                URL.revokeObjectURL(url);
+            };
+            img.src = url;
+        }
+
+        function roundRect(ctx, x, y, width, height, radius) {
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.lineTo(x + width - radius, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+            ctx.lineTo(x + width, y + height - radius);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+            ctx.lineTo(x + radius, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+            ctx.lineTo(x, y + radius);
+            ctx.quadraticCurveTo(x, y, x + radius, y);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        function downloadCanvas(canvas, filename) {
+            canvas.toBlob(function(blob) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
+        }
+
+        function showPreview(canvas) {
+            const preview = document.getElementById('preview');
+            const previewDiv = document.createElement('div');
+            previewDiv.className = 'og-preview';
+            previewDiv.style.backgroundImage = `url(${canvas.toDataURL()})`;
+            previewDiv.style.backgroundSize = 'cover';
+            preview.innerHTML = '';
+            preview.appendChild(previewDiv);
+        }
+    </script>
+</body>
+</html>
