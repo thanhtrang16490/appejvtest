@@ -17,11 +17,24 @@ export default function LoginPage() {
     const router = useRouter()
     const searchParams = useSearchParams()
 
-    // Check for account deleted message
+    // Check for messages and errors
     useEffect(() => {
         const message = searchParams.get('message')
+        const error = searchParams.get('error')
+        const errorDescription = searchParams.get('error_description')
+        
         if (message === 'account_deleted') {
             toast.error('Tài khoản của bạn đã bị xóa hoặc vô hiệu hóa. Vui lòng liên hệ quản trị viên.')
+        } else if (message === 'password_reset_success') {
+            toast.success('Đặt lại mật khẩu thành công! Vui lòng đăng nhập với mật khẩu mới.')
+        } else if (error === 'access_denied') {
+            if (errorDescription?.includes('expired') || errorDescription?.includes('invalid')) {
+                toast.error('Link đặt lại mật khẩu đã hết hạn hoặc không hợp lệ. Vui lòng yêu cầu link mới.')
+                // Auto switch to forgot password mode
+                setIsForgotPassword(true)
+            } else {
+                toast.error('Có lỗi xảy ra. Vui lòng thử lại.')
+            }
         }
     }, [searchParams])
 
@@ -59,7 +72,7 @@ export default function LoginPage() {
         try {
             const supabase = createClient()
             const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-                redirectTo: `https://appejv.app/auth/reset-password`,
+                redirectTo: `${window.location.origin}/auth/callback?next=reset-password`,
             })
 
             if (error) throw error
@@ -204,7 +217,7 @@ export default function LoginPage() {
                         <div className="text-center">
                             <button
                                 type="button"
-                                onClick={() => setIsForgotPassword(true)}
+                                onClick={() => router.push('/auth/forgot-password')}
                                 className="text-sm text-gray-500 hover:text-[#5B9FED]"
                             >
                                 Quên mật khẩu?

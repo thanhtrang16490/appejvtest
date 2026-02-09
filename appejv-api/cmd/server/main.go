@@ -5,10 +5,13 @@ import (
 	"os"
 
 	"github.com/appejv/appejv-api/internal/config"
-	"github.com/appejv/appejv-api/internal/handlers"
-	"github.com/appejv/appejv-api/internal/middleware"
+	"github.com/appejv/appejv-api/internal/fiber/handlers"
+	"github.com/appejv/appejv-api/internal/fiber/middleware"
 	"github.com/appejv/appejv-api/pkg/database"
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/joho/godotenv"
 )
 
@@ -23,95 +26,117 @@ func main() {
 
 	// Initialize Supabase client
 	db := database.NewSupabaseClient(cfg)
+	log.Println("✓ Connected to Supabase")
 
-	// Set Gin mode
-	gin.SetMode(cfg.GinMode)
+	// Create Fiber app
+	app := fiber.New(fiber.Config{
+		AppName:      "APPE JV API",
+		ServerHeader: "Fiber",
+		ErrorHandler: func(c *fiber.Ctx, err error) error {
+			code := fiber.StatusInternalServerError
+			if e, ok := err.(*fiber.Error); ok {
+				code = e.Code
+			}
+			return c.Status(code).JSON(fiber.Map{
+				"error": err.Error(),
+			})
+		},
+	})
 
-	// Create router
-	r := gin.Default()
+	// Get CORS origins from environment or use defaults
+	corsOrigins := os.Getenv("CORS_ORIGINS")
+	if corsOrigins == "" {
+		// Default: local development + production domains
+		corsOrigins = "http://localhost:3000,http://localhost:4321,https://app.appejv.app,https://appejv.app"
+	}
 
-	// Apply middleware
-	r.Use(middleware.CORS(cfg.AllowedOrigins))
-	r.Use(middleware.RateLimit())
-	r.Use(middleware.SecurityHeaders())
+	// Middleware
+	app.Use(recover.New())
+	app.Use(logger.New(logger.Config{
+		Format: "[${time}] ${status} - ${latency} ${method} ${path}\n",
+	}))
+	app.Use(cors.New(cors.Config{
+		AllowOrigins:     corsOrigins,
+		AllowMethods:     "GET,POST,PUT,DELETE,PATCH,OPTIONS",
+		AllowHeaders:     "Origin,Content-Type,Accept,Authorization",
+		AllowCredentials: true,
+	}))
 
 	// Health check
-	r.GET("/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"status":  "ok",
-			"service": "appejv-api",
-			"version": "1.0.0",
+	app.Get("/health", func(c *fiber.Ctx) error {
+		return c.JSON(fiber.Map{
+			"status":   "ok",
+			"service":  "appejv-api",
+			"version":  "1.0.0",
+			"database": "supabase",
+			"auth":     "jwt",
+			"framework": "fiber",
 		})
 	})
 
 	// API v1 routes
-	v1 := r.Group("/api/v1")
+	v1 := app.Group("/api/v1")
+
+	// Public endpoints (no authentication)
+	public := v1.Group("/")
 	{
-		// Products
-		products := v1.Group("/products")
+		public.Get("/products", handlers.GetProducts(db))
+		public.Get("/products/:id", handlers.GetProduct(db))
+	}
+
+	// Auth endpoints (public)
+	auth := v1.Group("/auth")
+	{
+		auth.Post("/forgot-password", handlers.RequestPasswordReset(db))
+	}
+
+	// Protected endpoints (authentication required)
+	protected := v1.Group("/")
+	protected.Use(middleware.AuthRequired(db))
+	{
+		// Profile endpoint (all authenticated users)
+		protected.Get("/profile", handlers.GetProfile())
+
+		// Sales endpoints (sale, admin, sale_admin)
+		sales := protected.Group("/")
+		sales.Use(middleware.RoleRequired("sale", "admin", "sale_admin"))
 		{
-			products.GET("", handlers.GetProducts(db))
-			products.GET("/:id", handlers.GetProduct(db))
-			products.POST("", middleware.AuthRequired(db), middleware.RoleRequired("admin", "sale_admin"), handlers.CreateProduct(db))
-			products.PUT("/:id", middleware.AuthRequired(db), middleware.RoleRequired("admin", "sale_admin"), handlers.UpdateProduct(db))
-			products.DELETE("/:id", middleware.AuthRequired(db), middleware.RoleRequired("admin", "sale_admin"), handlers.DeleteProduct(db))
+			// Customers
+			sales.Get("/customers", handlers.GetCustomers(db))
+			sales.Get("/customers/:id", handlers.GetCustomer(db))
+			sales.Post("/customers", handlers.CreateCustomer(db))
+			sales.Put("/customers/:id", handlers.UpdateCustomer(db))
+
+			// Orders
+			sales.Get("/orders", handlers.GetOrders(db))
+			sales.Get("/orders/:id", handlers.GetOrder(db))
+			sales.Post("/orders", handlers.CreateOrder(db))
+			sales.Put("/orders/:id", handlers.UpdateOrder(db))
 		}
 
-		// Customers
-		customers := v1.Group("/customers")
+		// Admin endpoints (admin, sale_admin only)
+		admin := protected.Group("/")
+		admin.Use(middleware.RoleRequired("admin", "sale_admin"))
 		{
-			customers.GET("", middleware.AuthRequired(db), handlers.GetCustomers(db))
-			customers.GET("/:id", middleware.AuthRequired(db), handlers.GetCustomer(db))
-			customers.POST("", middleware.AuthRequired(db), middleware.RoleRequired("admin", "sale_admin", "sale"), handlers.CreateCustomer(db))
-			customers.PUT("/:id", middleware.AuthRequired(db), handlers.UpdateCustomer(db))
-			customers.DELETE("/:id", middleware.AuthRequired(db), middleware.RoleRequired("admin", "sale_admin"), handlers.DeleteCustomer(db))
-		}
-
-		// Orders
-		orders := v1.Group("/orders")
-		{
-			orders.GET("", middleware.AuthRequired(db), handlers.GetOrders(db))
-			orders.GET("/:id", middleware.AuthRequired(db), handlers.GetOrder(db))
-			orders.POST("", middleware.AuthRequired(db), handlers.CreateOrder(db))
-			orders.PUT("/:id", middleware.AuthRequired(db), handlers.UpdateOrder(db))
-			orders.DELETE("/:id", middleware.AuthRequired(db), middleware.RoleRequired("admin", "sale_admin"), handlers.DeleteOrder(db))
-		}
-
-		// Inventory
-		inventory := v1.Group("/inventory")
-		{
-			inventory.GET("", middleware.AuthRequired(db), handlers.GetInventory(db))
-			inventory.GET("/low-stock", middleware.AuthRequired(db), handlers.GetLowStock(db))
-			inventory.POST("/adjust", middleware.AuthRequired(db), middleware.RoleRequired("admin", "sale_admin"), handlers.AdjustInventory(db))
-		}
-
-		// Reports
-		reports := v1.Group("/reports")
-		{
-			reports.GET("/sales", middleware.AuthRequired(db), handlers.GetSalesReport(db))
-			reports.GET("/revenue", middleware.AuthRequired(db), handlers.GetRevenueReport(db))
-			reports.GET("/top-products", middleware.AuthRequired(db), handlers.GetTopProducts(db))
-			reports.GET("/top-customers", middleware.AuthRequired(db), handlers.GetTopCustomers(db))
-		}
-
-		// Auth
-		auth := v1.Group("/auth")
-		{
-			auth.POST("/login", handlers.Login(db))
-			auth.POST("/logout", middleware.AuthRequired(db), handlers.Logout(db))
-			auth.POST("/refresh", handlers.RefreshToken(db))
-			auth.GET("/me", middleware.AuthRequired(db), handlers.GetCurrentUser(db))
+			admin.Post("/products", handlers.CreateProduct(db))
+			admin.Put("/products/:id", handlers.UpdateProduct(db))
+			admin.Delete("/products/:id", handlers.DeleteProduct(db))
 		}
 	}
 
 	// Start server
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8080"
+		port = "8081"
 	}
 
 	log.Printf("🚀 Server starting on port %s", port)
-	if err := r.Run(":" + port); err != nil {
+	log.Printf("📊 Database: Supabase (%s)", cfg.SupabaseURL)
+	log.Printf("🔐 Auth: JWT-based (stateless)")
+	log.Printf("🛡️  Authorization: Role-based")
+	log.Printf("⚡ Framework: Fiber v2")
+	
+	if err := app.Listen(":" + port); err != nil {
 		log.Fatal("Failed to start server:", err)
 	}
 }

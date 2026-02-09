@@ -14,7 +14,7 @@ RUN go mod download
 COPY . .
 
 # Build the Fiber application
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags="-w -s" -o server cmd/server/main-fiber.go
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags="-w -s" -o server cmd/server/main.go
 
 # Runtime stage
 FROM alpine:latest
