@@ -1,0 +1,15 @@
+# Nixpacks Configuration for appejv-api
+
+[phases.setup]
+nixPkgs = ["go_1_22"]
+
+[phases.build]
+cmds = [
+  "go build -o server cmd/server/main-fiber.go"
+]
+
+[start]
+cmd = "./server"
+
+[variables]
+PORT = "8081"
