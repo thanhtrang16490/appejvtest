@@ -1,4 +1,5 @@
 import { apiClient, ApiResponse } from './client'
+import { getAccessToken } from '@/lib/auth/token'
 
 export interface SalesReportData {
   total_orders: number
@@ -21,10 +22,12 @@ export interface ReportsQuery {
 
 export const reportsApi = {
   // Get sales report (authenticated)
-  async getSales(
-    query: ReportsQuery,
-    token: string
-  ): Promise<ApiResponse<SalesReportData>> {
+  async getSales(query: ReportsQuery): Promise<ApiResponse<SalesReportData>> {
+    const token = await getAccessToken()
+    if (!token) {
+      return { error: 'Authentication required' }
+    }
+
     const params = new URLSearchParams()
     if (query.start_date) params.append('start_date', query.start_date)
     if (query.end_date) params.append('end_date', query.end_date)
@@ -37,10 +40,12 @@ export const reportsApi = {
   },
 
   // Get revenue report (authenticated)
-  async getRevenue(
-    query: ReportsQuery,
-    token: string
-  ): Promise<ApiResponse<RevenueData[]>> {
+  async getRevenue(query: ReportsQuery): Promise<ApiResponse<RevenueData[]>> {
+    const token = await getAccessToken()
+    if (!token) {
+      return { error: 'Authentication required' }
+    }
+
     const params = new URLSearchParams()
     if (query.start_date) params.append('start_date', query.start_date)
     if (query.end_date) params.append('end_date', query.end_date)
@@ -53,10 +58,11 @@ export const reportsApi = {
   },
 
   // Get top products (authenticated)
-  async getTopProducts(
-    limit: number,
-    token: string
-  ): Promise<ApiResponse<Record<number, number>>> {
+  async getTopProducts(limit: number): Promise<ApiResponse<Record<number, number>>> {
+    const token = await getAccessToken()
+    if (!token) {
+      return { error: 'Authentication required' }
+    }
     return apiClient.get<Record<number, number>>(
       `/reports/top-products?limit=${limit}`,
       token
@@ -64,10 +70,11 @@ export const reportsApi = {
   },
 
   // Get top customers (authenticated)
-  async getTopCustomers(
-    limit: number,
-    token: string
-  ): Promise<ApiResponse<Record<number, number>>> {
+  async getTopCustomers(limit: number): Promise<ApiResponse<Record<number, number>>> {
+    const token = await getAccessToken()
+    if (!token) {
+      return { error: 'Authentication required' }
+    }
     return apiClient.get<Record<number, number>>(
       `/reports/top-customers?limit=${limit}`,
       token
