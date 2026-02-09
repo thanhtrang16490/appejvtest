@@ -4,20 +4,156 @@ import '../styles/global.css'
 interface Props {
   title: string
   description?: string
+  keywords?: string[]
+  ogImage?: string
+  canonical?: string
 }
 
-const { title, description = 'APPE JV - Chuyên sản xuất và cung cấp thức ăn chăn nuôi chất lượng cao cho heo, gia cầm và thủy sản' } = Astro.props
+const { 
+  title, 
+  description = 'APPE JV chuyên sản xuất và cung cấp thức ăn chăn nuôi chất lượng cao cho heo, gia cầm và thủy sản. Thành lập từ 2008, ứng dụng công nghệ tiên tiến, xuất khẩu sang Lào và khu vực.',
+  keywords = [
+    'thức ăn chăn nuôi',
+    'thức ăn heo',
+    'thức ăn gia cầm',
+    'thức ăn thủy sản',
+    'APPE JV',
+    'APPE Việt Nam',
+    'pig feed',
+    'poultry feed',
+    'fish feed',
+    'chăn nuôi',
+    'thủy sản',
+    'Hà Nam',
+    'thức ăn chất lượng cao'
+  ],
+  ogImage = '/appejv-logo.png',
+  canonical
+} = Astro.props
+
 const APP_URL = import.meta.env.PUBLIC_APP_URL || 'http://localhost:3000'
+const SITE_URL = Astro.url.origin
+const currentUrl = canonical || Astro.url.pathname
+const fullUrl = `${SITE_URL}${currentUrl}`
+const ogImageUrl = `${SITE_URL}${ogImage}`
+
+// Structured Data - Organization
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "APPE JV Việt Nam",
+  "alternateName": "Công ty Cổ phần APPE JV Việt Nam",
+  "url": SITE_URL,
+  "logo": `${SITE_URL}/appejv-logo.png`,
+  "description": description,
+  "foundingDate": "2008",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "Km 50 Quốc lộ 1A, Xã Tiên Tân",
+    "addressLocality": "Phủ Lý",
+    "addressRegion": "Hà Nam",
+    "addressCountry": "VN"
+  },
+  "contactPoint": {
+    "@type": "ContactPoint",
+    "telephone": "+84-3513-595-202",
+    "contactType": "customer service",
+    "areaServed": "VN",
+    "availableLanguage": ["vi", "en"]
+  },
+  "sameAs": [
+    "https://appe.com.vn"
+  ]
+}
+
+// Structured Data - Website
+const websiteSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "APPE JV Việt Nam",
+  "url": SITE_URL,
+  "description": description,
+  "publisher": {
+    "@type": "Organization",
+    "name": "APPE JV Việt Nam",
+    "logo": {
+      "@type": "ImageObject",
+      "url": `${SITE_URL}/appejv-logo.png`
+    }
+  }
+}
 ---
 
 <!DOCTYPE html>
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
     <meta name="description" content={description} />
+    <meta name="keywords" content={keywords.join(', ')} />
+    <meta name="author" content="APPE JV Việt Nam" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href={fullUrl} />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={fullUrl} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:site_name" content="APPE JV Việt Nam" />
+    <meta property="og:locale" content="vi_VN" />
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content={fullUrl} />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageUrl} />
+    <meta name="twitter:creator" content="@appejv" />
+    <meta name="twitter:site" content="@appejv" />
+    
+    <!-- Zalo Open Graph -->
+    <meta property="zalo:title" content={title} />
+    <meta property="zalo:description" content={description} />
+    <meta property="zalo:image" content={ogImageUrl} />
+    <meta property="zalo:url" content={fullUrl} />
+    
+    <!-- Theme & Mobile -->
+    <meta name="theme-color" content="#175ead" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="APPE JV" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="APPE JV" />
+    <meta name="msapplication-TileColor" content="#175ead" />
+    <meta name="msapplication-TileImage" content="/appejv-logo.png" />
+    
+    <!-- Format Detection -->
+    <meta name="format-detection" content="telephone=yes" />
+    <meta name="format-detection" content="email=yes" />
+    <meta name="format-detection" content="address=yes" />
+    
     <title>{title}</title>
+    
+    <!-- Favicons -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="alternate icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/appejv-logo.png" />
+    <link rel="mask-icon" href="/appejv-logo.svg" color="#175ead" />
+    
+    <!-- Structured Data -->
+    <script type="application/ld+json" set:html={JSON.stringify(organizationSchema)} />
+    <script type="application/ld+json" set:html={JSON.stringify(websiteSchema)} />
+    
+    <!-- Preconnect to external domains -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   </head>
   <body class="bg-gradient-to-br from-blue-50 to-cyan-50 min-h-screen">
     <!-- Header -->

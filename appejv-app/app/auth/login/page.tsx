@@ -66,7 +66,8 @@ export default function LoginPage() {
     }
 
     const handleClose = () => {
-        router.back()
+        // Redirect to appejv.app website
+        window.location.href = 'https://appejv.app'
     }
 
     return (

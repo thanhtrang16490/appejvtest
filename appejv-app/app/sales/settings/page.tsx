@@ -139,7 +139,8 @@ export default function SalesSettingsPage() {
         
         try {
             await logout()
-            router.push('/')
+            // Redirect to appejv.app website
+            window.location.href = 'https://appejv.app'
         } catch (error) {
             console.error('Error logging out:', error)
         }

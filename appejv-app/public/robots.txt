@@ -1,9 +1,42 @@
-# https://www.robotstxt.org/robotstxt.html
-User-agent: *
-Allow: /
-Disallow: /customer/
-Disallow: /sales/
-Disallow: /auth/
-Disallow: /api/
+# robots.txt for APPE JV App (Internal Application)
+# This is a private application - no indexing allowed
 
-Sitemap: https://appejv.app/sitemap.xml
+User-agent: *
+Disallow: /
+
+# Explicitly disallow all major search engines
+User-agent: Googlebot
+Disallow: /
+
+User-agent: Googlebot-Image
+Disallow: /
+
+User-agent: Googlebot-Mobile
+Disallow: /
+
+User-agent: Bingbot
+Disallow: /
+
+User-agent: Slurp
+Disallow: /
+
+User-agent: DuckDuckBot
+Disallow: /
+
+User-agent: Baiduspider
+Disallow: /
+
+User-agent: YandexBot
+Disallow: /
+
+User-agent: Sogou
+Disallow: /
+
+User-agent: Exabot
+Disallow: /
+
+User-agent: facebot
+Disallow: /
+
+User-agent: ia_archiver
+Disallow: /

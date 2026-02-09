@@ -43,6 +43,16 @@ export function HeaderMenu({ user, role }: HeaderMenuProps) {
         setIsOpen(false)
     }
 
+    const handleLogout = async () => {
+        try {
+            await logout()
+            // Redirect to appejv.app website
+            window.location.href = 'https://appejv.app'
+        } catch (error) {
+            console.error('Error logging out:', error)
+        }
+    }
+
     return (
         <>
             {/* Menu Button */}
@@ -128,15 +138,14 @@ export function HeaderMenu({ user, role }: HeaderMenuProps) {
 
                 {/* Footer */}
                 <div className="border-t border-gray-100 p-4 bg-gray-50">
-                    <form action={logout}>
-                        <Button 
-                            variant="ghost" 
-                            className="w-full justify-start gap-3 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-xl py-3 h-auto"
-                        >
-                            <LogOut className="h-5 w-5" />
-                            <span className="font-medium">Đăng xuất</span>
-                        </Button>
-                    </form>
+                    <Button 
+                        variant="ghost" 
+                        onClick={handleLogout}
+                        className="w-full justify-start gap-3 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-xl py-3 h-auto"
+                    >
+                        <LogOut className="h-5 w-5" />
+                        <span className="font-medium">Đăng xuất</span>
+                    </Button>
                 </div>
             </div>
         </>

@@ -2,6 +2,20 @@
 import BaseLayout from '../../layouts/BaseLayout.astro'
 import { getProducts, getCategories } from '../../lib/api'
 
+const seoTitle = "Sản phẩm - APPE JV | Thức ăn heo, gia cầm, thủy sản"
+const seoDescription = "Danh mục sản phẩm thức ăn chăn nuôi APPE JV: Pig Feed (thức ăn heo), Poultry Feed (gia cầm), Fish Feed (thủy sản). Chất lượng cao, dinh dưỡng tối ưu, công nghệ tiên tiến."
+const seoKeywords = [
+  "sản phẩm APPE",
+  "thức ăn heo",
+  "thức ăn gia cầm",
+  "thức ăn thủy sản",
+  "pig feed",
+  "poultry feed",
+  "fish feed",
+  "danh mục sản phẩm",
+  "thức ăn chăn nuôi chất lượng"
+]
+
 // Get query parameters
 const url = new URL(Astro.request.url)
 const categoryFilter = url.searchParams.get('category') || 'all'
@@ -41,7 +55,12 @@ function formatPrice(price: number): string {
 }
 ---
 
-<BaseLayout title="Sản phẩm - APPE JV" description="Danh mục sản phẩm thức ăn chăn nuôi và thủy sản chất lượng cao từ APPE JV">
+<BaseLayout 
+  title={seoTitle}
+  description={seoDescription}
+  keywords={seoKeywords}
+  canonical="/san-pham"
+>
   <div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
     
     <!-- Hero Section -->

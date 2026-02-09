@@ -56,10 +56,16 @@ JWT_SECRET=your-secret
 
 ### App (.env.local)
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:8080/api/v1
+# PRODUCTION MODE - Using Real API
+NEXT_PUBLIC_API_URL=https://api.appejv.app/api/v1
 NEXT_PUBLIC_SUPABASE_URL=https://mrcmratcnlsoxctsbalt.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-key
+
+# For LOCAL DEVELOPMENT - Uncomment below and comment above
+# NEXT_PUBLIC_API_URL=http://localhost:8080/api/v1
 ```
+
+**⚠️ Current Configuration:** App is using **PRODUCTION API** (https://api.appejv.app)
 
 ## 🧪 Testing API
 

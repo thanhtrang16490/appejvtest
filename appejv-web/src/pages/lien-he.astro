@@ -1,8 +1,25 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro'
+
+const seoTitle = "Liên hệ - APPE JV Việt Nam | Tư vấn thức ăn chăn nuôi"
+const seoDescription = "Liên hệ APPE JV để được tư vấn và hỗ trợ về thức ăn chăn nuôi. Hotline: 0351 3595 202/203. Email: info@appe.com.vn. Địa chỉ: Km 50 QL1A, Phủ Lý, Hà Nam."
+const seoKeywords = [
+  "liên hệ APPE",
+  "tư vấn thức ăn chăn nuôi",
+  "hotline APPE",
+  "địa chỉ APPE Hà Nam",
+  "email APPE",
+  "hỗ trợ khách hàng",
+  "đặt hàng thức ăn chăn nuôi"
+]
 ---
 
-<BaseLayout title="Liên hệ - APPE JV" description="Liên hệ với APPE JV để được tư vấn và hỗ trợ">
+<BaseLayout 
+  title={seoTitle}
+  description={seoDescription}
+  keywords={seoKeywords}
+  canonical="/lien-he"
+>
   <div class="container mx-auto px-4 py-12">
     <!-- Hero -->
     <div class="text-center mb-16">

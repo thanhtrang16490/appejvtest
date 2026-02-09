@@ -25,6 +25,16 @@ interface SidebarProps {
 export function Sidebar({ role = 'customer', user }: SidebarProps) {
     const pathname = usePathname()
 
+    const handleLogout = async () => {
+        try {
+            await logout()
+            // Redirect to appejv.app website
+            window.location.href = 'https://appejv.app'
+        } catch (error) {
+            console.error('Error logging out:', error)
+        }
+    }
+
     // Only show sidebar on desktop for sales pages and sales users
     const shouldShowSidebar = user && 
         pathname.startsWith('/sales') && 
@@ -88,15 +98,14 @@ export function Sidebar({ role = 'customer', user }: SidebarProps) {
 
             {/* Footer */}
             <div className="p-4 border-t border-gray-100">
-                <form action={logout}>
-                    <Button 
-                        variant="ghost" 
-                        className="w-full justify-start gap-3 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-xl py-3"
-                    >
-                        <LogOut className="h-5 w-5" />
-                        Đăng xuất
-                    </Button>
-                </form>
+                <Button 
+                    variant="ghost"
+                    onClick={handleLogout}
+                    className="w-full justify-start gap-3 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-xl py-3"
+                >
+                    <LogOut className="h-5 w-5" />
+                    Đăng xuất
+                </Button>
             </div>
         </aside>
     )

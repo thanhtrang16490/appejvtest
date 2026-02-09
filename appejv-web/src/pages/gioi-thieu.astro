@@ -1,8 +1,26 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro'
+
+const seoTitle = "Giới thiệu - APPE JV Việt Nam | Thức ăn chăn nuôi chất lượng cao"
+const seoDescription = "APPE JV thành lập từ 2008, chuyên sản xuất thức ăn chăn nuôi và thủy sản chất lượng cao. Ứng dụng công nghệ tiên tiến, xuất khẩu sang Lào và khu vực. Tầm nhìn trở thành doanh nghiệp uy tín hàng đầu."
+const seoKeywords = [
+  "giới thiệu APPE JV",
+  "về APPE Việt Nam",
+  "công ty thức ăn chăn nuôi",
+  "lịch sử APPE",
+  "tầm nhìn sứ mệnh",
+  "doanh nghiệp chăn nuôi",
+  "A Group",
+  "thành lập 2008"
+]
 ---
 
-<BaseLayout title="Giới thiệu - APPE JV" description="Giới thiệu về APPE JV - Chuyên sản xuất thức ăn chăn nuôi và thủy sản chất lượng cao">
+<BaseLayout 
+  title={seoTitle}
+  description={seoDescription}
+  keywords={seoKeywords}
+  canonical="/gioi-thieu"
+>
   <div class="container mx-auto px-4 py-12">
     <!-- Hero -->
     <div class="text-center mb-16">

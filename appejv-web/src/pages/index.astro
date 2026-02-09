@@ -2,6 +2,24 @@
 import BaseLayout from '../layouts/BaseLayout.astro'
 import EcosystemOrbit3DWrapper from '../components/EcosystemOrbit3DWrapper'
 
+const seoTitle = "APPE JV Việt Nam - Thức ăn chăn nuôi và thủy sản chất lượng cao"
+const seoDescription = "APPE JV chuyên sản xuất và cung cấp thức ăn chăn nuôi chất lượng cao cho heo, gia cầm và thủy sản. Thành lập từ 2008, ứng dụng công nghệ tiên tiến, xuất khẩu sang Lào và khu vực."
+const seoKeywords = [
+  "thức ăn chăn nuôi",
+  "thức ăn heo",
+  "thức ăn gia cầm", 
+  "thức ăn thủy sản",
+  "APPE JV",
+  "APPE Việt Nam",
+  "pig feed",
+  "poultry feed",
+  "fish feed",
+  "chăn nuôi Hà Nam",
+  "thức ăn chất lượng cao",
+  "A Group",
+  "xuất khẩu thức ăn chăn nuôi"
+]
+
 const ecosystem = [
   {
     name: "A Group",
@@ -100,7 +118,13 @@ const values = [
 ]
 ---
 
-<BaseLayout title="APPE JV - Trang chủ">
+<BaseLayout 
+  title={seoTitle}
+  description={seoDescription}
+  keywords={seoKeywords}
+  ogImage="/appejv-logo.png"
+  canonical="/"
+>
   <div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
   <!-- Hero Section -->
   <section class="py-20 px-4">

@@ -3,12 +3,11 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { logout } from '@/app/auth/actions'
+import { LogoutButton } from './LogoutButton'
 import {
     BarChart3,
     Users as UsersIcon,
     Settings,
-    LogOut,
     ChevronRight,
     ShieldCheck,
     LayoutDashboard,
@@ -105,11 +104,7 @@ export default async function MenuPage() {
                             {profile?.role || 'User'}
                         </p>
                     </div>
-                    <form action={logout}>
-                        <Button variant="ghost" size="icon" className="text-destructive hover:bg-destructive/10">
-                            <LogOut className="w-5 h-5" />
-                        </Button>
-                    </form>
+                    <LogoutButton />
                 </div>
 
                 <div className="text-[10px] text-muted-foreground text-center font-bold tracking-widest uppercase opacity-30">
