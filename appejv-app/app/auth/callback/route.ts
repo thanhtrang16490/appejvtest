@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
 
 export async function GET(request: Request) {
     const requestUrl = new URL(request.url)
@@ -19,7 +18,6 @@ export async function GET(request: Request) {
     }
 
     if (code) {
-        const cookieStore = await cookies()
         const supabase = await createClient()
 
         // Exchange code for session
@@ -52,10 +50,13 @@ export async function GET(request: Request) {
                 .single()
 
             // Redirect based on role
-            if (profile?.role === 'sale' || profile?.role === 'admin' || profile?.role === 'sale_admin') {
-                return NextResponse.redirect(`${requestUrl.origin}/sales`)
-            } else {
-                return NextResponse.redirect(`${requestUrl.origin}/customer/dashboard`)
+            if (profile) {
+                const userRole = (profile as { role: string }).role
+                if (userRole === 'sale' || userRole === 'admin' || userRole === 'sale_admin') {
+                    return NextResponse.redirect(`${requestUrl.origin}/sales`)
+                } else {
+                    return NextResponse.redirect(`${requestUrl.origin}/customer/dashboard`)
+                }
             }
         }
     }
