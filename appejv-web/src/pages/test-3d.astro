@@ -1,0 +1,74 @@
+---
+import EcosystemOrbit3DWrapper from '../components/EcosystemOrbit3DWrapper'
+import TestReact from '../components/TestReact'
+
+const brands = [
+  {
+    name: "A Group",
+    logo: "/appejv-logo.png",
+    description: "Test",
+    isParent: true
+  },
+  {
+    name: "APPE",
+    logo: "/appe-logo.png",
+    description: "Test"
+  }
+]
+---
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Test 3D</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: system-ui, sans-serif;
+      background: #f0f0f0;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Test Three.js 3D Component</h1>
+    
+    <!-- Test 1: Simple React Component -->
+    <h2>Test 1: React Hydration</h2>
+    <TestReact client:only="react" />
+    
+    <!-- Test 2: Three.js Component -->
+    <h2>Test 2: Three.js 3D Animation</h2>
+    <p>If you see a 3D animation below, it's working!</p>
+    
+    <EcosystemOrbit3DWrapper brands={brands} client:only="react" />
+    
+    <p>Component should appear above this text.</p>
+  </div>
+  
+  <script>
+    console.log('Test page loaded');
+    setTimeout(() => {
+      const islands = document.querySelectorAll('astro-island');
+      console.log('Found', islands.length, 'astro-island elements');
+      islands.forEach((island, i) => {
+        console.log(`Island ${i}:`, {
+          componentUrl: island.getAttribute('component-url'),
+          client: island.getAttribute('client'),
+          ssr: island.getAttribute('ssr')
+        });
+      });
+    }, 1000);
+  </script>
+</body>
+</html>

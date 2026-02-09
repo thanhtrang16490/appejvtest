@@ -1,0 +1,167 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import { getProductBySlug, getProducts } from '../../lib/api'
+
+// Generate static paths for all products
+export async function getStaticPaths() {
+  const products = await getProducts()
+  return products.map(product => ({
+    params: { slug: product.slug },
+  }))
+}
+
+const { slug } = Astro.params
+
+if (!slug) {
+  return Astro.redirect('/san-pham')
+}
+
+const product = await getProductBySlug(slug)
+
+if (!product) {
+  return Astro.redirect('/san-pham')
+}
+
+// Get related products (same category)
+const allProducts = await getProducts()
+const relatedProducts = allProducts
+  .filter(p => p.category === product.category && p.id !== product.id)
+  .slice(0, 4)
+
+function formatPrice(price: number): string {
+  return new Intl.NumberFormat('vi-VN').format(price)
+}
+---
+
+<BaseLayout title={`${product.name} - APPE JV`} description={product.description || `${product.name} - Sản phẩm chất lượng cao từ APPE JV`}>
+  <div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div class="container mx-auto px-4 py-12">
+      <!-- Breadcrumb -->
+      <nav class="mb-8 text-sm">
+        <a href="/" class="text-gray-600 hover:text-blue-600">Trang chủ</a>
+        <span class="mx-2 text-gray-400">/</span>
+        <a href="/san-pham" class="text-gray-600 hover:text-blue-600">Sản phẩm</a>
+        <span class="mx-2 text-gray-400">/</span>
+        <span class="text-gray-900">{product.name}</span>
+      </nav>
+
+      <!-- Product Detail -->
+      <div class="bg-white rounded-2xl shadow-xl overflow-hidden mb-12">
+        <div class="grid md:grid-cols-2 gap-8 p-8">
+          <!-- Product Image -->
+          <div class="aspect-square bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl flex items-center justify-center p-12">
+            {product.image_url ? (
+              <img 
+                src={product.image_url} 
+                alt={product.name}
+                class="w-full h-full object-contain"
+              />
+            ) : (
+              <div class="text-9xl">📦</div>
+            )}
+          </div>
+
+          <!-- Product Info -->
+          <div class="flex flex-col justify-center">
+            <div class="text-sm font-semibold text-[#175ead] mb-2 uppercase">
+              {product.category}
+            </div>
+            <h1 class="text-4xl font-bold text-gray-900 mb-4">
+              {product.name}
+            </h1>
+            
+            {product.description && (
+              <p class="text-lg text-gray-600 mb-6 leading-relaxed">
+                {product.description}
+              </p>
+            )}
+
+            <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 mb-6">
+              <div class="flex items-baseline gap-3 mb-2">
+                <span class="text-4xl font-bold text-[#175ead]">
+                  {formatPrice(product.price)}đ
+                </span>
+                <span class="text-xl text-gray-600">/{product.unit}</span>
+              </div>
+              <p class="text-sm text-gray-600">Giá đã bao gồm VAT</p>
+            </div>
+
+            <div class="space-y-4 mb-8">
+              <div class="flex items-center gap-3 text-gray-700">
+                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                <span>Chất lượng đảm bảo</span>
+              </div>
+              <div class="flex items-center gap-3 text-gray-700">
+                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                <span>Giao hàng toàn quốc</span>
+              </div>
+              <div class="flex items-center gap-3 text-gray-700">
+                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                <span>Hỗ trợ kỹ thuật 24/7</span>
+              </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-4">
+              <a 
+                href="tel:+84351359520"
+                class="flex-1 bg-gradient-to-r from-[#175ead] to-[#2575be] text-white px-8 py-4 rounded-xl font-semibold text-center hover:shadow-lg transition-all"
+              >
+                Gọi đặt hàng ngay
+              </a>
+              <a 
+                href="/lien-he"
+                class="flex-1 bg-white text-[#175ead] px-8 py-4 rounded-xl font-semibold text-center border-2 border-[#175ead] hover:bg-[#175ead] hover:text-white transition-all"
+              >
+                Liên hệ tư vấn
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Related Products -->
+      {relatedProducts.length > 0 && (
+        <div>
+          <h2 class="text-3xl font-bold text-gray-900 mb-8">Sản phẩm liên quan</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {relatedProducts.map((relatedProduct) => (
+              <a
+                href={`/san-pham/${relatedProduct.slug}`}
+                class="group bg-white rounded-2xl shadow-md hover:shadow-xl transition-all overflow-hidden border-2 border-transparent hover:border-[#2575be]"
+              >
+                <div class="aspect-square bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center p-8">
+                  {relatedProduct.image_url ? (
+                    <img 
+                      src={relatedProduct.image_url} 
+                      alt={relatedProduct.name}
+                      class="w-full h-full object-contain group-hover:scale-110 transition-transform"
+                    />
+                  ) : (
+                    <div class="text-6xl">📦</div>
+                  )}
+                </div>
+                <div class="p-4">
+                  <h3 class="font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-[#175ead] transition-colors">
+                    {relatedProduct.name}
+                  </h3>
+                  <div class="flex items-baseline gap-2">
+                    <span class="text-xl font-bold text-[#175ead]">
+                      {formatPrice(relatedProduct.price)}đ
+                    </span>
+                    <span class="text-sm text-gray-500">/{relatedProduct.unit}</span>
+                  </div>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  </div>
+</BaseLayout>

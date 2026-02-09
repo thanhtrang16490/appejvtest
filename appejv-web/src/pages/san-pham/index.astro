@@ -1,0 +1,219 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import { getProducts, getCategories } from '../../lib/api'
+
+// Get query parameters
+const url = new URL(Astro.request.url)
+const categoryFilter = url.searchParams.get('category') || 'all'
+const searchQuery = url.searchParams.get('search') || ''
+
+// Fetch data from API
+const allProducts = await getProducts()
+const apiCategories = await getCategories()
+const categories = [
+  { id: 'all', name: 'Tất cả', icon: '🏭' },
+  ...apiCategories
+]
+
+// Filter products
+let filteredProducts = allProducts
+
+if (categoryFilter !== 'all') {
+  filteredProducts = filteredProducts.filter(p => p.category === categoryFilter)
+}
+
+if (searchQuery) {
+  filteredProducts = filteredProducts.filter(p => 
+    p.name.toLowerCase().includes(searchQuery.toLowerCase())
+  )
+}
+
+// Pagination
+const page = parseInt(url.searchParams.get('page') || '1')
+const perPage = 12
+const totalPages = Math.ceil(filteredProducts.length / perPage)
+const startIndex = (page - 1) * perPage
+const endIndex = startIndex + perPage
+const paginatedProducts = filteredProducts.slice(startIndex, endIndex)
+
+function formatPrice(price: number): string {
+  return new Intl.NumberFormat('vi-VN').format(price)
+}
+---
+
+<BaseLayout title="Sản phẩm - APPE JV" description="Danh mục sản phẩm thức ăn chăn nuôi và thủy sản chất lượng cao từ APPE JV">
+  <div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    
+    <!-- Hero Section -->
+    <div class="bg-gradient-to-r from-[#175ead] to-[#2575be] text-white py-12 md:py-16">
+      <div class="container mx-auto px-4">
+        <div class="max-w-3xl mx-auto text-center">
+          <h1 class="text-3xl md:text-5xl font-bold mb-4">
+            Danh Mục Sản Phẩm
+          </h1>
+          <p class="text-lg md:text-xl text-blue-100 mb-8">
+            Thức ăn chăn nuôi và thủy sản chất lượng cao từ APPE JV
+          </p>
+          
+          <!-- Search Bar -->
+          <form method="get" class="relative max-w-2xl mx-auto">
+            <svg class="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              type="search"
+              name="search"
+              placeholder="Tìm kiếm sản phẩm..."
+              value={searchQuery}
+              class="w-full pl-12 pr-4 py-4 rounded-full text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white shadow-lg"
+            />
+            <input type="hidden" name="category" value={categoryFilter} />
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Category Filter -->
+    <div class="sticky top-16 z-40 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-sm">
+      <div class="container mx-auto px-4 py-4">
+        <div class="flex gap-2 overflow-x-auto scrollbar-hide">
+          {categories.map((cat) => (
+            <a
+              href={`/san-pham?category=${cat.id}`}
+              class={`flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap transition-all ${
+                categoryFilter === cat.id
+                  ? 'bg-gradient-to-r from-[#175ead] to-[#2575be] text-white shadow-lg'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              <span class="text-xl">{cat.icon}</span>
+              <span class="font-medium">{cat.name}</span>
+            </a>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    <!-- Products Grid -->
+    <div class="container mx-auto px-4 py-12">
+      {paginatedProducts.length === 0 ? (
+        <div class="text-center py-20">
+          <div class="text-6xl mb-4">🔍</div>
+          <h3 class="text-2xl font-bold text-gray-900 mb-2">Không tìm thấy sản phẩm</h3>
+          <p class="text-gray-600 mb-6">Thử tìm kiếm với từ khóa khác hoặc chọn danh mục khác</p>
+          <a href="/san-pham" class="inline-block bg-gradient-to-r from-[#175ead] to-[#2575be] text-white px-6 py-3 rounded-full font-medium hover:shadow-lg transition-all">
+            Xem tất cả sản phẩm
+          </a>
+        </div>
+      ) : (
+        <>
+          <div class="mb-6 text-gray-600">
+            Hiển thị {startIndex + 1}-{Math.min(endIndex, filteredProducts.length)} trong tổng số {filteredProducts.length} sản phẩm
+          </div>
+          
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {paginatedProducts.map((product) => (
+              <a
+                href={`/san-pham/${product.slug}`}
+                class="group bg-white rounded-2xl shadow-md hover:shadow-xl transition-all overflow-hidden border-2 border-transparent hover:border-[#2575be]"
+              >
+                <div class="aspect-square bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center p-8">
+                  {product.image_url ? (
+                    <img 
+                      src={product.image_url} 
+                      alt={product.name}
+                      class="w-full h-full object-contain group-hover:scale-110 transition-transform"
+                    />
+                  ) : (
+                    <div class="text-6xl">📦</div>
+                  )}
+                </div>
+                <div class="p-4">
+                  <div class="text-xs font-semibold text-[#175ead] mb-2 uppercase">
+                    {categories.find(c => c.id === product.category)?.name || product.category}
+                  </div>
+                  <h3 class="font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-[#175ead] transition-colors">
+                    {product.name}
+                  </h3>
+                  {product.description && (
+                    <p class="text-sm text-gray-600 mb-3 line-clamp-2">
+                      {product.description}
+                    </p>
+                  )}
+                  <div class="flex items-baseline gap-2">
+                    <span class="text-2xl font-bold text-[#175ead]">
+                      {formatPrice(product.price)}đ
+                    </span>
+                    <span class="text-sm text-gray-500">/{product.unit}</span>
+                  </div>
+                </div>
+              </a>
+            ))}
+          </div>
+
+          <!-- Pagination -->
+          {totalPages > 1 && (
+            <div class="mt-12 flex justify-center gap-2">
+              {page > 1 && (
+                <a
+                  href={`/san-pham?category=${categoryFilter}&search=${searchQuery}&page=${page - 1}`}
+                  class="px-4 py-2 rounded-lg bg-white border-2 border-gray-200 hover:border-[#2575be] text-gray-700 font-medium transition-all"
+                >
+                  ← Trước
+                </a>
+              )}
+              
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                <a
+                  href={`/san-pham?category=${categoryFilter}&search=${searchQuery}&page=${p}`}
+                  class={`px-4 py-2 rounded-lg font-medium transition-all ${
+                    p === page
+                      ? 'bg-gradient-to-r from-[#175ead] to-[#2575be] text-white shadow-lg'
+                      : 'bg-white border-2 border-gray-200 hover:border-[#2575be] text-gray-700'
+                  }`}
+                >
+                  {p}
+                </a>
+              ))}
+              
+              {page < totalPages && (
+                <a
+                  href={`/san-pham?category=${categoryFilter}&search=${searchQuery}&page=${page + 1}`}
+                  class="px-4 py-2 rounded-lg bg-white border-2 border-gray-200 hover:border-[#2575be] text-gray-700 font-medium transition-all"
+                >
+                  Sau →
+                </a>
+              )}
+            </div>
+          )}
+        </>
+      )}
+    </div>
+
+    <!-- Footer Info -->
+    <div class="bg-gradient-to-r from-blue-50 to-purple-50 py-12">
+      <div class="container mx-auto px-4">
+        <div class="max-w-4xl mx-auto text-center">
+          <h2 class="text-2xl font-bold text-gray-900 mb-4">Cần tư vấn sản phẩm?</h2>
+          <p class="text-gray-600 mb-6">
+            Đội ngũ chuyên gia của chúng tôi sẵn sàng hỗ trợ bạn chọn sản phẩm phù hợp nhất
+          </p>
+          <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="tel:+84351359520" class="inline-flex items-center justify-center gap-2 bg-white text-[#175ead] px-6 py-3 rounded-full font-medium border-2 border-[#175ead] hover:bg-[#175ead] hover:text-white transition-all">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+              </svg>
+              Gọi ngay
+            </a>
+            <a href="/lien-he" class="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-[#175ead] to-[#2575be] text-white px-6 py-3 rounded-full font-medium hover:shadow-lg transition-all">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+              Liên hệ
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
