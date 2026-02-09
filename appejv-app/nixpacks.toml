@@ -1,10 +1,15 @@
 # Nixpacks Configuration for appejv-app (Next.js)
+# This app is part of a monorepo, so we need special handling
 
 [phases.setup]
 nixPkgs = ["nodejs_20"]
 
 [phases.install]
-cmds = ["npm ci"]
+# Use npm install instead of npm ci because we're in a monorepo
+# The package-lock.json is at the root level
+cmds = [
+  "npm install --legacy-peer-deps --omit=dev"
+]
 
 [phases.build]
 cmds = ["npm run build"]
