@@ -7,7 +7,7 @@ nixPkgs = ["nodejs_20", "nginx"]
 cmds = ["npm install --legacy-peer-deps"]
 
 [phases.build]
-cmds = ["npm run build", "cp nginx.conf /app/nginx.conf"]
+cmds = ["npm run build"]
 
 [start]
 cmd = "nginx -c /app/nginx.conf -g 'daemon off;'"
