@@ -10,7 +10,7 @@ cmds = ["npm install --legacy-peer-deps", "npm install -g serve"]
 cmds = ["npm run build"]
 
 [start]
-cmd = "serve dist -l $PORT"
+cmd = "npx serve dist -p $PORT -s"
 
 [variables]
 PORT = "4321"
