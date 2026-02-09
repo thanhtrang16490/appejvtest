@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Search, ChevronRight, Phone, MapPin, Users, Sparkles } from 'lucide-react'
+import { Search, ChevronRight, Phone, MapPin, Users } from 'lucide-react'
 import { HeaderMenu } from '@/components/layout/HeaderMenu'
 import { NotificationModal } from '@/components/layout/NotificationModal'
 import { CustomerListActions } from '@/components/sales/CustomerListActions'
@@ -181,13 +181,6 @@ export default function SalesCustomersPage() {
                         <span className="text-xl font-bold text-gray-900">APPE JV</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <Button 
-                            size="sm" 
-                            className="bg-gradient-to-r from-[#175ead] to-[#2575be] text-white rounded-full px-4 py-2 text-sm font-medium"
-                        >
-                            <Sparkles className="w-4 h-4 mr-1" />
-                            Trợ lý AI
-                        </Button>
                         <NotificationModal user={user} role={(profile as any).role} />
                         <HeaderMenu user={user} role={(profile as any).role} />
                     </div>
@@ -207,7 +200,7 @@ export default function SalesCustomersPage() {
                                 {filteredCustomers.length} khách hàng
                             </p>
                         </div>
-                        <CustomerListActions canCreate={canCreateCustomer} isAdmin={isAdmin} />
+                        <CustomerListActions canCreate={canCreateCustomer} isAdmin={isAdmin} onCustomerCreated={fetchData} />
                     </div>
                     
                     {/* Search */}

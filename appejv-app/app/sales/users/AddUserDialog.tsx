@@ -13,8 +13,13 @@ import {
 } from '@/components/ui/dialog'
 import { UserForm } from './UserForm'
 
-export function AddUserDialog({ saleAdmins }: { saleAdmins: any[] }) {
+export function AddUserDialog({ saleAdmins, onUserCreated }: { saleAdmins: any[], onUserCreated: () => void }) {
     const [open, setOpen] = useState(false)
+
+    const handleSuccess = () => {
+        setOpen(false)
+        onUserCreated() // Refetch data after creating user
+    }
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -30,7 +35,7 @@ export function AddUserDialog({ saleAdmins }: { saleAdmins: any[] }) {
                         Thêm nhân viên hoặc khách hàng mới vào hệ thống.
                     </DialogDescription>
                 </DialogHeader>
-                <UserForm saleAdmins={saleAdmins} onSuccess={() => setOpen(false)} />
+                <UserForm saleAdmins={saleAdmins} onSuccess={handleSuccess} />
             </DialogContent>
         </Dialog>
     )

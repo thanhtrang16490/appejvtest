@@ -6,7 +6,7 @@ import { UserMinus, Loader2 } from 'lucide-react'
 import { deleteUser } from './actions'
 import { toast } from 'sonner'
 
-export function DeleteUserButton({ userId, currentUserId }: { userId: string, currentUserId: string }) {
+export function DeleteUserButton({ userId, currentUserId, onUserDeleted }: { userId: string, currentUserId: string, onUserDeleted: () => void }) {
     const [loading, setLoading] = useState(false)
 
     const handleDelete = async () => {
@@ -20,6 +20,7 @@ export function DeleteUserButton({ userId, currentUserId }: { userId: string, cu
             toast.error(result.error)
         } else {
             toast.success('User removed')
+            onUserDeleted() // Refetch data after deleting user
         }
     }
 

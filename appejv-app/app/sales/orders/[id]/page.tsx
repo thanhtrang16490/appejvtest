@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { formatCurrency, cn } from '@/lib/utils'
-import { ArrowLeft, Clock, ShoppingBag, User, Phone, MapPin, CheckCircle2, AlertCircle, Printer, Edit2, Sparkles, ChevronLeft } from 'lucide-react'
+import { ArrowLeft, Clock, ShoppingBag, User, Phone, MapPin, CheckCircle2, AlertCircle, Printer, Edit2, ChevronLeft } from 'lucide-react'
 import Link from 'next/link'
 import { HeaderMenu } from '@/components/layout/HeaderMenu'
 import { NotificationModal } from '@/components/layout/NotificationModal'
@@ -128,13 +128,6 @@ export default function SalesOrderDetailsPage() {
                         <span className="text-xl font-bold text-gray-900">APPE JV</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <Button 
-                            size="sm" 
-                            className="bg-gradient-to-r from-[#175ead] to-[#2575be] text-white rounded-full px-4 py-2 text-sm font-medium"
-                        >
-                            <Sparkles className="w-4 h-4 mr-1" />
-                            Trợ lý AI
-                        </Button>
                         <NotificationModal user={user} role={profile.role} />
                         <HeaderMenu user={user} role={profile.role} />
                     </div>

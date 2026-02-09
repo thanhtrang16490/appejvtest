@@ -3,7 +3,7 @@
 import React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Package, Users, NotebookText, BarChart3, LayoutDashboard, LogOut, Sparkles, ShoppingCart } from 'lucide-react'
+import { Package, Users, NotebookText, BarChart3, LayoutDashboard, LogOut, ShoppingCart } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { logout } from '@/app/auth/actions'
 import { Button } from '@/components/ui/button'
@@ -87,15 +87,6 @@ export function Sidebar({ role = 'customer', user }: SidebarProps) {
                     )
                 })}
             </nav>
-
-            {/* AI Assistant Button */}
-            <div className="px-4 pb-4">
-                <Button className="w-full bg-gradient-to-r from-[#175ead] to-[#2575be] text-white rounded-xl py-3 font-medium shadow-lg hover:shadow-xl transition-all">
-                    <Sparkles className="w-4 h-4 mr-2" />
-                    Trợ lý AI
-                </Button>
-            </div>
-
             {/* Footer */}
             <div className="p-4 border-t border-gray-100">
                 <Button 

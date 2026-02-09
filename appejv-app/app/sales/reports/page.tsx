@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { formatCurrency, cn } from '@/lib/utils'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import { TrendingUp, Package, Tag, Wallet, Sparkles, BarChart3, ChevronDown } from 'lucide-react'
+import { TrendingUp, Package, Tag, Wallet, BarChart3, ChevronDown } from 'lucide-react'
 import { HeaderMenu } from '@/components/layout/HeaderMenu'
 import { NotificationModal } from '@/components/layout/NotificationModal'
 import { ReportsLoading } from '@/components/loading/ReportsLoading'
@@ -428,13 +428,6 @@ export default function ReportsPage() {
                         <span className="text-xl font-bold text-gray-900">APPE JV</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <Button 
-                            size="sm" 
-                            className="bg-gradient-to-r from-[#175ead] to-[#2575be] text-white rounded-full px-4 py-2 text-sm font-medium"
-                        >
-                            <Sparkles className="w-4 h-4 mr-1" />
-                            Trợ lý AI
-                        </Button>
                         <NotificationModal user={user} role={(profile as any).role} />
                         <HeaderMenu user={user} role={(profile as any).role} />
                     </div>

@@ -13,8 +13,7 @@ import {
     Phone,
     MapPin,
     Clock,
-    ArrowUpRight,
-    Sparkles
+    ArrowUpRight
 } from 'lucide-react'
 import { formatCurrency, cn } from '@/lib/utils'
 import { CustomerDetailActions } from '@/components/sales/CustomerDetailActions'
@@ -161,13 +160,6 @@ export default function CustomerDetailPage() {
                         <span className="text-xl font-bold text-gray-900">APPE JV</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <Button 
-                            size="sm" 
-                            className="bg-gradient-to-r from-[#175ead] to-[#2575be] text-white rounded-full px-4 py-2 text-sm font-medium"
-                        >
-                            <Sparkles className="w-4 h-4 mr-1" />
-                            Trợ lý AI
-                        </Button>
                         <NotificationModal user={user} role={(profile as any).role} />
                         <HeaderMenu user={user} role={(profile as any).role} />
                     </div>

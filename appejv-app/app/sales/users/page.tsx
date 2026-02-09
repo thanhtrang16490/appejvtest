@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { UserPlus, Shield, User, Users, Sparkles } from 'lucide-react'
+import { UserPlus, Shield, User, Users } from 'lucide-react'
 import { AddUserDialog } from './AddUserDialog'
 import { DeleteUserButton } from './DeleteUserButton'
 import { HeaderMenu } from '@/components/layout/HeaderMenu'
@@ -129,13 +129,6 @@ export default function UsersManagementPage() {
                         <span className="text-xl font-bold text-gray-900">APPE JV</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <Button 
-                            size="sm" 
-                            className="bg-gradient-to-r from-[#175ead] to-[#2575be] text-white rounded-full px-4 py-2 text-sm font-medium"
-                        >
-                            <Sparkles className="w-4 h-4 mr-1" />
-                            Trợ lý AI
-                        </Button>
                         <NotificationModal user={user} role={(profile as any).role} />
                         <HeaderMenu user={user} role={(profile as any).role} />
                     </div>
@@ -152,7 +145,7 @@ export default function UsersManagementPage() {
                         <h1 className="text-2xl font-bold text-gray-900">Quản lý người dùng</h1>
                         <p className="text-sm text-gray-600">Quản lý quyền truy cập và vai trò trong hệ thống.</p>
                     </div>
-                    <AddUserDialog saleAdmins={saleAdmins} />
+                    <AddUserDialog saleAdmins={saleAdmins} onUserCreated={fetchData} />
                 </div>
             </div>
 
@@ -192,7 +185,7 @@ export default function UsersManagementPage() {
                                     </div>
 
                                     <div className="mt-6 flex gap-2">
-                                        <DeleteUserButton userId={p.id} currentUserId={user.id} />
+                                        <DeleteUserButton userId={p.id} currentUserId={user.id} onUserDeleted={fetchData} />
                                     </div>
                                 </CardContent>
                             </Card>

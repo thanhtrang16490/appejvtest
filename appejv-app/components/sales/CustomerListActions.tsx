@@ -5,10 +5,15 @@ import { Button } from '@/components/ui/button'
 import { Plus } from 'lucide-react'
 import { CustomerDialog } from './CustomerDialog'
 
-export function CustomerListActions({ canCreate, isAdmin = false }: { canCreate: boolean, isAdmin?: boolean }) {
+export function CustomerListActions({ canCreate, isAdmin = false, onCustomerCreated }: { canCreate: boolean, isAdmin?: boolean, onCustomerCreated?: () => void }) {
     const [isOpen, setIsOpen] = useState(false)
 
     if (!canCreate) return null
+
+    const handleSuccess = () => {
+        setIsOpen(false)
+        onCustomerCreated?.() // Refetch data after creating customer
+    }
 
     return (
         <>
@@ -21,6 +26,7 @@ export function CustomerListActions({ canCreate, isAdmin = false }: { canCreate:
             <CustomerDialog
                 isOpen={isOpen}
                 onOpenChange={setIsOpen}
+                onSuccess={handleSuccess}
                 isAdmin={isAdmin}
             />
         </>

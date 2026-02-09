@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { 
@@ -33,7 +33,12 @@ interface HeaderMenuProps {
 
 export function HeaderMenu({ user, role }: HeaderMenuProps) {
     const [isOpen, setIsOpen] = useState(false)
+    const [mounted, setMounted] = useState(false)
     const pathname = usePathname()
+
+    useEffect(() => {
+        setMounted(true)
+    }, [])
 
     const toggleMenu = () => {
         setIsOpen(!isOpen)
@@ -46,16 +51,27 @@ export function HeaderMenu({ user, role }: HeaderMenuProps) {
     const handleLogout = async () => {
         try {
             await logout()
-            // Redirect to appejv.app website
             window.location.href = 'https://appejv.app'
         } catch (error) {
             console.error('Error logging out:', error)
         }
     }
 
+    if (!mounted) {
+        return (
+            <Button 
+                size="sm" 
+                variant="ghost"
+                className="w-10 h-10 p-0 rounded-full hover:bg-white/20"
+                disabled
+            >
+                <Menu className="w-5 h-5 text-gray-700" />
+            </Button>
+        )
+    }
+
     return (
         <>
-            {/* Menu Button */}
             <Button 
                 size="sm" 
                 variant="ghost"
@@ -65,7 +81,6 @@ export function HeaderMenu({ user, role }: HeaderMenuProps) {
                 <Menu className="w-5 h-5 text-gray-700" />
             </Button>
 
-            {/* Overlay */}
             {isOpen && (
                 <div 
                     className="fixed inset-0 bg-black bg-opacity-50 z-[60]"
@@ -73,12 +88,10 @@ export function HeaderMenu({ user, role }: HeaderMenuProps) {
                 />
             )}
 
-            {/* Drawer */}
             <div className={cn(
                 "fixed top-0 right-0 h-full w-full bg-white shadow-2xl z-[70] transform transition-transform duration-300 ease-in-out",
                 isOpen ? "translate-x-0" : "translate-x-full"
             )}>
-                {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-cyan-50">
                     <div>
                         <h2 className="text-xl font-bold text-gray-900">Menu</h2>
@@ -94,7 +107,6 @@ export function HeaderMenu({ user, role }: HeaderMenuProps) {
                     </Button>
                 </div>
 
-                {/* Menu Items */}
                 <div className="flex-1 py-6 bg-white">
                     <h3 className="px-8 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
                         Chức năng
@@ -136,7 +148,6 @@ export function HeaderMenu({ user, role }: HeaderMenuProps) {
                     </nav>
                 </div>
 
-                {/* Footer */}
                 <div className="border-t border-gray-100 p-4 bg-gray-50">
                     <Button 
                         variant="ghost" 
