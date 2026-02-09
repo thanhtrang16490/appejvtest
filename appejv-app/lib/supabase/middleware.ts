@@ -39,6 +39,46 @@ export async function updateSession(request: NextRequest) {
         data: { user },
     } = await supabase.auth.getUser()
 
+    // Check if user exists but profile is deleted
+    if (user) {
+        const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('id, role')
+            .eq('id', user.id)
+            .single()
+
+        // If profile doesn't exist or error fetching it, user was deleted
+        if (!profile || profileError) {
+            // Log the deleted user access attempt
+            logAuditEvent({
+                eventType: AuditEventType.UNAUTHORIZED_ACCESS,
+                userId: user.id,
+                userEmail: user.email,
+                ipAddress: getClientIP(request),
+                userAgent: getUserAgent(request),
+                resource: request.nextUrl.pathname,
+                success: false,
+                errorMessage: 'User profile deleted or not found',
+                metadata: { profileError: profileError?.message }
+            })
+
+            // Sign out the user
+            await supabase.auth.signOut()
+
+            // Redirect to login with message
+            const url = request.nextUrl.clone()
+            url.pathname = '/auth/login'
+            url.searchParams.set('message', 'account_deleted')
+            
+            const redirectResponse = NextResponse.redirect(url)
+            // Clear all cookies
+            redirectResponse.cookies.delete('sb-access-token')
+            redirectResponse.cookies.delete('sb-refresh-token')
+            
+            return redirectResponse
+        }
+    }
+
     // Rate limiting for authentication routes
     if (request.nextUrl.pathname.startsWith('/auth/')) {
         const clientIP = getClientIP(request)

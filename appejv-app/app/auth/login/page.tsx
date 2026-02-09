@@ -1,11 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { login } from '../actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { HelpCircle, Eye, EyeOff, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
@@ -15,6 +15,15 @@ export default function LoginPage() {
     const [isForgotPassword, setIsForgotPassword] = useState(false)
     const [resetEmail, setResetEmail] = useState('')
     const router = useRouter()
+    const searchParams = useSearchParams()
+
+    // Check for account deleted message
+    useEffect(() => {
+        const message = searchParams.get('message')
+        if (message === 'account_deleted') {
+            toast.error('Tài khoản của bạn đã bị xóa hoặc vô hiệu hóa. Vui lòng liên hệ quản trị viên.')
+        }
+    }, [searchParams])
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault()

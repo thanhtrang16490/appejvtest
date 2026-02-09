@@ -3,6 +3,8 @@
  * Handles all HTTP requests to appejv-api
  */
 
+import { handleDeletedUser } from '@/lib/auth/session-handler'
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1'
 const API_TIMEOUT = parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT || '30000')
 
@@ -47,6 +49,21 @@ class ApiClient {
       })
 
       clearTimeout(timeoutId)
+
+      // Handle 401/403 - User might be deleted or unauthorized
+      if (response.status === 401 || response.status === 403) {
+        // Check if it's a deleted user scenario
+        if (typeof window !== 'undefined') {
+          // Import dynamically to avoid SSR issues
+          const { validateUserSession } = await import('@/lib/auth/session-handler')
+          const isValid = await validateUserSession()
+          
+          if (!isValid) {
+            // User was deleted - handleDeletedUser will redirect
+            return { error: 'User account deleted or disabled' }
+          }
+        }
+      }
 
       const data = await response.json()
 
