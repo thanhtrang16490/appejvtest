@@ -215,14 +215,16 @@ async function LayoutContent({ children }: { children: React.ReactNode }) {
     if (profile && (profile as any).role) role = (profile as any).role;
   }
 
-  // Check if we should show bottom nav (sales pages for sales users)
+  // Check if we should show bottom nav (sales pages for sales users, customer pages for customers)
   const isSalesUser = user && ['sale', 'admin', 'sale_admin'].includes(role)
+  const isCustomer = user && role === 'customer'
+  const shouldAddPadding = (isSalesUser && pathname.startsWith('/sales')) || (isCustomer && pathname.startsWith('/customer'))
 
   return (
     <>
       <Sidebar role={role} user={user} />
       <ConditionalSidebarLayout user={user} role={role}>
-        <main className={cn("min-h-screen", isSalesUser ? "pb-16 md:pb-0" : "")}>
+        <main className={cn("min-h-screen", shouldAddPadding ? "pb-16 md:pb-0" : "")}>
           {children}
         </main>
       </ConditionalSidebarLayout>

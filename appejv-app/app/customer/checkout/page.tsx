@@ -44,7 +44,7 @@ export default function CheckoutPage() {
 
         if (!user) {
             toast.error('Please login to checkout')
-            router.push('/auth/customer-login')
+            router.push('/auth/login')
             return
         }
 

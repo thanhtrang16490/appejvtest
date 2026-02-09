@@ -7,6 +7,7 @@ import { Package, Users, NotebookText, BarChart3, LayoutDashboard, LogOut, Spark
 import { cn } from '@/lib/utils'
 import { logout } from '@/app/auth/actions'
 import { Button } from '@/components/ui/button'
+import { HeaderMenu } from './HeaderMenu'
 
 const salesNavItems = [
     { name: 'Tổng quan', href: '/sales', icon: LayoutDashboard },
@@ -36,7 +37,7 @@ export function Sidebar({ role = 'customer', user }: SidebarProps) {
     return (
         <aside className="hidden md:flex flex-col fixed left-0 top-0 bottom-0 w-64 bg-gradient-to-b from-white to-gray-50 border-r border-gray-200 shadow-lg z-40">
             {/* Header */}
-            <div className="p-6 border-b border-gray-100">
+            <div className="p-6 border-b border-gray-100 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                     <img 
                         src="/appejv-logo.png" 
@@ -48,6 +49,7 @@ export function Sidebar({ role = 'customer', user }: SidebarProps) {
                         <p className="text-xs text-gray-500">Hệ thống bán hàng</p>
                     </div>
                 </div>
+                <HeaderMenu user={user} role={role} />
             </div>
 
             {/* Navigation */}

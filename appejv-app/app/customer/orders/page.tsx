@@ -9,6 +9,7 @@ import { Sparkles } from 'lucide-react'
 import Link from 'next/link'
 import { Database } from '@/types/database.types'
 import { useState, useEffect } from 'react'
+import { HeaderMenu } from '@/components/layout/HeaderMenu'
 
 type Order = Database['public']['Tables']['orders']['Row']
 
@@ -27,6 +28,12 @@ export default function OrdersPage() {
     const [lastScrollY, setLastScrollY] = useState(0)
     const [loading, setLoading] = useState(true)
     const [user, setUser] = useState<any>(null)
+    const [role, setRole] = useState('customer')
+    const [mounted, setMounted] = useState(false)
+
+    useEffect(() => {
+        setMounted(true)
+    }, [])
 
     useEffect(() => {
         const controlHeader = () => {
@@ -50,7 +57,24 @@ export default function OrdersPage() {
 
     useEffect(() => {
         fetchOrders()
+        fetchUserRole()
     }, [activeStatus])
+
+    const fetchUserRole = async () => {
+        const supabase = createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        
+        if (user) {
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('role')
+                .eq('id', user.id)
+                .single()
+            if (profile && (profile as any).role) {
+                setRole((profile as any).role)
+            }
+        }
+    }
 
     const fetchOrders = async () => {
         try {
@@ -133,7 +157,7 @@ export default function OrdersPage() {
             <div className="bg-gradient-to-br from-blue-50 to-cyan-50 min-h-screen flex items-center justify-center">
                 <div className="text-center">
                     <p className="text-gray-600 mb-4">Vui lòng đăng nhập để xem đơn hàng</p>
-                    <Link href="/auth/customer-login">
+                    <Link href="/auth/login">
                         <Button>Đăng nhập</Button>
                     </Link>
                 </div>
@@ -156,13 +180,18 @@ export default function OrdersPage() {
                         </div>
                         <span className="text-xl font-bold text-gray-900">APPE JV</span>
                     </div>
-                    <Button 
-                        size="sm" 
-                        className="bg-gradient-to-r from-[#175ead] to-[#2575be] text-white rounded-full px-4 py-2 text-sm font-medium"
-                    >
-                        <Sparkles className="w-4 h-4 mr-1" />
-                        Trợ lý AI
-                    </Button>
+                    {mounted && (
+                        <div className="flex items-center gap-2">
+                            <Button 
+                                size="sm" 
+                                className="bg-gradient-to-r from-[#175ead] to-[#2575be] text-white rounded-full px-4 py-2 text-sm font-medium"
+                            >
+                                <Sparkles className="w-4 h-4 mr-1" />
+                                Trợ lý AI
+                            </Button>
+                            <HeaderMenu user={user} role={role} />
+                        </div>
+                    )}
                 </div>
             </div>
 

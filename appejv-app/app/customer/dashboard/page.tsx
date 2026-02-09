@@ -7,7 +7,7 @@ export default async function Dashboard() {
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect('/auth/customer-login')
+    redirect('/auth/login')
   }
 
   // Check if user is a sales person, redirect to sales dashboard
@@ -21,5 +21,5 @@ export default async function Dashboard() {
     redirect('/sales')
   }
 
-  return <CustomerHome />
+  return <CustomerHome initialUser={user} initialRole={(profile as any)?.role || 'customer'} />
 }

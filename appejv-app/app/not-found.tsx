@@ -70,7 +70,7 @@ export default function NotFound() {
                 Liên hệ
               </Link>
               <span className="text-gray-300">•</span>
-              <Link href="/auth/customer-login" className="text-[#175ead] hover:text-[#2575be] font-medium">
+              <Link href="/auth/login" className="text-[#175ead] hover:text-[#2575be] font-medium">
                 Đăng nhập
               </Link>
             </div>

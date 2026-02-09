@@ -132,7 +132,7 @@ export function useDeleteCustomer() {
   return useMutation({
     mutationFn: async (customerId: number) => {
       const supabase = createClient()
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('customers')
         .update({ deleted_at: new Date().toISOString() })
         .eq('id', customerId)

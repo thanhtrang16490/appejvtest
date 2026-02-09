@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Sparkles, Lock, ChevronRight, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
+import { HeaderMenu } from '@/components/layout/HeaderMenu'
 
 const filterTabs = [
     { id: 'today', label: 'Hôm nay' },
@@ -22,7 +23,12 @@ interface BestSellingProduct {
     total_revenue: number
 }
 
-export function CustomerHome() {
+interface CustomerHomeProps {
+    initialUser?: any
+    initialRole?: string
+}
+
+export function CustomerHome({ initialUser, initialRole }: CustomerHomeProps) {
     const [activeFilter, setActiveFilter] = useState('thisMonth')
     const [bestSellingProducts, setBestSellingProducts] = useState<BestSellingProduct[]>([])
     const [totalOrders, setTotalOrders] = useState(0)
@@ -30,10 +36,38 @@ export function CustomerHome() {
     const [loading, setLoading] = useState(true)
     const [isHeaderVisible, setIsHeaderVisible] = useState(true)
     const [lastScrollY, setLastScrollY] = useState(0)
+    const [user, setUser] = useState<any>(initialUser || null)
+    const [role, setRole] = useState(initialRole || 'customer')
+    const [mounted, setMounted] = useState(false)
 
     useEffect(() => {
+        setMounted(true)
+    }, [])
+
+    useEffect(() => {
+        // Only fetch if we don't have initial data
+        if (!initialUser) {
+            fetchUserData()
+        }
         fetchData()
-    }, [activeFilter])
+    }, [activeFilter, initialUser])
+
+    const fetchUserData = async () => {
+        const supabase = createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        setUser(user)
+        
+        if (user) {
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('role')
+                .eq('id', user.id)
+                .single()
+            if (profile && (profile as any).role) {
+                setRole((profile as any).role)
+            }
+        }
+    }
 
     useEffect(() => {
         const controlHeader = () => {
@@ -89,28 +123,58 @@ export function CustomerHome() {
             const supabase = createClient()
             const { startDate, endDate } = getDateRange()
 
-            // Fetch orders count and total revenue
+            // Get current user
+            const { data: { user } } = await supabase.auth.getUser()
+            if (!user || !user.phone) {
+                setLoading(false)
+                return
+            }
+
+            // Get customer ID from phone
+            const { data: customerData } = await supabase
+                .from('customers')
+                .select('id')
+                .eq('phone', user.phone)
+                .single()
+
+            if (!customerData) {
+                setLoading(false)
+                return
+            }
+
+            const customerId = (customerData as any).id
+
+            // Fetch orders count and total revenue for THIS customer only
             const { data: ordersData } = await supabase
                 .from('orders')
                 .select('id, total_amount')
+                .eq('customer_id', customerId)
                 .gte('created_at', startDate)
                 .lt('created_at', endDate)
 
             setTotalOrders(ordersData?.length || 0)
             setTotalRevenue(ordersData?.reduce((sum, order: any) => sum + order.total_amount, 0) || 0)
 
-            // Fetch best selling products
+            // Get order IDs for this customer
+            const orderIds = ordersData?.map((order: any) => order.id) || []
+
+            if (orderIds.length === 0) {
+                setBestSellingProducts([])
+                setLoading(false)
+                return
+            }
+
+            // Fetch best selling products for THIS customer's orders only
             const { data: bestSellingData } = await supabase
                 .from('order_items')
                 .select(`
                     product_id,
                     quantity,
                     price_at_order,
-                    products!inner(name),
-                    orders!inner(created_at)
+                    order_id,
+                    products!inner(name)
                 `)
-                .gte('orders.created_at', startDate)
-                .lt('orders.created_at', endDate)
+                .in('order_id', orderIds)
 
             if (bestSellingData) {
                 // Group by product and calculate totals
@@ -170,13 +234,18 @@ export function CustomerHome() {
                         </div>
                         <span className="text-xl font-bold text-gray-900">APPE JV</span>
                     </div>
-                    <Button 
-                        size="sm" 
-                        className="bg-gradient-to-r from-[#175ead] to-[#2575be] text-white rounded-full px-4 py-2 text-sm font-medium"
-                    >
-                        <Sparkles className="w-4 h-4 mr-1" />
-                        Trợ lý AI
-                    </Button>
+                    {mounted && (
+                        <div className="flex items-center gap-2">
+                            <Button 
+                                size="sm" 
+                                className="bg-gradient-to-r from-[#175ead] to-[#2575be] text-white rounded-full px-4 py-2 text-sm font-medium"
+                            >
+                                <Sparkles className="w-4 h-4 mr-1" />
+                                Trợ lý AI
+                            </Button>
+                            {user && <HeaderMenu user={user} role={role} />}
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -212,7 +281,7 @@ export function CustomerHome() {
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-purple-500 text-sm font-medium mb-1">
-                                        {totalOrders} đơn
+                                        Đơn hàng
                                     </p>
                                     <p className="text-4xl font-bold text-gray-900">{totalOrders}</p>
                                 </div>
@@ -223,10 +292,10 @@ export function CustomerHome() {
                         </CardContent>
                     </Card>
 
-                    {/* Revenue Chart */}
+                    {/* Spending Chart */}
                     <Card className="bg-white rounded-2xl shadow-sm border-0">
                         <CardContent className="p-4">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Doanh thu</h3>
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Tổng chi tiêu</h3>
                             <div className="h-32 flex items-end justify-center">
                                 <div className="text-gray-900 text-lg font-semibold">
                                     {formatCurrency(totalRevenue)}
@@ -241,11 +310,11 @@ export function CustomerHome() {
                         </CardContent>
                     </Card>
 
-                    {/* Revenue Summary */}
+                    {/* Spending Summary */}
                     <Card className="bg-white rounded-2xl shadow-sm border-0">
                         <CardContent className="p-4">
                             <div className="flex items-center justify-between">
-                                <span className="text-gray-700 font-medium">Doanh thu tháng này</span>
+                                <span className="text-gray-700 font-medium">Chi tiêu tháng này</span>
                                 <span className="text-2xl font-bold text-gray-900">
                                     {formatCurrency(totalRevenue)}
                                 </span>
@@ -253,10 +322,10 @@ export function CustomerHome() {
                         </CardContent>
                     </Card>
 
-                    {/* Best Selling Products */}
+                    {/* Most Purchased Products */}
                     <Card className="bg-white rounded-2xl shadow-sm border-0">
                         <CardContent className="p-4">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Hàng hóa bán chạy</h3>
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Sản phẩm mua nhiều nhất</h3>
                             {loading ? (
                                 <div className="text-center py-4 text-gray-500">Đang tải...</div>
                             ) : bestSellingProducts.length > 0 ? (
@@ -272,7 +341,7 @@ export function CustomerHome() {
                                     ))}
                                     <div className="border-t pt-3 mt-3">
                                         <div className="flex items-center justify-between text-sm text-gray-500">
-                                            <span>Tổng số lượng bán</span>
+                                            <span>Tổng số lượng đã mua</span>
                                             <span>
                                                 {bestSellingProducts.reduce((sum, product) => sum + product.total_quantity, 0)}
                                             </span>
@@ -281,7 +350,7 @@ export function CustomerHome() {
                                 </div>
                             ) : (
                                 <div className="text-center py-4 text-gray-500">
-                                    Chưa có dữ liệu bán hàng
+                                    Chưa có đơn hàng nào
                                 </div>
                             )}
                         </CardContent>

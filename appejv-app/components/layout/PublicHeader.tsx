@@ -135,25 +135,15 @@ export function PublicHeader() {
             </nav>
           </div>
 
-          {/* Drawer Footer - Login Buttons */}
-          <div className="p-4 border-t border-gray-100 bg-gray-50 space-y-3">
-            <Link href="/auth/customer-login" onClick={closeMenu}>
-              <Button 
-                variant="outline" 
-                className="w-full rounded-xl border-2 border-[#2575be]/30 hover:bg-[#175ead]/5 hover:border-[#2575be] text-[#175ead] font-medium"
-                size="lg"
-              >
-                <User className="w-5 h-5 mr-2" />
-                Đăng nhập khách hàng
-              </Button>
-            </Link>
+          {/* Drawer Footer - Login Button */}
+          <div className="p-4 border-t border-gray-100 bg-gray-50">
             <Link href="/auth/login" onClick={closeMenu}>
               <Button 
                 className="w-full bg-gradient-to-r from-[#175ead] to-[#2575be] hover:from-blue-600 hover:to-purple-600 text-white rounded-xl shadow-lg font-medium" 
                 size="lg"
               >
-                <Users className="w-5 h-5 mr-2" />
-                Đăng nhập nhân viên
+                <User className="w-5 h-5 mr-2" />
+                Đăng nhập
               </Button>
             </Link>
           </div>

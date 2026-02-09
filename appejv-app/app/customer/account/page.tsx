@@ -1,21 +1,23 @@
 'use client'
 
 import { createClient } from '@/lib/supabase/client'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { User, LogOut, MapPin, Phone, Sparkles, Settings, CreditCard, Bell, HelpCircle } from 'lucide-react'
+import { User, LogOut, MapPin, Phone, Sparkles, Settings, Bell, HelpCircle, ShoppingBag, FileText, Package } from 'lucide-react'
 import { logout } from '@/app/auth/actions'
 import { EditProfileSheet } from '@/components/account/EditProfileSheet'
-import { cn } from '@/lib/utils'
+import { cn, formatCurrency } from '@/lib/utils'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { HeaderMenu } from '@/components/layout/HeaderMenu'
+import Link from 'next/link'
 
 const menuItems = [
-    { icon: Settings, label: 'Cài đặt tài khoản', href: '#' },
-    { icon: CreditCard, label: 'Phương thức thanh toán', href: '#' },
-    { icon: Bell, label: 'Thông báo', href: '#' },
-    { icon: HelpCircle, label: 'Trợ giúp & Hỗ trợ', href: '#' },
+    { icon: FileText, label: 'Đơn hàng của tôi', href: '/customer/orders', description: 'Xem lịch sử đơn hàng' },
+    { icon: ShoppingBag, label: 'Sản phẩm', href: '/customer/products', description: 'Danh sách sản phẩm' },
+    { icon: Bell, label: 'Thông báo', href: '#', description: 'Thông báo và ưu đãi' },
+    { icon: HelpCircle, label: 'Trợ giúp & Hỗ trợ', href: '#', description: 'Liên hệ hỗ trợ' },
 ]
 
 export default function AccountPage() {
@@ -25,7 +27,14 @@ export default function AccountPage() {
     const [lastScrollY, setLastScrollY] = useState(0)
     const [loading, setLoading] = useState(true)
     const [avatarKey, setAvatarKey] = useState(Date.now()) // For cache busting
+    const [role, setRole] = useState('customer')
+    const [mounted, setMounted] = useState(false)
+    const [orderStats, setOrderStats] = useState({ total: 0, pending: 0, completed: 0, totalSpent: 0 })
     const router = useRouter()
+
+    useEffect(() => {
+        setMounted(true)
+    }, [])
 
     useEffect(() => {
         const controlHeader = () => {
@@ -49,6 +58,7 @@ export default function AccountPage() {
 
     useEffect(() => {
         fetchUserData()
+        fetchOrderStats()
     }, [])
 
     const fetchUserData = async () => {
@@ -58,11 +68,21 @@ export default function AccountPage() {
             const { data: { user } } = await supabase.auth.getUser()
 
             if (!user) {
-                router.push('/auth/customer-login')
+                router.push('/auth/login')
                 return
             }
 
             setUser(user)
+
+            // Fetch role
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('role')
+                .eq('id', user.id)
+                .single()
+            if (profile && (profile as any).role) {
+                setRole((profile as any).role)
+            }
 
             // Fetch customer details
             const { data: customerData } = await supabase
@@ -77,6 +97,44 @@ export default function AccountPage() {
             console.error('Error fetching user data:', error)
         } finally {
             setLoading(false)
+        }
+    }
+
+    const fetchOrderStats = async () => {
+        try {
+            const supabase = createClient()
+            const { data: { user } } = await supabase.auth.getUser()
+
+            if (!user || !user.phone) return
+
+            // Get customer ID
+            const { data: customerData } = await supabase
+                .from('customers')
+                .select('id')
+                .eq('phone', user.phone)
+                .single()
+
+            if (!customerData) return
+
+            const customerId = (customerData as any).id
+
+            // Fetch all orders
+            const { data: orders } = await supabase
+                .from('orders')
+                .select('status, total_amount')
+                .eq('customer_id', customerId)
+
+            if (orders && orders.length > 0) {
+                const stats = {
+                    total: orders.length,
+                    pending: orders.filter((o: any) => o.status === 'pending').length,
+                    completed: orders.filter((o: any) => o.status === 'completed').length,
+                    totalSpent: orders.reduce((sum: number, o: any) => sum + o.total_amount, 0)
+                }
+                setOrderStats(stats)
+            }
+        } catch (error) {
+            console.error('Error fetching order stats:', error)
         }
     }
 
@@ -102,7 +160,7 @@ export default function AccountPage() {
             <div className="bg-gradient-to-br from-blue-50 to-cyan-50 min-h-screen flex items-center justify-center">
                 <div className="text-center">
                     <p className="text-gray-600 mb-4">Vui lòng đăng nhập</p>
-                    <Button onClick={() => router.push('/auth/customer-login')}>
+                    <Button onClick={() => router.push('/auth/login')}>
                         Đăng nhập
                     </Button>
                 </div>
@@ -125,13 +183,18 @@ export default function AccountPage() {
                         </div>
                         <span className="text-xl font-bold text-gray-900">APPE JV</span>
                     </div>
-                    <Button 
-                        size="sm" 
-                        className="bg-gradient-to-r from-[#175ead] to-[#2575be] text-white rounded-full px-4 py-2 text-sm font-medium"
-                    >
-                        <Sparkles className="w-4 h-4 mr-1" />
-                        Trợ lý AI
-                    </Button>
+                    {mounted && (
+                        <div className="flex items-center gap-2">
+                            <Button 
+                                size="sm" 
+                                className="bg-gradient-to-r from-[#175ead] to-[#2575be] text-white rounded-full px-4 py-2 text-sm font-medium"
+                            >
+                                <Sparkles className="w-4 h-4 mr-1" />
+                                Trợ lý AI
+                            </Button>
+                            <HeaderMenu user={user} role={role} />
+                        </div>
+                    )}
                 </div>
 
                 {/* Page Title */}
@@ -191,24 +254,65 @@ export default function AccountPage() {
                         </CardContent>
                     </Card>
 
+                    {/* Order Statistics */}
+                    <div className="grid grid-cols-2 gap-3">
+                        <Card className="bg-white rounded-2xl shadow-sm border-0">
+                            <CardContent className="p-4">
+                                <div className="flex flex-col">
+                                    <span className="text-sm text-gray-500 mb-1">Tổng đơn hàng</span>
+                                    <span className="text-2xl font-bold text-gray-900">{orderStats.total}</span>
+                                </div>
+                            </CardContent>
+                        </Card>
+                        <Card className="bg-white rounded-2xl shadow-sm border-0">
+                            <CardContent className="p-4">
+                                <div className="flex flex-col">
+                                    <span className="text-sm text-gray-500 mb-1">Đang xử lý</span>
+                                    <span className="text-2xl font-bold text-orange-500">{orderStats.pending}</span>
+                                </div>
+                            </CardContent>
+                        </Card>
+                        <Card className="bg-white rounded-2xl shadow-sm border-0">
+                            <CardContent className="p-4">
+                                <div className="flex flex-col">
+                                    <span className="text-sm text-gray-500 mb-1">Hoàn thành</span>
+                                    <span className="text-2xl font-bold text-green-500">{orderStats.completed}</span>
+                                </div>
+                            </CardContent>
+                        </Card>
+                        <Card className="bg-white rounded-2xl shadow-sm border-0">
+                            <CardContent className="p-4">
+                                <div className="flex flex-col">
+                                    <span className="text-sm text-gray-500 mb-1">Tổng chi tiêu</span>
+                                    <span className="text-lg font-bold text-blue-600">
+                                        {formatCurrency(orderStats.totalSpent)}
+                                    </span>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+
                     {/* Menu Items */}
                     <div className="grid gap-3">
                         {menuItems.map((item, index) => (
-                            <Card key={index} className="bg-white rounded-2xl shadow-sm border-0">
-                                <CardContent className="p-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-                                            <item.icon className="h-5 w-5 text-gray-600" />
+                            <Link key={index} href={item.href}>
+                                <Card className="bg-white rounded-2xl shadow-sm border-0 hover:shadow-md transition-shadow">
+                                    <CardContent className="p-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                                                <item.icon className="h-5 w-5 text-gray-600" />
+                                            </div>
+                                            <div className="flex-1">
+                                                <div className="font-medium text-gray-900">{item.label}</div>
+                                                <div className="text-xs text-gray-500">{item.description}</div>
+                                            </div>
+                                            <div className="w-5 h-5 text-gray-400">
+                                                →
+                                            </div>
                                         </div>
-                                        <span className="flex-1 font-medium text-gray-900">
-                                            {item.label}
-                                        </span>
-                                        <div className="w-5 h-5 text-gray-400">
-                                            →
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
+                                    </CardContent>
+                                </Card>
+                            </Link>
                         ))}
                     </div>
 

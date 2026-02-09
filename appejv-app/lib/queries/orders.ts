@@ -24,7 +24,7 @@ export function useOrders(status?: string, saleId?: string) {
           customers (id, name, phone),
           profiles!orders_sale_id_fkey (id, full_name)
         `)
-        .eq('deleted_at', null)
+        .is('deleted_at', null)
         .order('created_at', { ascending: false })
 
       if (status && status !== 'all') {
@@ -84,7 +84,7 @@ export function useUpdateOrderStatus() {
       status: string 
     }) => {
       const supabase = createClient()
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('orders')
         .update({ status })
         .eq('id', orderId)
@@ -147,7 +147,7 @@ export function useCreateOrder() {
       const supabase = createClient()
       
       // Create order
-      const { data: order, error: orderError } = await supabase
+      const { data: order, error: orderError } = await (supabase as any)
         .from('orders')
         .insert({
           customer_id: orderData.customer_id,
@@ -168,7 +168,7 @@ export function useCreateOrder() {
         price_at_order: item.price_at_order,
       }))
 
-      const { error: itemsError } = await supabase
+      const { error: itemsError } = await (supabase as any)
         .from('order_items')
         .insert(orderItems)
 
@@ -190,7 +190,7 @@ export function useDeleteOrder() {
   return useMutation({
     mutationFn: async (orderId: number) => {
       const supabase = createClient()
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('orders')
         .update({ deleted_at: new Date().toISOString() })
         .eq('id', orderId)

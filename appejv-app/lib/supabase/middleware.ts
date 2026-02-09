@@ -78,12 +78,8 @@ export async function updateSession(request: NextRequest) {
         })
 
         const url = request.nextUrl.clone()
-        // Determine login type based on route
-        if (request.nextUrl.pathname.startsWith('/sales')) {
-            url.pathname = '/auth/login'
-        } else {
-            url.pathname = '/auth/customer-login'
-        }
+        // Redirect to unified login page
+        url.pathname = '/auth/login'
         return NextResponse.redirect(url)
     }
 

@@ -65,7 +65,7 @@ export function PublicFooter() {
                 </Link>
               </li>
               <li>
-                <Link href="/auth/customer-login" className="text-blue-100 hover:text-white transition-colors">
+                <Link href="/auth/login" className="text-blue-100 hover:text-white transition-colors">
                   Đăng nhập
                 </Link>
               </li>

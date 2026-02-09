@@ -104,12 +104,12 @@ export default function LoginPage() {
                     {/* Welcome Text */}
                     <div className="mb-8">
                         <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                            {isForgotPassword ? 'Quên mật khẩu?' : 'Bạn là nhân viên '}
+                            {isForgotPassword ? 'Quên mật khẩu?' : 'Đăng nhập'}
                         </h1>
                         <p className="text-gray-600">
                             {isForgotPassword 
                                 ? 'Nhập email để nhận link khôi phục mật khẩu'
-                                : 'Hãy nhập thông tin để đăng nhập hệ thống'}
+                                : 'Nhập thông tin để đăng nhập vào hệ thống'}
                         </p>
                     </div>
 

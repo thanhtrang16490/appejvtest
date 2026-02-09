@@ -93,15 +93,15 @@ export function useUpdateProductStock() {
       stock: number
     }) => {
       const supabase = createClient()
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('products')
-        .update({ stock })
+        .update({ stock: stock })
         .eq('id', id)
         .select()
         .single()
 
-      if (error) throw error
-      return data
+      if (result.error) throw result.error
+      return result.data
     },
     onSuccess: (data) => {
       // Update cache for this specific product
@@ -131,15 +131,15 @@ export function useUpdateProduct() {
       image_url?: string
     }) => {
       const supabase = createClient()
-      const { data, error } = await supabase
+      const result = await (supabase as any)
         .from('products')
         .update(updates)
         .eq('id', id)
         .select()
         .single()
 
-      if (error) throw error
-      return data
+      if (result.error) throw result.error
+      return result.data
     },
     onSuccess: (data) => {
       queryClient.setQueryData(productKeys.detail(data.id), data)

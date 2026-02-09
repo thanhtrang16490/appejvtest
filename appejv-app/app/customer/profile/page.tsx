@@ -17,6 +17,7 @@ import {
 import { cn } from '@/lib/utils'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { HeaderMenu } from '@/components/layout/HeaderMenu'
 
 const profileMenuItems = [
     {
@@ -86,7 +87,13 @@ export default function ProfilePage() {
     const [lastScrollY, setLastScrollY] = useState(0)
     const [loading, setLoading] = useState(true)
     const [avatarKey, setAvatarKey] = useState(Date.now()) // For cache busting
+    const [role, setRole] = useState('customer')
+    const [mounted, setMounted] = useState(false)
     const router = useRouter()
+
+    useEffect(() => {
+        setMounted(true)
+    }, [])
 
     useEffect(() => {
         const controlHeader = () => {
@@ -119,11 +126,21 @@ export default function ProfilePage() {
             const { data: { user } } = await supabase.auth.getUser()
 
             if (!user) {
-                router.push('/auth/customer-login')
+                router.push('/auth/login')
                 return
             }
 
             setUser(user)
+
+            // Fetch role
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('role')
+                .eq('id', user.id)
+                .single()
+            if (profile && (profile as any).role) {
+                setRole((profile as any).role)
+            }
 
             // Fetch customer details
             const { data: customerData } = await supabase
@@ -154,7 +171,7 @@ export default function ProfilePage() {
             <div className="bg-gradient-to-br from-purple-100 via-blue-50 to-pink-100 min-h-screen flex items-center justify-center">
                 <div className="text-center">
                     <p className="text-gray-600 mb-4">Vui lòng đăng nhập</p>
-                    <Button onClick={() => router.push('/auth/customer-login')}>
+                    <Button onClick={() => router.push('/auth/login')}>
                         Đăng nhập
                     </Button>
                 </div>
@@ -211,13 +228,16 @@ export default function ProfilePage() {
                         </div>
                         <span className="text-xl font-bold text-gray-900">APPE JV</span>
                     </div>
-                    <Button 
-                        size="sm" 
-                        className="bg-gradient-to-r from-[#175ead] to-[#2575be] text-white rounded-full px-4 py-2 text-sm font-medium"
-                    >
-                        <Sparkles className="w-4 h-4 mr-1" />
-                        Trợ lý AI
-                    </Button>
+                    <div className="flex items-center gap-2">
+                        <Button 
+                            size="sm" 
+                            className="bg-gradient-to-r from-[#175ead] to-[#2575be] text-white rounded-full px-4 py-2 text-sm font-medium"
+                        >
+                            <Sparkles className="w-4 h-4 mr-1" />
+                            Trợ lý AI
+                        </Button>
+                        {mounted && <HeaderMenu user={user} role={role} />}
+                    </div>
                 </div>
             </div>
 
