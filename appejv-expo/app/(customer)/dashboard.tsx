@@ -1,10 +1,13 @@
-import { useState, useEffect } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl, Image } from 'react-native'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useAuth } from '../../src/contexts/AuthContext'
 import { supabase } from '../../src/lib/supabase'
 import { useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
+import { emitScrollVisibility } from './_layout'
+import { useTabBarHeight } from '../../src/hooks/useTabBarHeight'
+import CustomerHeader from '../../src/components/CustomerHeader'
 
 const statusMap: Record<string, { label: string; color: string; bg: string }> = {
   draft: { label: 'Đơn nháp', color: '#374151', bg: '#f3f4f6' },
@@ -18,6 +21,9 @@ const statusMap: Record<string, { label: string; color: string; bg: string }> = 
 export default function CustomerDashboard() {
   const { user } = useAuth()
   const router = useRouter()
+  const { contentPaddingBottom } = useTabBarHeight()
+  const lastScrollY = useRef(0)
+  const scrollTimeout = useRef<NodeJS.Timeout | null>(null)
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [recentOrders, setRecentOrders] = useState<any[]>([])
@@ -71,6 +77,28 @@ export default function CustomerDashboard() {
     fetchData()
   }
 
+  const handleScroll = useCallback((event: any) => {
+    const currentScrollY = event.nativeEvent.contentOffset.y
+    const scrollDiff = currentScrollY - lastScrollY.current
+
+    if (scrollTimeout.current) {
+      clearTimeout(scrollTimeout.current)
+    }
+
+    if (Math.abs(scrollDiff) > 5) {
+      if (scrollDiff > 0 && currentScrollY > 50) {
+        emitScrollVisibility(false)
+      } else if (scrollDiff < 0) {
+        emitScrollVisibility(true)
+      }
+      lastScrollY.current = currentScrollY
+    }
+
+    scrollTimeout.current = setTimeout(() => {
+      emitScrollVisibility(true)
+    }, 2000)
+  }, [])
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('vi-VN', {
       style: 'decimal',
@@ -90,30 +118,25 @@ export default function CustomerDashboard() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      <CustomerHeader />
+      
       <ScrollView
         style={styles.scrollView}
+        contentContainerStyle={{ paddingBottom: contentPaddingBottom + 16 }}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
       >
-        {/* Header */}
-        <View style={styles.header}>
-          <Image 
-            source={require('../../assets/icon.png')} 
-            style={styles.logo}
-            resizeMode="contain"
-          />
-          <View style={styles.headerTextContainer}>
-            <Text style={styles.headerTitle}>
-              Xin chào, {user?.full_name || 'Khách hàng'}!
-            </Text>
-            <Text style={styles.headerSubtitle}>
-              Chào mừng bạn đến với APPE JV
-            </Text>
-          </View>
-          <TouchableOpacity style={styles.notificationButton}>
-            <Ionicons name="notifications-outline" size={24} color="white" />
-          </TouchableOpacity>
+        {/* Welcome Section */}
+        <View style={styles.welcomeSection}>
+          <Text style={styles.welcomeTitle}>
+            Xin chào, Khách hàng!
+          </Text>
+          <Text style={styles.welcomeSubtitle}>
+            Chào mừng bạn đến với APPE JV
+          </Text>
         </View>
 
         {/* Stats Cards */}
@@ -205,7 +228,7 @@ export default function CustomerDashboard() {
                   <TouchableOpacity
                     key={order.id}
                     style={styles.orderCard}
-                    onPress={() => router.push('/(customer)/orders')}
+                    onPress={() => router.push(`/(customer)/orders/${order.id}`)}
                   >
                     <View style={styles.orderHeader}>
                       <View style={styles.orderLeft}>
@@ -260,34 +283,18 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
-  header: {
+  welcomeSection: {
     backgroundColor: '#10b981',
     paddingHorizontal: 24,
-    paddingVertical: 32,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
+    paddingVertical: 24,
   },
-  logo: {
-    width: 56,
-    height: 56,
-  },
-  headerTextContainer: {
-    flex: 1,
-  },
-  notificationButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerTitle: {
+  welcomeTitle: {
     fontSize: 24,
     fontWeight: 'bold',
     color: 'white',
     marginBottom: 4,
   },
-  headerSubtitle: {
+  welcomeSubtitle: {
     fontSize: 14,
     color: 'rgba(255, 255, 255, 0.9)',
   },

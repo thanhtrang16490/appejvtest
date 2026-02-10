@@ -1,14 +1,20 @@
-import { useState, useEffect, useCallback } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet, Image, RefreshControl, TextInput } from 'react-native'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet, RefreshControl, TextInput, NativeScrollEvent, NativeSyntheticEvent } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useAuth } from '../../../src/contexts/AuthContext'
 import { supabase } from '../../../src/lib/supabase'
 import { Ionicons } from '@expo/vector-icons'
 import { useRouter, useFocusEffect } from 'expo-router'
+import { emitScrollVisibility } from '../_layout'
+import { useTabBarHeight } from '../../../src/hooks/useTabBarHeight'
+import AppHeader from '../../../src/components/AppHeader'
 
 export default function InventoryScreen() {
   const { user } = useAuth()
   const router = useRouter()
+  const tabBarHeight = useTabBarHeight()
+  const lastScrollY = useRef(0)
+  const scrollTimeout = useRef<NodeJS.Timeout | null>(null)
   const [profile, setProfile] = useState<any>(null)
   const [products, setProducts] = useState<any[]>([])
   const [categories, setCategories] = useState<any[]>([])
@@ -104,6 +110,28 @@ export default function InventoryScreen() {
     fetchData()
   }
 
+  const handleScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const currentScrollY = event.nativeEvent.contentOffset.y
+    const scrollDiff = currentScrollY - lastScrollY.current
+
+    if (scrollTimeout.current) {
+      clearTimeout(scrollTimeout.current)
+    }
+
+    if (Math.abs(scrollDiff) > 5) {
+      if (scrollDiff > 0 && currentScrollY > 50) {
+        emitScrollVisibility(false)
+      } else if (scrollDiff < 0) {
+        emitScrollVisibility(true)
+      }
+      lastScrollY.current = currentScrollY
+    }
+
+    scrollTimeout.current = setTimeout(() => {
+      emitScrollVisibility(true)
+    }, 2000)
+  }, [])
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('vi-VN', {
       style: 'decimal',
@@ -136,22 +164,7 @@ export default function InventoryScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header with Logo */}
-      <View style={styles.topHeader}>
-        <View style={styles.logoContainer}>
-          <Image 
-            source={require('../../../assets/icon.png')} 
-            style={styles.logo}
-            resizeMode="contain"
-          />
-          <Text style={styles.logoTitle}>APPE JV</Text>
-        </View>
-        <TouchableOpacity 
-          style={styles.menuButton}
-          onPress={() => router.push('/(sales)/menu')}
-        >
-          <Ionicons name="menu" size={24} color="#111827" />
-        </TouchableOpacity>
-      </View>
+      <AppHeader />
 
       {/* Page Header */}
       <View style={styles.pageHeader}>
@@ -273,10 +286,12 @@ export default function InventoryScreen() {
       {/* Products Grid */}
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: tabBarHeight + 16 }]}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
       >
         {filteredProducts.length === 0 ? (
           <View style={styles.emptyState}>
@@ -372,34 +387,6 @@ const styles = StyleSheet.create({
     marginTop: 12,
     color: '#666',
     fontSize: 14,
-  },
-  topHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#f0f9ff',
-  },
-  logoContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  logo: {
-    width: 40,
-    height: 40,
-  },
-  logoTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#111827',
-  },
-  menuButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   pageHeader: {
     paddingHorizontal: 16,

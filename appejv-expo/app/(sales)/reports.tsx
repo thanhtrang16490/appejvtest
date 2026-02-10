@@ -1,15 +1,19 @@
-import { useState, useEffect } from 'react'
-import { View, Text, ScrollView, StyleSheet, Image, TouchableOpacity, ActivityIndicator, RefreshControl, Modal } from 'react-native'
+import { useState, useEffect, useCallback, useMemo, memo, useRef } from 'react'
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator, RefreshControl, Modal, NativeScrollEvent, NativeSyntheticEvent } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { useAuth } from '../../src/contexts/AuthContext'
 import { supabase } from '../../src/lib/supabase'
+import { emitScrollVisibility } from './_layout'
+import { useTabBarHeight } from '../../src/hooks/useTabBarHeight'
+import AppHeader from '../../src/components/AppHeader'
 
 const filterTabs = [
   { id: 'today', label: 'Hôm nay' },
   { id: 'yesterday', label: 'Hôm qua' },
   { id: 'this_month', label: 'Tháng này' },
+  { id: 'all', label: 'Tất cả' },
   { id: 'other', label: 'Khác' },
 ]
 
@@ -57,9 +61,63 @@ type SaleAdminData = {
   orderCount: number
 }
 
+// Memoized Report Item Component
+const ReportItem = memo(({ item, maxRevenue, formatCurrency, roleTab }: any) => {
+  const progressWidth = useMemo(() => {
+    return `${(item.revenue / (maxRevenue || 1)) * 100}%`
+  }, [item.revenue, maxRevenue])
+
+  const progressStyle = useMemo(() => {
+    if (roleTab === 'customer') return styles.progressGreen
+    if (roleTab === 'sale') return styles.progressPurple
+    if (roleTab === 'saleadmin') return styles.progressBlue
+    return {}
+  }, [roleTab])
+
+  return (
+    <View style={styles.reportItem}>
+      <View style={styles.reportItemLeft}>
+        <Text style={styles.reportItemName}>{item.name}</Text>
+        <View style={styles.reportItemMeta}>
+          <View style={styles.progressBar}>
+            <View 
+              style={[
+                styles.progress,
+                progressStyle,
+                { width: progressWidth }
+              ]}
+            />
+          </View>
+          <Text style={styles.reportItemQuantity}>
+            {item.quantity ? `${item.quantity} units` : `${item.orderCount} đơn`}
+          </Text>
+        </View>
+      </View>
+      <Text style={styles.reportItemRevenue}>{formatCurrency(item.revenue)}</Text>
+    </View>
+  )
+})
+
+// Memoized Chart Bar Component
+const ChartBar = memo(({ trend, maxRevenue }: any) => {
+  const height = useMemo(() => {
+    return `${(trend.revenue / maxRevenue) * 100}%`
+  }, [trend.revenue, maxRevenue])
+
+  return (
+    <View style={styles.chartBar}>
+      <View style={[styles.bar, { height }]} />
+      <Text style={styles.chartLabel}>{trend.label}</Text>
+    </View>
+  )
+})
+
 export default function ReportsScreen() {
   const { user } = useAuth()
   const router = useRouter()
+  const tabBarHeight = useTabBarHeight()
+  const lastScrollY = useRef(0)
+  const scrollTimeout = useRef<NodeJS.Timeout | null>(null)
   const [profile, setProfile] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -136,13 +194,18 @@ export default function ReportsScreen() {
         created_at,
         customer_id,
         sale_id,
+        status,
         order_items (
           quantity,
           price_at_order,
-          products ( name, category )
+          products ( 
+            name, 
+            category_id,
+            categories ( name )
+          )
         )
       `)
-      .eq('status', 'completed')
+      .neq('status', 'cancelled')
 
     if (isSale) {
       query = query.eq('sale_id', userId)
@@ -160,20 +223,42 @@ export default function ReportsScreen() {
       const startOfYesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1).toISOString()
       const endOfYesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString()
       query = query.gte('created_at', startOfYesterday).lt('created_at', endOfYesterday)
+    } else if (period === 'last_7_days') {
+      const date = new Date()
+      date.setDate(date.getDate() - 7)
+      query = query.gte('created_at', date.toISOString())
     } else if (period === 'this_month') {
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
       query = query.gte('created_at', startOfMonth)
+    } else if (period === 'last_month') {
+      const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString()
+      const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
+      query = query.gte('created_at', startOfLastMonth).lt('created_at', endOfLastMonth)
     } else if (period === 'last_3_months') {
       const date = new Date()
       date.setMonth(date.getMonth() - 2)
       const startOfPeriod = new Date(date.getFullYear(), date.getMonth(), 1).toISOString()
       query = query.gte('created_at', startOfPeriod)
+    } else if (period === 'this_quarter') {
+      const quarter = Math.floor(now.getMonth() / 3)
+      const startOfQuarter = new Date(now.getFullYear(), quarter * 3, 1).toISOString()
+      query = query.gte('created_at', startOfQuarter)
     } else if (period === 'this_year') {
       const startOfYear = new Date(now.getFullYear(), 0, 1).toISOString()
       query = query.gte('created_at', startOfYear)
     }
+    // 'all' period - no date filter
 
-    const { data: orders } = await query
+    const { data: orders, error } = await query
+
+    // Debug logging
+    console.log('Reports Query:', {
+      period,
+      role,
+      userId,
+      ordersCount: orders?.length || 0,
+      error: error?.message
+    })
 
     // Aggregate data
     const byProduct: Record<string, ReportData> = {}
@@ -184,7 +269,8 @@ export default function ReportsScreen() {
     const trendMap: Record<string, number> = {}
     let totalRevenue = 0
 
-    if (orders) {
+    if (orders && orders.length > 0) {
+      console.log('Sample order:', orders[0])
       // Fetch all profiles for customers and sales
       const customerIds = [...new Set(orders.map((o: any) => o.customer_id).filter(Boolean))]
       const saleIds = [...new Set(orders.map((o: any) => o.sale_id).filter(Boolean))]
@@ -211,7 +297,7 @@ export default function ReportsScreen() {
         
         for (const item of items) {
           const productName = item.products?.name || 'Unknown'
-          const category = item.products?.category || 'Uncategorized'
+          const categoryName = item.products?.categories?.name || 'Uncategorized'
           const revenue = (item.price_at_order || 0) * (item.quantity || 0)
 
           orderTotal += revenue
@@ -225,11 +311,11 @@ export default function ReportsScreen() {
           byProduct[productName].quantity += item.quantity
 
           // Category Aggregation
-          if (!byCategory[category]) {
-            byCategory[category] = { name: category, revenue: 0, quantity: 0 }
+          if (!byCategory[categoryName]) {
+            byCategory[categoryName] = { name: categoryName, revenue: 0, quantity: 0 }
           }
-          byCategory[category].revenue += revenue
-          byCategory[category].quantity += item.quantity
+          byCategory[categoryName].revenue += revenue
+          byCategory[categoryName].quantity += item.quantity
         }
 
         // Customer Aggregation (for admin only)
@@ -295,31 +381,78 @@ export default function ReportsScreen() {
     }
   }
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = useCallback((amount: number) => {
     return new Intl.NumberFormat('vi-VN', {
       style: 'decimal',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(amount) + ' đ'
-  }
+  }, [])
 
-  const onRefresh = () => {
+  const onRefresh = useCallback(() => {
     setRefreshing(true)
     fetchData()
-  }
+  }, [])
 
-  const handleFilterChange = (filterId: string) => {
+  const handleFilterChange = useCallback((filterId: string) => {
     if (filterId === 'other') {
       setShowTimeRangeDrawer(true)
     } else {
       setPeriod(filterId)
     }
-  }
+  }, [])
 
-  const handleTimeRangeSelect = (rangeId: string) => {
+  const handleTimeRangeSelect = useCallback((rangeId: string) => {
     setPeriod(rangeId)
     setShowTimeRangeDrawer(false)
-  }
+  }, [])
+
+  const handleScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const currentScrollY = event.nativeEvent.contentOffset.y
+    const scrollDiff = currentScrollY - lastScrollY.current
+
+    if (scrollTimeout.current) {
+      clearTimeout(scrollTimeout.current)
+    }
+
+    if (Math.abs(scrollDiff) > 5) {
+      if (scrollDiff > 0 && currentScrollY > 50) {
+        emitScrollVisibility(false)
+      } else if (scrollDiff < 0) {
+        emitScrollVisibility(true)
+      }
+      lastScrollY.current = currentScrollY
+    }
+
+    scrollTimeout.current = setTimeout(() => {
+      emitScrollVisibility(true)
+    }, 2000)
+  }, [])
+
+  // Memoized calculations - MUST be before any early returns
+  const isAdmin = profile?.role === 'admin'
+  const isSaleAdmin = profile?.role === 'sale_admin'
+  const { totalRevenue, byProduct, byCategory, byCustomer, bySale, bySaleAdmin, trend } = analytics
+  
+  const maxRevenue = useMemo(() => Math.max(...trend.map(t => t.revenue), 1), [trend])
+  
+  const displayData = useMemo(() => {
+    return activeTab === 'product' ? byProduct.slice(0, 5) : byCategory.slice(0, 5)
+  }, [activeTab, byProduct, byCategory])
+  
+  const roleData = useMemo(() => {
+    if (roleTab === 'customer') return byCustomer.slice(0, 5)
+    if (roleTab === 'sale') return bySale.slice(0, 5)
+    return bySaleAdmin.slice(0, 5)
+  }, [roleTab, byCustomer, bySale, bySaleAdmin])
+
+  const maxDisplayRevenue = useMemo(() => {
+    return displayData[0]?.revenue || 1
+  }, [displayData])
+
+  const maxRoleRevenue = useMemo(() => {
+    return roleData[0]?.revenue || 1
+  }, [roleData])
 
   if (loading) {
     return (
@@ -330,32 +463,10 @@ export default function ReportsScreen() {
     )
   }
 
-  const isAdmin = profile?.role === 'admin'
-  const isSaleAdmin = profile?.role === 'sale_admin'
-  const { totalRevenue, byProduct, byCategory, byCustomer, bySale, bySaleAdmin, trend } = analytics
-  const maxRevenue = Math.max(...trend.map(t => t.revenue), 1)
-  const displayData = activeTab === 'product' ? byProduct.slice(0, 5) : byCategory.slice(0, 5)
-  const roleData = roleTab === 'customer' ? byCustomer.slice(0, 5) : roleTab === 'sale' ? bySale.slice(0, 5) : bySaleAdmin.slice(0, 5)
-
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header with Logo */}
-      <View style={styles.topHeader}>
-        <View style={styles.logoContainer}>
-          <Image 
-            source={require('../../assets/icon.png')} 
-            style={styles.logo}
-            resizeMode="contain"
-          />
-          <Text style={styles.logoTitle}>APPE JV</Text>
-        </View>
-        <TouchableOpacity 
-          style={styles.menuButton}
-          onPress={() => router.push('/(sales)/menu')}
-        >
-          <Ionicons name="menu" size={24} color="#111827" />
-        </TouchableOpacity>
-      </View>
+      <AppHeader />
 
       {/* Page Header */}
       <View style={styles.pageHeader}>
@@ -406,10 +517,12 @@ export default function ReportsScreen() {
 
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: tabBarHeight + 16 }]}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
       >
         {/* Total Revenue Card */}
         <View style={styles.revenueCard}>
@@ -433,15 +546,7 @@ export default function ReportsScreen() {
           <View style={styles.chartContainer}>
             {trend.length > 0 ? (
               trend.map((t, i) => (
-                <View key={i} style={styles.chartBar}>
-                  <View 
-                    style={[
-                      styles.bar,
-                      { height: `${(t.revenue / maxRevenue) * 100}%` }
-                    ]}
-                  />
-                  <Text style={styles.chartLabel}>{t.label}</Text>
-                </View>
+                <ChartBar key={i} trend={t} maxRevenue={maxRevenue} />
               ))
             ) : (
               <Text style={styles.emptyChartText}>Chưa có đủ dữ liệu</Text>
@@ -473,23 +578,12 @@ export default function ReportsScreen() {
           <View style={styles.tabContent}>
             {displayData.length > 0 ? (
               displayData.map((item, idx) => (
-                <View key={idx} style={styles.reportItem}>
-                  <View style={styles.reportItemLeft}>
-                    <Text style={styles.reportItemName}>{item.name}</Text>
-                    <View style={styles.reportItemMeta}>
-                      <View style={styles.progressBar}>
-                        <View 
-                          style={[
-                            styles.progress,
-                            { width: `${(item.revenue / (displayData[0]?.revenue || 1)) * 100}%` }
-                          ]}
-                        />
-                      </View>
-                      <Text style={styles.reportItemQuantity}>{item.quantity} units</Text>
-                    </View>
-                  </View>
-                  <Text style={styles.reportItemRevenue}>{formatCurrency(item.revenue)}</Text>
-                </View>
+                <ReportItem 
+                  key={idx} 
+                  item={item} 
+                  maxRevenue={maxDisplayRevenue}
+                  formatCurrency={formatCurrency}
+                />
               ))
             ) : (
               <View style={styles.emptyState}>
@@ -533,26 +627,13 @@ export default function ReportsScreen() {
             <View style={styles.tabContent}>
               {roleData.length > 0 ? (
                 roleData.map((item: any, idx) => (
-                  <View key={idx} style={styles.reportItem}>
-                    <View style={styles.reportItemLeft}>
-                      <Text style={styles.reportItemName}>{item.name}</Text>
-                      <View style={styles.reportItemMeta}>
-                        <View style={styles.progressBar}>
-                          <View 
-                            style={[
-                              styles.progress,
-                              roleTab === 'customer' && styles.progressGreen,
-                              roleTab === 'sale' && styles.progressPurple,
-                              roleTab === 'saleadmin' && styles.progressBlue,
-                              { width: `${(item.revenue / (roleData[0]?.revenue || 1)) * 100}%` }
-                            ]}
-                          />
-                        </View>
-                        <Text style={styles.reportItemQuantity}>{item.orderCount} đơn</Text>
-                      </View>
-                    </View>
-                    <Text style={styles.reportItemRevenue}>{formatCurrency(item.revenue)}</Text>
-                  </View>
+                  <ReportItem 
+                    key={idx} 
+                    item={item} 
+                    maxRevenue={maxRoleRevenue}
+                    formatCurrency={formatCurrency}
+                    roleTab={roleTab}
+                  />
                 ))
               ) : (
                 <View style={styles.emptyState}>
@@ -634,34 +715,6 @@ const styles = StyleSheet.create({
     marginTop: 12,
     color: '#666',
     fontSize: 14,
-  },
-  topHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#f0f9ff',
-  },
-  logoContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  logo: {
-    width: 40,
-    height: 40,
-  },
-  logoTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#111827',
-  },
-  menuButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   pageHeader: {
     paddingHorizontal: 16,

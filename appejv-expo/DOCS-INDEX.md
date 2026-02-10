@@ -24,6 +24,9 @@
 - [CUSTOMERS-PAGE-OPTIMIZATION.md](docs/CUSTOMERS-PAGE-OPTIMIZATION.md) - Tối ưu trang khách hàng
 - [DASHBOARD-OPTIMIZATION.md](docs/DASHBOARD-OPTIMIZATION.md) - Tối ưu dashboard
 
+## ⚡ Tối ưu hiệu suất (Root)
+- [REPORTS-PAGE-OPTIMIZATION.md](REPORTS-PAGE-OPTIMIZATION.md) - Tối ưu trang báo cáo
+
 ## 🎨 UI/UX (docs/)
 - [BOTTOM-NAV-AUTO-HIDE.md](docs/BOTTOM-NAV-AUTO-HIDE.md) - Bottom nav tự động ẩn
 - [BOTTOM-NAV-UPDATE.md](docs/BOTTOM-NAV-UPDATE.md) - Cập nhật bottom nav

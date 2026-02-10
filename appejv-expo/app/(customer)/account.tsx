@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, TextInput, ActivityIndicator, Image } from 'react-native'
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, TextInput, ActivityIndicator, Image, Modal, Switch } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useAuth } from '../../src/contexts/AuthContext'
 import { supabase } from '../../src/lib/supabase'
@@ -10,16 +10,24 @@ export default function AccountScreen() {
   const { user, signOut, refreshUser } = useAuth()
   const router = useRouter()
   const [loading, setLoading] = useState(true)
-  const [editMode, setEditMode] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
   const [saving, setSaving] = useState(false)
   const [profile, setProfile] = useState({
     full_name: '',
     phone: '',
     address: '',
   })
+  const [editedProfile, setEditedProfile] = useState({
+    full_name: '',
+    phone: '',
+    address: '',
+  })
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true)
+  const [showNotificationSettings, setShowNotificationSettings] = useState(false)
 
   useEffect(() => {
     fetchProfile()
+    loadNotificationSettings()
   }, [])
 
   const fetchProfile = async () => {
@@ -53,22 +61,63 @@ export default function AccountScreen() {
       const { error } = await supabase
         .from('profiles')
         .update({
-          full_name: profile.full_name,
-          phone: profile.phone,
-          address: profile.address,
+          full_name: editedProfile.full_name,
+          phone: editedProfile.phone,
+          address: editedProfile.address,
         })
         .eq('id', user?.id)
 
       if (error) throw error
 
       await refreshUser()
-      setEditMode(false)
+      setProfile(editedProfile)
+      setShowEditModal(false)
       Alert.alert('Thành công', 'Cập nhật thông tin thành công')
     } catch (error) {
       console.error('Error updating profile:', error)
       Alert.alert('Lỗi', 'Không thể cập nhật thông tin')
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleOpenEditModal = () => {
+    setEditedProfile({ ...profile })
+    setShowEditModal(true)
+  }
+
+  const handleCloseEditModal = () => {
+    setShowEditModal(false)
+    setEditedProfile({ ...profile })
+  }
+
+  const loadNotificationSettings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('notifications_enabled')
+        .eq('id', user?.id)
+        .single()
+
+      if (error) throw error
+      setNotificationsEnabled(data?.notifications_enabled ?? true)
+    } catch (error) {
+      console.error('Error loading notification settings:', error)
+    }
+  }
+
+  const toggleNotifications = async (enabled: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ notifications_enabled: enabled })
+        .eq('id', user?.id)
+
+      if (error) throw error
+      setNotificationsEnabled(enabled)
+    } catch (error) {
+      console.error('Error updating notification settings:', error)
+      Alert.alert('Lỗi', 'Không thể cập nhật cài đặt thông báo')
     }
   }
 
@@ -132,11 +181,9 @@ export default function AccountScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Thông tin cá nhân</Text>
-            {!editMode && (
-              <TouchableOpacity onPress={() => setEditMode(true)}>
-                <Ionicons name="create-outline" size={20} color="#10b981" />
-              </TouchableOpacity>
-            )}
+            <TouchableOpacity onPress={handleOpenEditModal}>
+              <Ionicons name="create-outline" size={20} color="#10b981" />
+            </TouchableOpacity>
           </View>
 
           <View style={styles.infoCard}>
@@ -146,16 +193,7 @@ export default function AccountScreen() {
               </View>
               <View style={styles.infoContent}>
                 <Text style={styles.infoLabel}>Họ và tên</Text>
-                {editMode ? (
-                  <TextInput
-                    style={styles.input}
-                    value={profile.full_name}
-                    onChangeText={(text) => setProfile({ ...profile, full_name: text })}
-                    placeholder="Nhập họ và tên"
-                  />
-                ) : (
-                  <Text style={styles.infoValue}>{profile.full_name || 'Chưa cập nhật'}</Text>
-                )}
+                <Text style={styles.infoValue}>{profile.full_name || 'Chưa cập nhật'}</Text>
               </View>
             </View>
 
@@ -167,17 +205,7 @@ export default function AccountScreen() {
               </View>
               <View style={styles.infoContent}>
                 <Text style={styles.infoLabel}>Số điện thoại</Text>
-                {editMode ? (
-                  <TextInput
-                    style={styles.input}
-                    value={profile.phone}
-                    onChangeText={(text) => setProfile({ ...profile, phone: text })}
-                    placeholder="Nhập số điện thoại"
-                    keyboardType="phone-pad"
-                  />
-                ) : (
-                  <Text style={styles.infoValue}>{profile.phone || 'Chưa cập nhật'}</Text>
-                )}
+                <Text style={styles.infoValue}>{profile.phone || 'Chưa cập nhật'}</Text>
               </View>
             </View>
 
@@ -189,51 +217,19 @@ export default function AccountScreen() {
               </View>
               <View style={styles.infoContent}>
                 <Text style={styles.infoLabel}>Địa chỉ</Text>
-                {editMode ? (
-                  <TextInput
-                    style={styles.input}
-                    value={profile.address}
-                    onChangeText={(text) => setProfile({ ...profile, address: text })}
-                    placeholder="Nhập địa chỉ"
-                    multiline
-                  />
-                ) : (
-                  <Text style={styles.infoValue}>{profile.address || 'Chưa cập nhật'}</Text>
-                )}
+                <Text style={styles.infoValue}>{profile.address || 'Chưa cập nhật'}</Text>
               </View>
             </View>
           </View>
-
-          {editMode && (
-            <View style={styles.editActions}>
-              <TouchableOpacity
-                style={styles.cancelButton}
-                onPress={() => {
-                  setEditMode(false)
-                  fetchProfile()
-                }}
-              >
-                <Text style={styles.cancelButtonText}>Hủy</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.saveButton}
-                onPress={handleSave}
-                disabled={saving}
-              >
-                {saving ? (
-                  <ActivityIndicator size="small" color="white" />
-                ) : (
-                  <Text style={styles.saveButtonText}>Lưu</Text>
-                )}
-              </TouchableOpacity>
-            </View>
-          )}
         </View>
 
         {/* Menu Items */}
         <View style={styles.section}>
           <View style={styles.menuCard}>
-            <TouchableOpacity style={styles.menuItem}>
+            <TouchableOpacity 
+              style={styles.menuItem}
+              onPress={() => setShowNotificationSettings(true)}
+            >
               <View style={styles.menuLeft}>
                 <Ionicons name="notifications-outline" size={24} color="#6b7280" />
                 <Text style={styles.menuText}>Thông báo</Text>
@@ -276,6 +272,155 @@ export default function AccountScreen() {
           <Text style={styles.versionText}>Phiên bản 1.0.0</Text>
         </View>
       </ScrollView>
+
+      {/* Edit Profile Modal */}
+      <Modal
+        visible={showEditModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={handleCloseEditModal}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            {/* Modal Header */}
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Sửa thông tin</Text>
+              <TouchableOpacity onPress={handleCloseEditModal}>
+                <Ionicons name="close" size={24} color="#111827" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Modal Body */}
+            <ScrollView style={styles.modalBody}>
+              <View style={styles.formGroup}>
+                <Text style={styles.formLabel}>Họ và tên</Text>
+                <View style={styles.inputContainer}>
+                  <Ionicons name="person-outline" size={20} color="#6b7280" />
+                  <TextInput
+                    style={styles.modalInput}
+                    value={editedProfile.full_name}
+                    onChangeText={(text) => setEditedProfile({ ...editedProfile, full_name: text })}
+                    placeholder="Nhập họ và tên"
+                    placeholderTextColor="#9ca3af"
+                  />
+                </View>
+              </View>
+
+              <View style={styles.formGroup}>
+                <Text style={styles.formLabel}>Số điện thoại</Text>
+                <View style={styles.inputContainer}>
+                  <Ionicons name="call-outline" size={20} color="#6b7280" />
+                  <TextInput
+                    style={styles.modalInput}
+                    value={editedProfile.phone}
+                    onChangeText={(text) => setEditedProfile({ ...editedProfile, phone: text })}
+                    placeholder="Nhập số điện thoại"
+                    placeholderTextColor="#9ca3af"
+                    keyboardType="phone-pad"
+                  />
+                </View>
+              </View>
+
+              <View style={styles.formGroup}>
+                <Text style={styles.formLabel}>Địa chỉ</Text>
+                <View style={[styles.inputContainer, styles.textareaContainer]}>
+                  <Ionicons name="location-outline" size={20} color="#6b7280" style={styles.textareaIcon} />
+                  <TextInput
+                    style={[styles.modalInput, styles.textarea]}
+                    value={editedProfile.address}
+                    onChangeText={(text) => setEditedProfile({ ...editedProfile, address: text })}
+                    placeholder="Nhập địa chỉ"
+                    placeholderTextColor="#9ca3af"
+                    multiline
+                    numberOfLines={3}
+                  />
+                </View>
+              </View>
+            </ScrollView>
+
+            {/* Modal Footer */}
+            <View style={styles.modalFooter}>
+              <TouchableOpacity
+                style={styles.modalCancelButton}
+                onPress={handleCloseEditModal}
+              >
+                <Text style={styles.modalCancelButtonText}>Hủy</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.modalSaveButton}
+                onPress={handleSave}
+                disabled={saving}
+              >
+                {saving ? (
+                  <ActivityIndicator size="small" color="white" />
+                ) : (
+                  <>
+                    <Ionicons name="checkmark" size={20} color="white" />
+                    <Text style={styles.modalSaveButtonText}>Lưu</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Notification Settings Modal */}
+      <Modal
+        visible={showNotificationSettings}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowNotificationSettings(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            {/* Modal Header */}
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Cài đặt thông báo</Text>
+              <TouchableOpacity onPress={() => setShowNotificationSettings(false)}>
+                <Ionicons name="close" size={24} color="#111827" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Modal Body */}
+            <View style={styles.modalBody}>
+              <View style={styles.settingItem}>
+                <View style={styles.settingLeft}>
+                  <View style={styles.settingIconContainer}>
+                    <Ionicons name="notifications" size={24} color="#10b981" />
+                  </View>
+                  <View style={styles.settingInfo}>
+                    <Text style={styles.settingTitle}>Thông báo hệ thống</Text>
+                    <Text style={styles.settingDescription}>
+                      Nhận thông báo về đơn hàng, sản phẩm và cập nhật
+                    </Text>
+                  </View>
+                </View>
+                <TouchableOpacity
+                  style={[
+                    styles.toggle,
+                    notificationsEnabled && styles.toggleActive
+                  ]}
+                  onPress={() => toggleNotifications(!notificationsEnabled)}
+                  activeOpacity={0.8}
+                >
+                  <View style={[
+                    styles.toggleThumb,
+                    notificationsEnabled && styles.toggleThumbActive
+                  ]} />
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.settingNote}>
+                <Ionicons name="information-circle-outline" size={16} color="#6b7280" />
+                <Text style={styles.settingNoteText}>
+                  Bạn có thể bật/tắt thông báo bất cứ lúc nào
+                </Text>
+              </View>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   )
 }
@@ -418,47 +563,9 @@ const styles = StyleSheet.create({
     color: '#111827',
     fontWeight: '500',
   },
-  input: {
-    fontSize: 14,
-    color: '#111827',
-    fontWeight: '500',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
-    paddingVertical: 4,
-  },
   divider: {
     height: 1,
     backgroundColor: '#f3f4f6',
-  },
-  editActions: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 16,
-  },
-  cancelButton: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    alignItems: 'center',
-  },
-  cancelButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#6b7280',
-  },
-  saveButton: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
-    backgroundColor: '#10b981',
-    alignItems: 'center',
-  },
-  saveButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: 'white',
   },
   menuCard: {
     backgroundColor: 'white',
@@ -513,5 +620,177 @@ const styles = StyleSheet.create({
   versionText: {
     fontSize: 12,
     color: '#9ca3af',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: '80%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f3f4f6',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#111827',
+  },
+  modalBody: {
+    padding: 20,
+  },
+  formGroup: {
+    marginBottom: 20,
+  },
+  formLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 8,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: '#f9fafb',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  textareaContainer: {
+    alignItems: 'flex-start',
+    paddingVertical: 12,
+  },
+  textareaIcon: {
+    marginTop: 2,
+  },
+  modalInput: {
+    flex: 1,
+    fontSize: 14,
+    color: '#111827',
+  },
+  textarea: {
+    minHeight: 80,
+    textAlignVertical: 'top',
+  },
+  modalFooter: {
+    flexDirection: 'row',
+    gap: 12,
+    padding: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#f3f4f6',
+  },
+  modalCancelButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    alignItems: 'center',
+  },
+  modalCancelButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6b7280',
+  },
+  modalSaveButton: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: '#10b981',
+  },
+  modalSaveButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: 'white',
+  },
+  settingItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 16,
+  },
+  settingLeft: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  settingIconContainer: {
+    width: 48,
+    height: 48,
+    backgroundColor: '#d1fae5',
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  settingInfo: {
+    flex: 1,
+  },
+  settingTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: 4,
+  },
+  settingDescription: {
+    fontSize: 12,
+    color: '#6b7280',
+    lineHeight: 16,
+  },
+  toggle: {
+    width: 52,
+    height: 32,
+    backgroundColor: '#e5e7eb',
+    borderRadius: 16,
+    padding: 2,
+    justifyContent: 'center',
+  },
+  toggleActive: {
+    backgroundColor: '#10b981',
+  },
+  toggleThumb: {
+    width: 28,
+    height: 28,
+    backgroundColor: 'white',
+    borderRadius: 14,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  toggleThumbActive: {
+    transform: [{ translateX: 20 }],
+  },
+  settingNote: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 16,
+    padding: 12,
+    backgroundColor: '#f9fafb',
+    borderRadius: 8,
+  },
+  settingNoteText: {
+    flex: 1,
+    fontSize: 12,
+    color: '#6b7280',
+    lineHeight: 16,
   },
 })

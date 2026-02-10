@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, Image, RefreshControl, Modal, Platform } from 'react-native'
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl, Modal } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { supabase } from '../../src/lib/supabase'
 import { useRouter, useFocusEffect } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { emitScrollVisibility } from './_layout'
 import { useTabBarHeight } from '../../src/hooks/useTabBarHeight'
+import AppHeader from '../../src/components/AppHeader'
 
 const filterTabs = [
   { id: 'today', label: 'Hôm nay' },
@@ -306,22 +307,7 @@ export default function SalesDashboard() {
         }
       >
         {/* Header with Logo */}
-        <View style={styles.topHeader}>
-          <View style={styles.logoContainer}>
-            <Image 
-              source={require('../../assets/icon.png')} 
-              style={styles.logo}
-              resizeMode="contain"
-            />
-            <Text style={styles.logoTitle}>APPE JV</Text>
-          </View>
-          <TouchableOpacity 
-            style={styles.menuButton}
-            onPress={() => router.push('/(sales)/menu')}
-          >
-            <Ionicons name="menu" size={24} color="#111827" />
-          </TouchableOpacity>
-        </View>
+        <AppHeader />
 
         {/* Page Header */}
         <View style={styles.header}>
@@ -601,34 +587,6 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-  },
-  topHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#f0f9ff',
-  },
-  logoContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  logo: {
-    width: 40,
-    height: 40,
-  },
-  logoTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#111827',
-  },
-  menuButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   header: {
     backgroundColor: '#f0f9ff',
