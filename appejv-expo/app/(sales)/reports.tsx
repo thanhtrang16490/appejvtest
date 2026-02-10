@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { View, Text, ScrollView, StyleSheet, Image, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native'
+import { View, Text, ScrollView, StyleSheet, Image, TouchableOpacity, ActivityIndicator, RefreshControl, Modal } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
@@ -13,8 +13,14 @@ const filterTabs = [
   { id: 'other', label: 'Khác' },
 ]
 
-const otherFilters = [
+const timeRangeOptions = [
+  { id: 'today', label: 'Hôm nay' },
+  { id: 'yesterday', label: 'Hôm qua' },
+  { id: 'last_7_days', label: '7 ngày qua' },
+  { id: 'this_month', label: 'Tháng này' },
+  { id: 'last_month', label: 'Tháng trước' },
   { id: 'last_3_months', label: '3 tháng gần đây' },
+  { id: 'this_quarter', label: 'Quý này' },
   { id: 'this_year', label: 'Năm nay' },
   { id: 'all', label: 'Tất cả' },
 ]
@@ -58,7 +64,7 @@ export default function ReportsScreen() {
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [period, setPeriod] = useState('this_month')
-  const [showOtherFilters, setShowOtherFilters] = useState(false)
+  const [showTimeRangeDrawer, setShowTimeRangeDrawer] = useState(false)
   const [activeTab, setActiveTab] = useState<'product' | 'category'>('product')
   const [roleTab, setRoleTab] = useState<'customer' | 'sale' | 'saleadmin'>('customer')
   const [analytics, setAnalytics] = useState({
@@ -302,6 +308,19 @@ export default function ReportsScreen() {
     fetchData()
   }
 
+  const handleFilterChange = (filterId: string) => {
+    if (filterId === 'other') {
+      setShowTimeRangeDrawer(true)
+    } else {
+      setPeriod(filterId)
+    }
+  }
+
+  const handleTimeRangeSelect = (rangeId: string) => {
+    setPeriod(rangeId)
+    setShowTimeRangeDrawer(false)
+  }
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -365,14 +384,7 @@ export default function ReportsScreen() {
               styles.filterTab,
               period === tab.id && styles.filterTabActive
             ]}
-            onPress={() => {
-              if (tab.id === 'other') {
-                setShowOtherFilters(!showOtherFilters)
-              } else {
-                setPeriod(tab.id)
-                setShowOtherFilters(false)
-              }
-            }}
+            onPress={() => handleFilterChange(tab.id)}
           >
             <Text style={[
               styles.filterTabText,
@@ -391,32 +403,6 @@ export default function ReportsScreen() {
           </TouchableOpacity>
         ))}
       </ScrollView>
-
-      {/* Other Filters Dropdown */}
-      {showOtherFilters && (
-        <View style={styles.otherFiltersContainer}>
-          {otherFilters.map((filter) => (
-            <TouchableOpacity
-              key={filter.id}
-              style={[
-                styles.otherFilterItem,
-                period === filter.id && styles.otherFilterItemActive
-              ]}
-              onPress={() => {
-                setPeriod(filter.id)
-                setShowOtherFilters(false)
-              }}
-            >
-              <Text style={[
-                styles.otherFilterText,
-                period === filter.id && styles.otherFilterTextActive
-              ]}>
-                {filter.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      )}
 
       <ScrollView
         style={styles.scrollView}
@@ -578,6 +564,57 @@ export default function ReportsScreen() {
           </View>
         )}
       </ScrollView>
+
+      {/* Time Range Bottom Drawer */}
+      <Modal
+        visible={showTimeRangeDrawer}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowTimeRangeDrawer(false)}
+      >
+        <TouchableOpacity 
+          style={styles.drawerOverlay}
+          activeOpacity={1}
+          onPress={() => setShowTimeRangeDrawer(false)}
+        >
+          <View style={styles.drawerContent} onStartShouldSetResponder={() => true}>
+            <View style={styles.drawerHandle} />
+            
+            <View style={styles.drawerHeader}>
+              <Text style={styles.drawerTitle}>Chọn thời gian</Text>
+              <TouchableOpacity 
+                style={styles.drawerCloseButton}
+                onPress={() => setShowTimeRangeDrawer(false)}
+              >
+                <Ionicons name="close" size={24} color="#6b7280" />
+              </TouchableOpacity>
+            </View>
+            
+            <ScrollView style={styles.drawerScroll}>
+              {timeRangeOptions.map((option) => (
+                <TouchableOpacity
+                  key={option.id}
+                  style={[
+                    styles.drawerOption,
+                    period === option.id && styles.drawerOptionActive
+                  ]}
+                  onPress={() => handleTimeRangeSelect(option.id)}
+                >
+                  <Text style={[
+                    styles.drawerOptionText,
+                    period === option.id && styles.drawerOptionTextActive
+                  ]}>
+                    {option.label}
+                  </Text>
+                  {period === option.id && (
+                    <Ionicons name="checkmark" size={24} color="#175ead" />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   )
 }
@@ -685,35 +722,6 @@ const styles = StyleSheet.create({
   },
   filterTabTextActive: {
     color: 'white',
-  },
-  otherFiltersContainer: {
-    marginHorizontal: 16,
-    marginBottom: 12,
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  otherFilterItem: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-  },
-  otherFilterItemActive: {
-    backgroundColor: '#f0f9ff',
-  },
-  otherFilterText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#6b7280',
-  },
-  otherFilterTextActive: {
-    color: '#175ead',
-    fontWeight: '600',
   },
   scrollView: {
     flex: 1,
@@ -936,5 +944,73 @@ const styles = StyleSheet.create({
   },
   progressBlue: {
     backgroundColor: 'rgba(23, 94, 173, 0.6)',
+  },
+  drawerOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  drawerContent: {
+    backgroundColor: 'white',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: '80%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  drawerHandle: {
+    width: 40,
+    height: 4,
+    backgroundColor: '#d1d5db',
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginTop: 12,
+    marginBottom: 8,
+  },
+  drawerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f3f4f6',
+  },
+  drawerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#111827',
+  },
+  drawerCloseButton: {
+    width: 32,
+    height: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  drawerScroll: {
+    maxHeight: 500,
+  },
+  drawerOption: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f3f4f6',
+  },
+  drawerOptionActive: {
+    backgroundColor: '#f0f9ff',
+  },
+  drawerOptionText: {
+    fontSize: 16,
+    color: '#374151',
+  },
+  drawerOptionTextActive: {
+    color: '#175ead',
+    fontWeight: '600',
   },
 })

@@ -1,10 +1,13 @@
-import { useState, useEffect } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl, Image } from 'react-native'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl, Image, Platform } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useAuth } from '../../../src/contexts/AuthContext'
 import { supabase } from '../../../src/lib/supabase'
-import { useRouter } from 'expo-router'
+import { useRouter, useFocusEffect } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
+import SuccessModal from '../../../src/components/SuccessModal'
+import { emitScrollVisibility } from '../_layout'
+import { useTabBarHeight } from '../../../src/hooks/useTabBarHeight'
 
 const statusMap: Record<string, { label: string; color: string; bg: string }> = {
   draft: { label: 'Đơn nháp', color: '#374151', bg: '#f3f4f6' },
@@ -26,16 +29,53 @@ const tabs = [
 export default function OrdersScreen() {
   const { user } = useAuth()
   const router = useRouter()
+  const { contentPaddingBottom } = useTabBarHeight()
   const [profile, setProfile] = useState<any>(null)
   const [orders, setOrders] = useState<any[]>([])
-  const [activeTab, setActiveTab] = useState('ordered')
+  const [activeTab, setActiveTab] = useState('draft')
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [updating, setUpdating] = useState<number | null>(null)
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const [successMessage, setSuccessMessage] = useState('')
+  const lastScrollY = useRef(0)
+  const scrollTimeout = useRef<NodeJS.Timeout>()
+
+  const handleScroll = (event: any) => {
+    const currentScrollY = event.nativeEvent.contentOffset.y
+    const scrollDiff = currentScrollY - lastScrollY.current
+
+    if (scrollTimeout.current) {
+      clearTimeout(scrollTimeout.current)
+    }
+
+    if (Math.abs(scrollDiff) > 5) {
+      if (scrollDiff > 0 && currentScrollY > 50) {
+        emitScrollVisibility(false)
+      } else if (scrollDiff < 0) {
+        emitScrollVisibility(true)
+      }
+      lastScrollY.current = currentScrollY
+    }
+
+    scrollTimeout.current = setTimeout(() => {
+      emitScrollVisibility(true)
+    }, 2000)
+  }
 
   useEffect(() => {
     fetchData()
   }, [])
+
+  // Auto refresh when screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      if (!loading && !refreshing) {
+        fetchData()
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+  )
 
   const fetchData = async () => {
     try {
@@ -152,6 +192,11 @@ export default function OrdersScreen() {
         .eq('id', orderId)
 
       if (error) throw error
+
+      // Show success message
+      const statusLabel = statusMap[newStatus]?.label || newStatus
+      setSuccessMessage(`Đã cập nhật trạng thái: ${statusLabel}`)
+      setShowSuccessModal(true)
 
       // Refresh orders
       if (user && profile) {
@@ -270,7 +315,9 @@ export default function OrdersScreen() {
       {/* Orders List */}
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: contentPaddingBottom }]}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
@@ -353,6 +400,14 @@ export default function OrdersScreen() {
           })
         )}
       </ScrollView>
+
+      {/* Success Modal */}
+      <SuccessModal
+        visible={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        title="Cập nhật thành công!"
+        message={successMessage}
+      />
     </SafeAreaView>
   )
 }
@@ -443,9 +498,12 @@ const styles = StyleSheet.create({
   },
   tab: {
     paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 16,
+    paddingVertical: 8,
+    height: 36,
+    borderRadius: 20,
     backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   tabActive: {
     backgroundColor: '#175ead',
@@ -464,6 +522,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 16,
     gap: 12,
+    // paddingBottom is set dynamically using useTabBarHeight hook
   },
   emptyState: {
     paddingVertical: 80,

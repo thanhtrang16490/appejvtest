@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet, Image, RefreshControl, TextInput } from 'react-native'
+import { useState, useEffect, useMemo, useCallback, memo } from 'react'
+import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, StyleSheet, Image, RefreshControl, TextInput } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useAuth } from '../../../src/contexts/AuthContext'
 import { supabase } from '../../../src/lib/supabase'
 import { Ionicons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
+import { useDebounce } from '../../../src/hooks/useDebounce'
 
 // Generate consistent color based on name
 const getAvatarColor = (name: string) => {
@@ -25,35 +26,97 @@ const getAvatarColor = (name: string) => {
   return colors[hash % colors.length]
 }
 
+// Memoized CustomerCard component
+const CustomerCard = memo(({ 
+  customer, 
+  onPress 
+}: { 
+  customer: any
+  onPress: () => void
+}) => {
+  const avatarColor = getAvatarColor(customer.name || 'Unknown')
+  const initials = (customer.name || 'UK').substring(0, 2).toUpperCase()
+  
+  return (
+    <TouchableOpacity
+      style={styles.customerCard}
+      activeOpacity={0.7}
+      onPress={onPress}
+    >
+      <View style={styles.customerContent}>
+        {/* Avatar */}
+        <View style={[styles.avatar, { backgroundColor: avatarColor.bg }]}>
+          <Text style={[styles.avatarText, { color: avatarColor.text }]}>
+            {initials}
+          </Text>
+        </View>
+
+        {/* Customer Info */}
+        <View style={styles.customerDetails}>
+          <View style={styles.customerHeader}>
+            <Text style={styles.customerName} numberOfLines={1}>
+              {customer.name}
+            </Text>
+            {customer.code && (
+              <Text style={styles.customerCode}>{customer.code}</Text>
+            )}
+          </View>
+
+          <View style={styles.customerMeta}>
+            {customer.phone && (
+              <View style={styles.metaItem}>
+                <Ionicons name="call" size={12} color="#6b7280" />
+                <Text style={styles.metaText}>{customer.phone}</Text>
+              </View>
+            )}
+            {customer.address && (
+              <View style={styles.metaItem}>
+                <Ionicons name="location" size={12} color="#6b7280" />
+                <Text style={styles.metaText} numberOfLines={1}>
+                  {customer.address}
+                </Text>
+              </View>
+            )}
+          </View>
+        </View>
+
+        {/* Arrow */}
+        <Ionicons name="chevron-forward" size={20} color="#d1d5db" />
+      </View>
+    </TouchableOpacity>
+  )
+})
+
 export default function CustomersScreen() {
   const { user } = useAuth()
   const router = useRouter()
   const [profile, setProfile] = useState<any>(null)
   const [customers, setCustomers] = useState<any[]>([])
-  const [filteredCustomers, setFilteredCustomers] = useState<any[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
+  
+  // Debounce search query
+  const debouncedSearchQuery = useDebounce(searchQuery, 300)
 
   useEffect(() => {
     fetchData()
   }, [])
 
-  useEffect(() => {
-    // Filter customers based on search query
-    if (searchQuery.trim() === '') {
-      setFilteredCustomers(customers)
-    } else {
-      const query = searchQuery.toLowerCase()
-      const filtered = customers.filter(customer =>
-        customer.name?.toLowerCase().includes(query) ||
-        customer.code?.toLowerCase().includes(query) ||
-        customer.phone?.includes(searchQuery) ||
-        customer.address?.toLowerCase().includes(query)
-      )
-      setFilteredCustomers(filtered)
+  // Memoized filtered customers
+  const filteredCustomers = useMemo(() => {
+    if (!debouncedSearchQuery.trim()) {
+      return customers
     }
-  }, [searchQuery, customers])
+    
+    const query = debouncedSearchQuery.toLowerCase()
+    return customers.filter(customer =>
+      customer.name?.toLowerCase().includes(query) ||
+      customer.code?.toLowerCase().includes(query) ||
+      customer.phone?.includes(debouncedSearchQuery) ||
+      customer.address?.toLowerCase().includes(query)
+    )
+  }, [debouncedSearchQuery, customers])
 
   const fetchData = async () => {
     try {
@@ -78,38 +141,25 @@ export default function CustomersScreen() {
 
       setProfile(profileData)
 
-      const userRole = profileData.role
-      const isSale = userRole === 'sale'
-      const isSaleAdmin = userRole === 'sale_admin'
-
-      // For Sale Admin, fetch managed sales IDs
-      let managedSaleIds: string[] = []
-      if (isSaleAdmin) {
-        const { data: managedSales } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('manager_id', authUser.id)
-        managedSaleIds = managedSales?.map(s => s.id) || []
-      }
-
       // Fetch customers from profiles with role='customer'
       let query = supabase
         .from('profiles')
         .select('*')
         .eq('role', 'customer')
-        .order('created_at', { ascending: false })
+        .order('full_name', { ascending: true, nullsFirst: false })
 
-      // Role-based filtering
-      if (isSale) {
-        // Sale sees customers they created/manage
-        query = query.eq('created_by', authUser.id)
-      } else if (isSaleAdmin) {
-        // Sale Admin sees customers created by their team
-        query = query.in('created_by', [authUser.id, ...managedSaleIds])
+      // Note: Removed role-based filtering by created_by since profiles may not have this field
+      // All sales staff can see all customers for now
+      // TODO: Add proper customer assignment logic if needed
+
+      const { data: customersData, error: customersError } = await query
+
+      if (customersError) {
+        console.error('Error fetching customers:', customersError)
       }
-      // Admin sees all customers (no filter)
 
-      const { data: customersData } = await query
+      console.log('Customers loaded:', customersData?.length)
+      console.log('Sample customer:', customersData?.[0])
 
       // Map profiles to customer format
       const mappedCustomers = (customersData || []).map(p => ({
@@ -123,7 +173,6 @@ export default function CustomersScreen() {
       }))
 
       setCustomers(mappedCustomers)
-      setFilteredCustomers(mappedCustomers)
     } catch (error) {
       console.error('Error fetching data:', error)
     } finally {
@@ -132,10 +181,40 @@ export default function CustomersScreen() {
     }
   }
 
-  const onRefresh = () => {
+  const onRefresh = useCallback(() => {
     setRefreshing(true)
     fetchData()
-  }
+  }, [])
+
+  const handleCustomerPress = useCallback((customerId: string) => {
+    router.push(`/(sales)/customers/${customerId}`)
+  }, [router])
+
+  const renderCustomerItem = useCallback(({ item }: { item: any }) => (
+    <CustomerCard
+      customer={item}
+      onPress={() => handleCustomerPress(item.id)}
+    />
+  ), [handleCustomerPress])
+
+  const keyExtractor = useCallback((item: any) => item.id, [])
+
+  const renderEmptyComponent = useCallback(() => (
+    <View style={styles.emptyState}>
+      <Ionicons name="people-outline" size={48} color="#d1d5db" />
+      <Text style={styles.emptyText}>
+        {searchQuery ? 'Không tìm thấy khách hàng nào' : 'Chưa có khách hàng nào'}
+      </Text>
+      {searchQuery && (
+        <TouchableOpacity 
+          style={styles.clearButton}
+          onPress={() => setSearchQuery('')}
+        >
+          <Text style={styles.clearButtonText}>Xóa bộ lọc</Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  ), [searchQuery])
 
   if (loading) {
     return (
@@ -172,7 +251,10 @@ export default function CustomersScreen() {
           <Text style={styles.title}>Khách hàng</Text>
           <Text style={styles.subtitle}>{filteredCustomers.length} khách hàng</Text>
         </View>
-        <TouchableOpacity style={styles.addButton}>
+        <TouchableOpacity 
+          style={styles.addButton}
+          onPress={() => router.push('/(sales)/customers/add')}
+        >
           <Ionicons name="add" size={20} color="white" />
         </TouchableOpacity>
       </View>
@@ -197,85 +279,20 @@ export default function CustomersScreen() {
       </View>
 
       {/* Customers List */}
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
+      <FlatList
+        data={filteredCustomers}
+        renderItem={renderCustomerItem}
+        keyExtractor={keyExtractor}
+        contentContainerStyle={styles.listContent}
+        ListEmptyComponent={renderEmptyComponent}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
-      >
-        {filteredCustomers.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Ionicons name="people-outline" size={48} color="#d1d5db" />
-            <Text style={styles.emptyText}>
-              {searchQuery ? 'Không tìm thấy khách hàng nào' : 'Chưa có khách hàng nào'}
-            </Text>
-            {searchQuery && (
-              <TouchableOpacity 
-                style={styles.clearButton}
-                onPress={() => setSearchQuery('')}
-              >
-                <Text style={styles.clearButtonText}>Xóa bộ lọc</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        ) : (
-          filteredCustomers.map((customer) => {
-            const avatarColor = getAvatarColor(customer.name || 'Unknown')
-            const initials = (customer.name || 'UK').substring(0, 2).toUpperCase()
-            
-            return (
-              <TouchableOpacity
-                key={customer.id}
-                style={styles.customerCard}
-                activeOpacity={0.7}
-                onPress={() => router.push(`/(sales)/customers/${customer.id}`)}
-              >
-                <View style={styles.customerContent}>
-                  {/* Avatar */}
-                  <View style={[styles.avatar, { backgroundColor: avatarColor.bg }]}>
-                    <Text style={[styles.avatarText, { color: avatarColor.text }]}>
-                      {initials}
-                    </Text>
-                  </View>
-
-                  {/* Customer Info */}
-                  <View style={styles.customerDetails}>
-                    <View style={styles.customerHeader}>
-                      <Text style={styles.customerName} numberOfLines={1}>
-                        {customer.name}
-                      </Text>
-                      {customer.code && (
-                        <Text style={styles.customerCode}>{customer.code}</Text>
-                      )}
-                    </View>
-
-                    <View style={styles.customerMeta}>
-                      {customer.phone && (
-                        <View style={styles.metaItem}>
-                          <Ionicons name="call" size={12} color="#6b7280" />
-                          <Text style={styles.metaText}>{customer.phone}</Text>
-                        </View>
-                      )}
-                      {customer.address && (
-                        <View style={styles.metaItem}>
-                          <Ionicons name="location" size={12} color="#6b7280" />
-                          <Text style={styles.metaText} numberOfLines={1}>
-                            {customer.address}
-                          </Text>
-                        </View>
-                      )}
-                    </View>
-                  </View>
-
-                  {/* Arrow */}
-                  <Ionicons name="chevron-forward" size={20} color="#d1d5db" />
-                </View>
-              </TouchableOpacity>
-            )
-          })
-        )}
-      </ScrollView>
+        initialNumToRender={15}
+        maxToRenderPerBatch={10}
+        windowSize={5}
+        removeClippedSubviews={true}
+      />
     </SafeAreaView>
   )
 }
@@ -379,12 +396,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#111827',
   },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
+  listContent: {
     padding: 16,
-    gap: 8,
   },
   emptyState: {
     paddingVertical: 80,

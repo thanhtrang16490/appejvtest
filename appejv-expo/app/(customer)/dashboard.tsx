@@ -111,6 +111,9 @@ export default function CustomerDashboard() {
               Chào mừng bạn đến với APPE JV
             </Text>
           </View>
+          <TouchableOpacity style={styles.notificationButton}>
+            <Ionicons name="notifications-outline" size={24} color="white" />
+          </TouchableOpacity>
         </View>
 
         {/* Stats Cards */}
@@ -271,6 +274,12 @@ const styles = StyleSheet.create({
   },
   headerTextContainer: {
     flex: 1,
+  },
+  notificationButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   headerTitle: {
     fontSize: 24,

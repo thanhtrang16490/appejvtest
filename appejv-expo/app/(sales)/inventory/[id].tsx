@@ -6,6 +6,7 @@ import { supabase } from '../../../src/lib/supabase'
 import { Ionicons } from '@expo/vector-icons'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import * as ImagePicker from 'expo-image-picker'
+import SuccessModal from '../../../src/components/SuccessModal'
 
 const getStockStatus = (stock: number) => {
   if (stock === 0) {
@@ -23,13 +24,16 @@ export default function ProductDetailScreen() {
   const { id } = useLocalSearchParams()
   const [profile, setProfile] = useState<any>(null)
   const [product, setProduct] = useState<any>(null)
+  const [categories, setCategories] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
   const [editing, setEditing] = useState(false)
+  const [showCategoryPicker, setShowCategoryPicker] = useState(false)
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
   const [editedData, setEditedData] = useState({
     name: '',
     code: '',
-    category: '',
+    category_id: '',
     description: '',
     price: '',
     stock: '',
@@ -64,10 +68,18 @@ export default function ProductDetailScreen() {
 
       setProfile(profileData)
 
+      // Fetch categories
+      const { data: categoriesData } = await supabase
+        .from('categories')
+        .select('*')
+        .order('name')
+
+      setCategories(categoriesData || [])
+
       // Fetch product
       const { data: productData } = await supabase
         .from('products')
-        .select('*')
+        .select('*, categories(id, name)')
         .eq('id', id)
         .is('deleted_at', null)
         .single()
@@ -82,7 +94,7 @@ export default function ProductDetailScreen() {
       setEditedData({
         name: productData.name || '',
         code: productData.code || '',
-        category: productData.category || '',
+        category_id: productData.category_id || '',
         description: productData.description || '',
         price: productData.price?.toString() || '',
         stock: productData.stock?.toString() || '',
@@ -101,7 +113,7 @@ export default function ProductDetailScreen() {
         .update({
           name: editedData.name,
           code: editedData.code,
-          category: editedData.category,
+          category_id: editedData.category_id || null,
           description: editedData.description,
           price: parseFloat(editedData.price) || 0,
           stock: parseInt(editedData.stock) || 0,
@@ -110,7 +122,7 @@ export default function ProductDetailScreen() {
 
       if (error) throw error
 
-      Alert.alert('Thành công', 'Đã cập nhật thông tin sản phẩm')
+      setShowSuccessModal(true)
       setEditing(false)
       fetchData()
     } catch (error) {
@@ -182,7 +194,7 @@ export default function ProductDetailScreen() {
 
       if (updateError) throw updateError
 
-      Alert.alert('Thành công', 'Đã cập nhật ảnh sản phẩm')
+      setShowSuccessModal(true)
       fetchData()
     } catch (error) {
       console.error('Error uploading image:', error)
@@ -353,12 +365,54 @@ export default function ProductDetailScreen() {
                 />
                 
                 <Text style={styles.inputLabel}>Danh mục</Text>
-                <TextInput
-                  style={styles.input}
-                  value={editedData.category}
-                  onChangeText={(text) => setEditedData({ ...editedData, category: text })}
-                  placeholder="Nhập danh mục"
-                />
+                <TouchableOpacity
+                  style={styles.pickerButton}
+                  onPress={() => setShowCategoryPicker(!showCategoryPicker)}
+                >
+                  <Text style={[styles.pickerButtonText, !editedData.category_id && styles.placeholderText]}>
+                    {categories.find(c => c.id === editedData.category_id)?.name || 'Chọn danh mục'}
+                  </Text>
+                  <Ionicons name="chevron-down" size={20} color="#6b7280" />
+                </TouchableOpacity>
+                
+                {showCategoryPicker && (
+                  <View style={styles.pickerContainer}>
+                    <ScrollView style={styles.pickerScroll}>
+                      <TouchableOpacity
+                        style={styles.pickerOption}
+                        onPress={() => {
+                          setEditedData({ ...editedData, category_id: '' })
+                          setShowCategoryPicker(false)
+                        }}
+                      >
+                        <Text style={styles.pickerOptionText}>-- Không chọn --</Text>
+                      </TouchableOpacity>
+                      {categories.map((cat) => (
+                        <TouchableOpacity
+                          key={cat.id}
+                          style={[
+                            styles.pickerOption,
+                            editedData.category_id === cat.id && styles.pickerOptionActive
+                          ]}
+                          onPress={() => {
+                            setEditedData({ ...editedData, category_id: cat.id })
+                            setShowCategoryPicker(false)
+                          }}
+                        >
+                          <Text style={[
+                            styles.pickerOptionText,
+                            editedData.category_id === cat.id && styles.pickerOptionTextActive
+                          ]}>
+                            {cat.name}
+                          </Text>
+                          {editedData.category_id === cat.id && (
+                            <Ionicons name="checkmark" size={20} color="#175ead" />
+                          )}
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  </View>
+                )}
                 
                 <Text style={styles.inputLabel}>Mô tả</Text>
                 <TextInput
@@ -394,10 +448,10 @@ export default function ProductDetailScreen() {
                 {product.code && (
                   <Text style={styles.productCode}>Mã: {product.code}</Text>
                 )}
-                {product.category && (
+                {product.categories && (
                   <View style={styles.categoryBadge}>
                     <Ionicons name="pricetag" size={12} color="#6b7280" />
-                    <Text style={styles.categoryText}>{product.category}</Text>
+                    <Text style={styles.categoryText}>{product.categories.name}</Text>
                   </View>
                 )}
               </>
@@ -493,7 +547,7 @@ export default function ProductDetailScreen() {
               setEditedData({
                 name: product.name || '',
                 code: product.code || '',
-                category: product.category || '',
+                category_id: product.category_id || '',
                 description: product.description || '',
                 price: product.price?.toString() || '',
                 stock: product.stock?.toString() || '',
@@ -504,6 +558,14 @@ export default function ProductDetailScreen() {
           </TouchableOpacity>
         )}
       </ScrollView>
+
+      {/* Success Modal */}
+      <SuccessModal
+        visible={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        title="Cập nhật thành công!"
+        message="Thông tin sản phẩm đã được cập nhật"
+      />
     </SafeAreaView>
   )
 }
@@ -664,6 +726,60 @@ const styles = StyleSheet.create({
   textArea: {
     height: 80,
     textAlignVertical: 'top',
+  },
+  pickerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#f9fafb',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  pickerButtonText: {
+    fontSize: 14,
+    color: '#111827',
+  },
+  placeholderText: {
+    color: '#9ca3af',
+  },
+  pickerContainer: {
+    backgroundColor: 'white',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 8,
+    marginTop: 4,
+    maxHeight: 200,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  pickerScroll: {
+    maxHeight: 200,
+  },
+  pickerOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f3f4f6',
+  },
+  pickerOptionActive: {
+    backgroundColor: '#f0f9ff',
+  },
+  pickerOptionText: {
+    fontSize: 14,
+    color: '#374151',
+  },
+  pickerOptionTextActive: {
+    color: '#175ead',
+    fontWeight: '600',
   },
   infoCard: {
     backgroundColor: 'white',

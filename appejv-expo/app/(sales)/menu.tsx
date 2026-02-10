@@ -71,30 +71,6 @@ export default function MenuScreen() {
 
   const menuItems = [
     {
-      title: 'Tổng quan',
-      description: 'Dashboard và thống kê tổng quan',
-      icon: 'grid',
-      color: '#175ead',
-      bg: '#dbeafe',
-      onPress: () => router.push('/(sales)/dashboard'),
-    },
-    {
-      title: 'Đơn hàng',
-      description: 'Quản lý và theo dõi đơn hàng',
-      icon: 'receipt',
-      color: '#f59e0b',
-      bg: '#fef3c7',
-      onPress: () => router.push('/(sales)/orders'),
-    },
-    {
-      title: 'Báo cáo & Phân tích',
-      description: 'Xem xu hướng bán hàng và doanh thu',
-      icon: 'bar-chart',
-      color: '#6366f1',
-      bg: '#e0e7ff',
-      onPress: () => router.push('/(sales)/reports'),
-    },
-    {
       title: 'Quản lý kho hàng',
       description: 'Kiểm tra tồn kho và giá bán',
       icon: 'cube',
@@ -102,24 +78,55 @@ export default function MenuScreen() {
       bg: '#fef3c7',
       onPress: () => router.push('/(sales)/inventory'),
     },
-    {
-      title: 'Danh bạ khách hàng',
-      description: 'Xem và quản lý khách hàng',
-      icon: 'people',
-      color: '#10b981',
-      bg: '#d1fae5',
-      onPress: () => router.push('/(sales)/customers'),
-    },
   ]
 
+  const adminMenuItems = []
+
   if (isAdmin || isSaleAdmin) {
-    menuItems.push({
-      title: 'Quản lý nhân sự',
-      description: 'Quản lý tài khoản và phân quyền',
-      icon: 'shield-checkmark',
-      color: '#ef4444',
-      bg: '#fee2e2',
-      onPress: () => router.push('/(sales)/users'),
+    adminMenuItems.push(
+      {
+        title: 'Phân tích dữ liệu',
+        description: 'Analytics và insights chi tiết',
+        icon: 'analytics',
+        color: '#8b5cf6',
+        bg: '#f3e8ff',
+        onPress: () => router.push('/(sales)/analytics'),
+      },
+      {
+        title: 'Quản lý danh mục',
+        description: 'Tạo và chỉnh sửa danh mục sản phẩm',
+        icon: 'folder',
+        color: '#f59e0b',
+        bg: '#fef3c7',
+        onPress: () => router.push('/(sales)/categories'),
+      },
+      {
+        title: 'Xuất dữ liệu',
+        description: 'Export CSV/Excel cho báo cáo',
+        icon: 'download',
+        color: '#10b981',
+        bg: '#d1fae5',
+        onPress: () => router.push('/(sales)/export'),
+      },
+      {
+        title: 'Quản lý nhân sự',
+        description: 'Quản lý tài khoản và phân quyền',
+        icon: 'shield-checkmark',
+        color: '#ef4444',
+        bg: '#fee2e2',
+        onPress: () => router.push('/(sales)/users'),
+      }
+    )
+  }
+
+  if (isAdmin) {
+    adminMenuItems.push({
+      title: 'Cài đặt hệ thống',
+      description: 'Cấu hình và tùy chỉnh hệ thống',
+      icon: 'settings',
+      color: '#6b7280',
+      bg: '#f3f4f6',
+      onPress: () => router.push('/(sales)/settings'),
     })
   }
 
@@ -146,8 +153,8 @@ export default function MenuScreen() {
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         {/* Page Header */}
         <View style={styles.pageHeader}>
-          <Text style={styles.title}>Trung tâm quản lý</Text>
-          <Text style={styles.subtitle}>Công cụ hỗ trợ kinh doanh chuyên nghiệp</Text>
+          <Text style={styles.title}>Menu</Text>
+          <Text style={styles.subtitle}>Các tính năng bổ sung và công cụ quản trị</Text>
         </View>
 
         {/* User Info Card */}
@@ -165,29 +172,81 @@ export default function MenuScreen() {
         </View>
 
         {/* Menu Items Grid */}
-        <View style={styles.menuGrid}>
-          {menuItems.map((item, index) => (
-            <TouchableOpacity
-              key={index}
-              style={styles.menuItem}
-              onPress={item.onPress}
-              activeOpacity={0.7}
-            >
-              <View style={styles.menuItemContent}>
-                <View style={[styles.menuIcon, { backgroundColor: item.bg }]}>
-                  <Ionicons name={item.icon as any} size={24} color={item.color} />
-                </View>
-                <View style={styles.menuItemText}>
-                  <Text style={styles.menuItemTitle}>{item.title}</Text>
-                  <Text style={styles.menuItemDescription} numberOfLines={1}>
-                    {item.description}
-                  </Text>
-                </View>
-                <Ionicons name="chevron-forward" size={20} color="#d1d5db" />
+        {menuItems.length > 0 && (
+          <>
+            <View style={styles.sectionHeader}>
+              <View style={styles.sectionTitleContainer}>
+                <Ionicons name="apps" size={20} color="#175ead" />
+                <Text style={styles.sectionTitle}>Tính năng bổ sung</Text>
               </View>
-            </TouchableOpacity>
-          ))}
-        </View>
+            </View>
+
+            <View style={styles.menuGrid}>
+              {menuItems.map((item, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.menuItem}
+                  onPress={item.onPress}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.menuItemContent}>
+                    <View style={[styles.menuIcon, { backgroundColor: item.bg }]}>
+                      <Ionicons name={item.icon as any} size={24} color={item.color} />
+                    </View>
+                    <View style={styles.menuItemText}>
+                      <Text style={styles.menuItemTitle}>{item.title}</Text>
+                      <Text style={styles.menuItemDescription} numberOfLines={1}>
+                        {item.description}
+                      </Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={20} color="#d1d5db" />
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </>
+        )}
+
+        {/* Admin Tools Section */}
+        {(isAdmin || isSaleAdmin) && adminMenuItems.length > 0 && (
+          <>
+            <View style={styles.sectionHeader}>
+              <View style={styles.sectionTitleContainer}>
+                <Ionicons name="shield-checkmark" size={20} color="#175ead" />
+                <Text style={styles.sectionTitle}>Công cụ quản trị</Text>
+              </View>
+              <View style={styles.adminBadge}>
+                <Text style={styles.adminBadgeText}>
+                  {isAdmin ? 'ADMIN' : 'SALE ADMIN'}
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.menuGrid}>
+              {adminMenuItems.map((item, index) => (
+                <TouchableOpacity
+                  key={`admin-${index}`}
+                  style={styles.menuItem}
+                  onPress={item.onPress}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.menuItemContent}>
+                    <View style={[styles.menuIcon, { backgroundColor: item.bg }]}>
+                      <Ionicons name={item.icon as any} size={24} color={item.color} />
+                    </View>
+                    <View style={styles.menuItemText}>
+                      <Text style={styles.menuItemTitle}>{item.title}</Text>
+                      <Text style={styles.menuItemDescription} numberOfLines={1}>
+                        {item.description}
+                      </Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={20} color="#d1d5db" />
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </>
+        )}
 
         {/* Logout Button */}
         <TouchableOpacity
@@ -339,6 +398,34 @@ const styles = StyleSheet.create({
   menuItemDescription: {
     fontSize: 12,
     color: '#6b7280',
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  sectionTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#111827',
+  },
+  adminBadge: {
+    backgroundColor: '#dbeafe',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  adminBadgeText: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#175ead',
+    letterSpacing: 0.5,
   },
   logoutButton: {
     backgroundColor: '#ef4444',

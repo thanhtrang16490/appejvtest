@@ -20,6 +20,7 @@ export default function CustomerDetailScreen() {
     phone: '',
     address: '',
     email: '',
+    role: 'customer',
   })
 
   useEffect(() => {
@@ -71,6 +72,7 @@ export default function CustomerDetailScreen() {
         phone: customerData.phone || '',
         address: customerData.address || '',
         email: customerData.email || '',
+        role: customerData.role || 'customer',
       })
 
       // Fetch customer orders
@@ -91,13 +93,20 @@ export default function CustomerDetailScreen() {
 
   const handleSave = async () => {
     try {
+      const updateData: any = {
+        full_name: editedData.full_name,
+        phone: editedData.phone,
+        address: editedData.address,
+      }
+
+      // Only admin can change role
+      if (profile?.role === 'admin') {
+        updateData.role = editedData.role
+      }
+
       const { error } = await supabase
         .from('profiles')
-        .update({
-          full_name: editedData.full_name,
-          phone: editedData.phone,
-          address: editedData.address,
-        })
+        .update(updateData)
         .eq('id', id)
 
       if (error) throw error
@@ -225,6 +234,90 @@ export default function CustomerDetailScreen() {
                   multiline
                   numberOfLines={3}
                 />
+
+                {/* Role Selector - Only for Admin */}
+                {isAdmin && (
+                  <>
+                    <Text style={styles.inputLabel}>Vai trò</Text>
+                    <View style={styles.roleSelector}>
+                      <TouchableOpacity
+                        style={[
+                          styles.roleOption,
+                          editedData.role === 'customer' && styles.roleOptionActive,
+                          editedData.role === 'customer' && { borderColor: '#10b981' }
+                        ]}
+                        onPress={() => setEditedData({ ...editedData, role: 'customer' })}
+                      >
+                        <View style={[styles.roleIcon, { backgroundColor: '#d1fae5' }]}>
+                          <Ionicons name="person" size={20} color="#10b981" />
+                        </View>
+                        <Text style={[
+                          styles.roleText,
+                          editedData.role === 'customer' && styles.roleTextActive
+                        ]}>
+                          Khách hàng
+                        </Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={[
+                          styles.roleOption,
+                          editedData.role === 'sale' && styles.roleOptionActive,
+                          editedData.role === 'sale' && { borderColor: '#175ead' }
+                        ]}
+                        onPress={() => setEditedData({ ...editedData, role: 'sale' })}
+                      >
+                        <View style={[styles.roleIcon, { backgroundColor: '#dbeafe' }]}>
+                          <Ionicons name="briefcase" size={20} color="#175ead" />
+                        </View>
+                        <Text style={[
+                          styles.roleText,
+                          editedData.role === 'sale' && styles.roleTextActive
+                        ]}>
+                          Sale
+                        </Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={[
+                          styles.roleOption,
+                          editedData.role === 'sale_admin' && styles.roleOptionActive,
+                          editedData.role === 'sale_admin' && { borderColor: '#f59e0b' }
+                        ]}
+                        onPress={() => setEditedData({ ...editedData, role: 'sale_admin' })}
+                      >
+                        <View style={[styles.roleIcon, { backgroundColor: '#fef3c7' }]}>
+                          <Ionicons name="people" size={20} color="#f59e0b" />
+                        </View>
+                        <Text style={[
+                          styles.roleText,
+                          editedData.role === 'sale_admin' && styles.roleTextActive
+                        ]}>
+                          Sale Admin
+                        </Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={[
+                          styles.roleOption,
+                          editedData.role === 'admin' && styles.roleOptionActive,
+                          editedData.role === 'admin' && { borderColor: '#ef4444' }
+                        ]}
+                        onPress={() => setEditedData({ ...editedData, role: 'admin' })}
+                      >
+                        <View style={[styles.roleIcon, { backgroundColor: '#fee2e2' }]}>
+                          <Ionicons name="shield-checkmark" size={20} color="#ef4444" />
+                        </View>
+                        <Text style={[
+                          styles.roleText,
+                          editedData.role === 'admin' && styles.roleTextActive
+                        ]}>
+                          Admin
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  </>
+                )}
               </>
             ) : (
               <>
@@ -344,6 +437,7 @@ export default function CustomerDetailScreen() {
                 phone: customer.phone || '',
                 address: customer.address || '',
                 email: customer.email || '',
+                role: customer.role || 'customer',
               })
             }}
           >
@@ -495,6 +589,40 @@ const styles = StyleSheet.create({
   textArea: {
     height: 80,
     textAlignVertical: 'top',
+  },
+  roleSelector: {
+    gap: 8,
+  },
+  roleOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: '#f9fafb',
+    borderWidth: 2,
+    borderColor: '#e5e7eb',
+    borderRadius: 12,
+    padding: 12,
+  },
+  roleOptionActive: {
+    backgroundColor: 'white',
+    borderWidth: 2,
+  },
+  roleIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  roleText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#6b7280',
+    flex: 1,
+  },
+  roleTextActive: {
+    fontWeight: '600',
+    color: '#111827',
   },
   infoCard: {
     backgroundColor: 'white',

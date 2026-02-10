@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { supabase } from '../../src/lib/supabase'
 import { useAuth } from '../../src/contexts/AuthContext'
 import { Ionicons } from '@expo/vector-icons'
+import NotificationDrawer from '../../src/components/NotificationDrawer'
 
 const statusMap: Record<string, { label: string; color: string; bg: string }> = {
   draft: { label: 'Đơn nháp', color: '#374151', bg: '#f3f4f6' },
@@ -93,6 +94,9 @@ export default function OrdersScreen() {
           />
           <Text style={styles.logoTitle}>APPE JV</Text>
         </View>
+        <TouchableOpacity style={styles.notificationButton}>
+          <Ionicons name="notifications-outline" size={24} color="#111827" />
+        </TouchableOpacity>
       </View>
 
       {/* Page Title */}
@@ -203,6 +207,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     backgroundColor: '#f0f9ff',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   logoContainer: {
     flexDirection: 'row',
@@ -217,6 +224,12 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#111827',
+  },
+  notificationButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   titleContainer: {
     paddingHorizontal: 16,
@@ -236,23 +249,25 @@ const styles = StyleSheet.create({
   },
   tabsContainer: {
     backgroundColor: '#f0f9ff',
-    paddingBottom: 12,
   },
   tabsContent: {
     paddingHorizontal: 16,
     gap: 8,
   },
   tab: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    height: 36,
+    borderRadius: 20,
     backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   tabActive: {
     backgroundColor: '#10b981',
   },
   tabText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '500',
     color: '#6b7280',
   },
@@ -264,6 +279,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
+    paddingTop: 8,
   },
   emptyState: {
     paddingVertical: 80,

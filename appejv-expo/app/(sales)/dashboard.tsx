@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, Image } from 'react-native'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, Image, RefreshControl, Modal, Platform } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useAuth } from '../../src/contexts/AuthContext'
 import { supabase } from '../../src/lib/supabase'
-import { useRouter } from 'expo-router'
+import { useRouter, useFocusEffect } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
+import { emitScrollVisibility } from './_layout'
+import { useTabBarHeight } from '../../src/hooks/useTabBarHeight'
 
 const filterTabs = [
   { id: 'today', label: 'Hôm nay' },
@@ -13,22 +14,83 @@ const filterTabs = [
   { id: 'other', label: 'Khác' },
 ]
 
+const timeRangeOptions = [
+  { id: 'today', label: 'Hôm nay' },
+  { id: 'yesterday', label: 'Hôm qua' },
+  { id: 'last7days', label: '7 ngày qua' },
+  { id: 'thisMonth', label: 'Tháng này' },
+  { id: 'lastMonth', label: 'Tháng trước' },
+  { id: 'thisQuarter', label: 'Quý này' },
+  { id: 'thisYear', label: 'Năm nay' },
+  { id: 'all', label: 'Tất cả' },
+]
+
 export default function SalesDashboard() {
-  const { user } = useAuth()
   const router = useRouter()
+  const { contentPaddingBottom } = useTabBarHeight()
   const [profile, setProfile] = useState<any>(null)
   const [stats, setStats] = useState({
-    pendingCount: 0,
+    orderedCount: 0,
     lowStockCount: 0,
     customerCount: 0,
     totalRevenue: 0
   })
+  const [recentOrders, setRecentOrders] = useState<any[]>([])
   const [activeFilter, setActiveFilter] = useState('thisMonth')
   const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+  const [showTimeRangeModal, setShowTimeRangeModal] = useState(false)
+  const lastScrollY = useRef(0)
+  const scrollTimeout = useRef<NodeJS.Timeout | null>(null)
+  const isInitialMount = useRef(true)
+
+  const handleScroll = (event: any) => {
+    const currentScrollY = event.nativeEvent.contentOffset.y
+    const scrollDiff = currentScrollY - lastScrollY.current
+
+    // Clear previous timeout
+    if (scrollTimeout.current) {
+      clearTimeout(scrollTimeout.current)
+    }
+
+    // Only trigger if scroll difference is significant
+    if (Math.abs(scrollDiff) > 5) {
+      if (scrollDiff > 0 && currentScrollY > 50) {
+        // Scrolling down - hide
+        emitScrollVisibility(false)
+      } else if (scrollDiff < 0) {
+        // Scrolling up - show
+        emitScrollVisibility(true)
+      }
+      
+      lastScrollY.current = currentScrollY
+    }
+
+    // Show tab bar after user stops scrolling
+    scrollTimeout.current = setTimeout(() => {
+      emitScrollVisibility(true)
+    }, 2000)
+  }
 
   useEffect(() => {
     fetchData()
+    isInitialMount.current = false
   }, [activeFilter])
+
+  // Auto refresh when screen is focused (but not on initial load)
+  useFocusEffect(
+    useCallback(() => {
+      // Only refresh if not initial mount and not currently refreshing
+      if (!isInitialMount.current && !refreshing) {
+        fetchData()
+      }
+    }, [refreshing])
+  )
+
+  const onRefresh = () => {
+    setRefreshing(true)
+    fetchData().finally(() => setRefreshing(false))
+  }
 
   const fetchData = async () => {
     try {
@@ -71,20 +133,20 @@ export default function SalesDashboard() {
       const { startDate, endDate } = getDateRange()
 
       // Fetch Stats
-      // 1. Pending Orders
-      let pendingQuery = supabase
+      // 1. Ordered Orders (đặt hàng)
+      let orderedQuery = supabase
         .from('orders')
         .select('*', { count: 'exact', head: true })
-        .eq('status', 'pending')
+        .eq('status', 'ordered')
         .gte('created_at', startDate)
         .lt('created_at', endDate)
 
       if (isSale) {
-        pendingQuery = pendingQuery.eq('sale_id', authUser.id)
+        orderedQuery = orderedQuery.eq('sale_id', authUser.id)
       } else if (isSaleAdmin) {
-        pendingQuery = pendingQuery.in('sale_id', [authUser.id, ...managedSaleIds])
+        orderedQuery = orderedQuery.in('sale_id', [authUser.id, ...managedSaleIds])
       }
-      const { count: pendingCount } = await pendingQuery
+      const { count: orderedCount } = await orderedQuery
 
       // 2. Low Stock Items
       const { count: lowStockCount } = await supabase
@@ -92,13 +154,12 @@ export default function SalesDashboard() {
         .select('*', { count: 'exact', head: true })
         .lt('stock', 20)
 
-      // 3. Customers
-      let customerQuery = supabase.from('customers').select('*', { count: 'exact', head: true })
-      if (isSale) {
-        customerQuery = customerQuery.eq('assigned_sale', authUser.id)
-      } else if (isSaleAdmin) {
-        customerQuery = customerQuery.in('assigned_sale', [authUser.id, ...managedSaleIds])
-      }
+      // 3. Customers (from profiles with role='customer')
+      let customerQuery = supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true })
+        .eq('role', 'customer')
+      
       const { count: customerCount } = await customerQuery
 
       // 4. Completed Orders & Revenue
@@ -118,12 +179,27 @@ export default function SalesDashboard() {
 
       const totalRevenue = completedOrders?.reduce((sum, o: any) => sum + (o.total_amount || 0), 0) || 0
 
+      // 5. Recent Orders (5 latest)
+      let recentQuery = supabase
+        .from('orders')
+        .select('id, status, total_amount, created_at')
+        .order('created_at', { ascending: false })
+        .limit(5)
+
+      if (isSale) {
+        recentQuery = recentQuery.eq('sale_id', authUser.id)
+      } else if (isSaleAdmin) {
+        recentQuery = recentQuery.in('sale_id', [authUser.id, ...managedSaleIds])
+      }
+      const { data: recentOrdersData } = await recentQuery
+
       setStats({
-        pendingCount: pendingCount || 0,
+        orderedCount: orderedCount || 0,
         lowStockCount: lowStockCount || 0,
         customerCount: customerCount || 0,
         totalRevenue
       })
+      setRecentOrders(recentOrdersData || [])
     } catch (error) {
       console.error('Error fetching data:', error)
     } finally {
@@ -145,9 +221,30 @@ export default function SalesDashboard() {
         startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1)
         endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate())
         break
+      case 'last7days':
+        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7)
+        endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1)
+        break
       case 'thisMonth':
         startDate = new Date(now.getFullYear(), now.getMonth(), 1)
         endDate = new Date(now.getFullYear(), now.getMonth() + 1, 1)
+        break
+      case 'lastMonth':
+        startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+        endDate = new Date(now.getFullYear(), now.getMonth(), 1)
+        break
+      case 'thisQuarter':
+        const quarter = Math.floor(now.getMonth() / 3)
+        startDate = new Date(now.getFullYear(), quarter * 3, 1)
+        endDate = new Date(now.getFullYear(), (quarter + 1) * 3, 1)
+        break
+      case 'thisYear':
+        startDate = new Date(now.getFullYear(), 0, 1)
+        endDate = new Date(now.getFullYear() + 1, 0, 1)
+        break
+      case 'all':
+        startDate = new Date(2020, 0, 1) // Từ 2020
+        endDate = new Date(now.getFullYear() + 1, 0, 1)
         break
       default:
         startDate = new Date(0)
@@ -155,6 +252,19 @@ export default function SalesDashboard() {
     }
 
     return { startDate: startDate.toISOString(), endDate: endDate.toISOString() }
+  }
+
+  const handleFilterChange = (filterId: string) => {
+    if (filterId === 'other') {
+      setShowTimeRangeModal(true)
+    } else {
+      setActiveFilter(filterId)
+    }
+  }
+
+  const handleTimeRangeSelect = (rangeId: string) => {
+    setActiveFilter(rangeId)
+    setShowTimeRangeModal(false)
   }
 
   const formatCurrency = (amount: number) => {
@@ -176,9 +286,25 @@ export default function SalesDashboard() {
 
   const isSaleAdmin = profile?.role === 'sale_admin'
 
+  const statusMap: Record<string, { label: string; color: string; bg: string }> = {
+    draft: { label: 'Nháp', color: '#374151', bg: '#f3f4f6' },
+    ordered: { label: 'Đặt hàng', color: '#d97706', bg: '#fef3c7' },
+    shipping: { label: 'Giao hàng', color: '#2563eb', bg: '#dbeafe' },
+    paid: { label: 'Thanh toán', color: '#9333ea', bg: '#f3e8ff' },
+    completed: { label: 'Hoàn thành', color: '#059669', bg: '#d1fae5' },
+    cancelled: { label: 'Đã hủy', color: '#dc2626', bg: '#fee2e2' }
+  }
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <ScrollView style={styles.scrollView}>
+      <ScrollView 
+        style={styles.scrollView}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
         {/* Header with Logo */}
         <View style={styles.topHeader}>
           <View style={styles.logoContainer}>
@@ -225,7 +351,7 @@ export default function SalesDashboard() {
                   styles.filterTab,
                   activeFilter === tab.id && styles.filterTabActive
                 ]}
-                onPress={() => setActiveFilter(tab.id)}
+                onPress={() => handleFilterChange(tab.id)}
               >
                 <Text style={[
                   styles.filterTabText,
@@ -257,10 +383,10 @@ export default function SalesDashboard() {
               bg="#d1fae5" 
             />
             <MetricCard 
-              title="Chờ xử lý" 
-              icon="time" 
-              value={stats.pendingCount.toString()} 
-              color="#f59e0b" 
+              title="Đặt hàng" 
+              icon="cart" 
+              value={stats.orderedCount.toString()} 
+              color="#d97706" 
               bg="#fef3c7" 
             />
             <MetricCard 
@@ -314,7 +440,116 @@ export default function SalesDashboard() {
             />
           </View>
         </View>
+
+        {/* Recent Orders */}
+        <View style={[styles.recentContainer, { paddingBottom: contentPaddingBottom }]}>
+          <View style={styles.recentHeader}>
+            <Text style={styles.recentTitle}>Đơn hàng gần đây</Text>
+            <TouchableOpacity onPress={() => router.push('/(sales)/orders')}>
+              <Text style={styles.viewAllText}>Xem tất cả</Text>
+            </TouchableOpacity>
+          </View>
+          
+          {recentOrders.length === 0 ? (
+            <View style={styles.emptyOrders}>
+              <Ionicons name="receipt-outline" size={48} color="#d1d5db" />
+              <Text style={styles.emptyOrdersText}>Chưa có đơn hàng nào</Text>
+              <TouchableOpacity 
+                style={styles.createOrderButton}
+                onPress={() => router.push('/(sales)/selling' as any)}
+              >
+                <Text style={styles.createOrderButtonText}>Tạo đơn đầu tiên</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={styles.ordersList}>
+              {recentOrders.map((order) => {
+                const config = statusMap[order.status] || statusMap.draft
+                return (
+                  <TouchableOpacity
+                    key={order.id}
+                    style={styles.orderItem}
+                    onPress={() => router.push(`/(sales)/orders/${order.id}`)}
+                  >
+                    <View style={styles.orderLeft}>
+                      <View style={styles.orderIconContainer}>
+                        <Ionicons name="receipt" size={20} color="#175ead" />
+                      </View>
+                      <View style={styles.orderInfo}>
+                        <Text style={styles.orderNumber}>Đơn #{order.id}</Text>
+                        <Text style={styles.orderDate}>
+                          {new Date(order.created_at).toLocaleDateString('vi-VN')}
+                        </Text>
+                      </View>
+                    </View>
+                    <View style={styles.orderRight}>
+                      <Text style={styles.orderAmount}>
+                        {formatCurrency(order.total_amount)}
+                      </Text>
+                      <View style={[styles.orderBadge, { backgroundColor: config.bg }]}>
+                        <Text style={[styles.orderBadgeText, { color: config.color }]}>
+                          {config.label}
+                        </Text>
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                )
+              })}
+            </View>
+          )}
+        </View>
       </ScrollView>
+
+      {/* Time Range Bottom Drawer */}
+      <Modal
+        visible={showTimeRangeModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowTimeRangeModal(false)}
+      >
+        <TouchableOpacity 
+          style={styles.drawerOverlay}
+          activeOpacity={1}
+          onPress={() => setShowTimeRangeModal(false)}
+        >
+          <View style={styles.drawerContent} onStartShouldSetResponder={() => true}>
+            <View style={styles.drawerHandle} />
+            
+            <View style={styles.drawerHeader}>
+              <Text style={styles.drawerTitle}>Chọn thời gian</Text>
+              <TouchableOpacity 
+                style={styles.drawerCloseButton}
+                onPress={() => setShowTimeRangeModal(false)}
+              >
+                <Ionicons name="close" size={24} color="#6b7280" />
+              </TouchableOpacity>
+            </View>
+            
+            <ScrollView style={styles.drawerScroll}>
+              {timeRangeOptions.map((option) => (
+                <TouchableOpacity
+                  key={option.id}
+                  style={[
+                    styles.drawerOption,
+                    activeFilter === option.id && styles.drawerOptionActive
+                  ]}
+                  onPress={() => handleTimeRangeSelect(option.id)}
+                >
+                  <Text style={[
+                    styles.drawerOptionText,
+                    activeFilter === option.id && styles.drawerOptionTextActive
+                  ]}>
+                    {option.label}
+                  </Text>
+                  {activeFilter === option.id && (
+                    <Ionicons name="checkmark" size={24} color="#175ead" />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   )
 }
@@ -436,9 +671,9 @@ const styles = StyleSheet.create({
     paddingRight: 16,
   },
   filterTab: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
     backgroundColor: 'white',
     borderWidth: 1,
     borderColor: '#e5e7eb',
@@ -450,8 +685,8 @@ const styles = StyleSheet.create({
     borderColor: '#175ead',
   },
   filterTabText: {
-    fontSize: 14,
-    fontWeight: '500',
+    fontSize: 11,
+    fontWeight: '600',
     color: '#6b7280',
   },
   filterTabTextActive: {
@@ -544,5 +779,178 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     textAlign: 'center',
     color: '#374151',
+  },
+  recentContainer: {
+    paddingHorizontal: 16,
+    // paddingBottom is set dynamically using useTabBarHeight hook
+  },
+  recentHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  recentTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#111827',
+  },
+  viewAllText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#175ead',
+  },
+  emptyOrders: {
+    backgroundColor: 'white',
+    borderRadius: 16,
+    padding: 32,
+    alignItems: 'center',
+    gap: 12,
+  },
+  emptyOrdersText: {
+    fontSize: 14,
+    color: '#9ca3af',
+    marginTop: 8,
+  },
+  createOrderButton: {
+    backgroundColor: '#175ead',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginTop: 8,
+  },
+  createOrderButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  ordersList: {
+    gap: 12,
+  },
+  orderItem: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  orderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+  },
+  orderIconContainer: {
+    width: 40,
+    height: 40,
+    backgroundColor: '#dbeafe',
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  orderInfo: {
+    flex: 1,
+  },
+  orderNumber: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: 2,
+  },
+  orderDate: {
+    fontSize: 12,
+    color: '#9ca3af',
+  },
+  orderRight: {
+    alignItems: 'flex-end',
+    gap: 6,
+  },
+  orderAmount: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#111827',
+  },
+  orderBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  orderBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  drawerOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  drawerContent: {
+    backgroundColor: 'white',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: '80%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  drawerHandle: {
+    width: 40,
+    height: 4,
+    backgroundColor: '#d1d5db',
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginTop: 12,
+    marginBottom: 8,
+  },
+  drawerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f3f4f6',
+  },
+  drawerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#111827',
+  },
+  drawerCloseButton: {
+    width: 32,
+    height: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  drawerScroll: {
+    maxHeight: 500,
+  },
+  drawerOption: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f3f4f6',
+  },
+  drawerOptionActive: {
+    backgroundColor: '#f0f9ff',
+  },
+  drawerOptionText: {
+    fontSize: 16,
+    color: '#374151',
+  },
+  drawerOptionTextActive: {
+    color: '#175ead',
+    fontWeight: '600',
   },
 })

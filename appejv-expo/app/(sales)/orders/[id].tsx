@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet, Alert } from 'react-native'
+import { useState, useEffect, useCallback } from 'react'
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet, Alert, RefreshControl } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useAuth } from '../../../src/contexts/AuthContext'
 import { supabase } from '../../../src/lib/supabase'
 import { Ionicons } from '@expo/vector-icons'
-import { useRouter, useLocalSearchParams } from 'expo-router'
+import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router'
+import ConfirmModal from '../../../src/components/ConfirmModal'
+import SuccessModal from '../../../src/components/SuccessModal'
 
 const statusMap: Record<string, { label: string; color: string; bg: string; icon: string }> = {
   draft: { label: 'Đơn nháp', color: '#374151', bg: '#f3f4f6', icon: 'document-outline' },
@@ -33,15 +35,28 @@ export default function OrderDetailScreen() {
   const [order, setOrder] = useState<any>(null)
   const [orderItems, setOrderItems] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
   const [updating, setUpdating] = useState(false)
+  const [showCancelModal, setShowCancelModal] = useState(false)
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const [successMessage, setSuccessMessage] = useState('')
 
   useEffect(() => {
     fetchData()
   }, [id])
 
+  // Auto refresh when screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      if (!loading && !refreshing) {
+        fetchData()
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+  )
+
   const fetchData = async () => {
     try {
-      setLoading(true)
       const { data: { user: authUser } } = await supabase.auth.getUser()
 
       if (!authUser) {
@@ -123,7 +138,13 @@ export default function OrderDetailScreen() {
       console.error('Error fetching data:', error)
     } finally {
       setLoading(false)
+      setRefreshing(false)
     }
+  }
+
+  const onRefresh = () => {
+    setRefreshing(true)
+    fetchData()
   }
 
   const handleUpdateStatus = async (newStatus: string) => {
@@ -137,7 +158,21 @@ export default function OrderDetailScreen() {
 
       if (error) throw error
 
-      Alert.alert('Thành công', 'Đã cập nhật trạng thái đơn hàng')
+      // Show success modal for important status changes
+      const statusMessages: Record<string, string> = {
+        ordered: 'Đơn hàng đã được đặt thành công!',
+        shipping: 'Đơn hàng đang được giao!',
+        paid: 'Đơn hàng đã được thanh toán!',
+        completed: 'Đơn hàng đã hoàn thành!',
+      }
+
+      if (statusMessages[newStatus]) {
+        setSuccessMessage(statusMessages[newStatus])
+        setShowSuccessModal(true)
+      } else {
+        Alert.alert('Thành công', 'Đã cập nhật trạng thái đơn hàng')
+      }
+      
       fetchData()
     } catch (error) {
       console.error('Error updating order:', error)
@@ -148,18 +183,29 @@ export default function OrderDetailScreen() {
   }
 
   const handleCancelOrder = () => {
-    Alert.alert(
-      'Xác nhận hủy',
-      'Bạn có chắc chắn muốn hủy đơn hàng này?',
-      [
-        { text: 'Không', style: 'cancel' },
-        {
-          text: 'Hủy đơn',
-          style: 'destructive',
-          onPress: () => handleUpdateStatus('cancelled'),
-        },
-      ]
-    )
+    setShowCancelModal(true)
+  }
+
+  const confirmCancelOrder = async () => {
+    try {
+      setUpdating(true)
+      
+      const { error } = await supabase
+        .from('orders')
+        .update({ status: 'cancelled' })
+        .eq('id', id)
+
+      if (error) throw error
+
+      setShowCancelModal(false)
+      Alert.alert('Thành công', 'Đã hủy đơn hàng')
+      fetchData()
+    } catch (error) {
+      console.error('Error cancelling order:', error)
+      Alert.alert('Lỗi', 'Không thể hủy đơn hàng')
+    } finally {
+      setUpdating(false)
+    }
   }
 
   const formatCurrency = (amount: number) => {
@@ -205,7 +251,13 @@ export default function OrderDetailScreen() {
         <View style={styles.headerRight} />
       </View>
 
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+      <ScrollView 
+        style={styles.scrollView} 
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
         {/* Order Header Card */}
         <View style={styles.orderHeaderCard}>
           <View style={[styles.orderHeaderTop, { backgroundColor: statusConfig.bg }]} />
@@ -377,6 +429,31 @@ export default function OrderDetailScreen() {
           </View>
         )}
       </ScrollView>
+
+      {/* Cancel Confirmation Modal */}
+      <ConfirmModal
+        visible={showCancelModal}
+        title="Xác nhận hủy đơn"
+        message={`Bạn có chắc chắn muốn hủy đơn hàng #${order?.id}? Hành động này không thể hoàn tác.`}
+        onClose={() => setShowCancelModal(false)}
+        onConfirm={confirmCancelOrder}
+        confirmText="Hủy đơn"
+        cancelText="Quay lại"
+        type="danger"
+        loading={updating}
+      />
+
+      {/* Success Modal */}
+      <SuccessModal
+        visible={showSuccessModal}
+        title="Cập nhật thành công!"
+        message={successMessage}
+        onClose={() => setShowSuccessModal(false)}
+        primaryButton={{
+          text: 'Đóng',
+          onPress: () => setShowSuccessModal(false)
+        }}
+      />
     </SafeAreaView>
   )
 }

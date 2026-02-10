@@ -1,17 +1,71 @@
-import { Tabs } from 'expo-router'
+import { Tabs, usePathname } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { Platform } from 'react-native'
+import { useEffect, useRef } from 'react'
+import { Animated } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+
+// Create a global event emitter for scroll events
+let scrollListeners: ((visible: boolean) => void)[] = []
+
+export const emitScrollVisibility = (visible: boolean) => {
+  scrollListeners.forEach(listener => listener(visible))
+}
+
+export const subscribeToScroll = (listener: (visible: boolean) => void) => {
+  scrollListeners.push(listener)
+  return () => {
+    scrollListeners = scrollListeners.filter(l => l !== listener)
+  }
+}
 
 export default function SalesLayout() {
+  const pathname = usePathname()
+  const translateY = useRef(new Animated.Value(0)).current
+  const insets = useSafeAreaInsets()
+
+  // Hide bottom nav on selling page
+  const shouldHideTabBar = pathname.includes('/selling')
+
+  useEffect(() => {
+    const unsubscribe = subscribeToScroll((visible) => {
+      Animated.spring(translateY, {
+        toValue: visible ? 0 : 100,
+        useNativeDriver: true,
+        tension: 80,
+        friction: 10,
+      }).start()
+    })
+
+    return unsubscribe
+  }, [])
+
+  // Reset tab bar visibility when route changes
+  useEffect(() => {
+    Animated.spring(translateY, {
+      toValue: 0,
+      useNativeDriver: true,
+      tension: 80,
+      friction: 10,
+    }).start()
+  }, [pathname])
+
+  // Calculate tab bar height with safe area
+  const tabBarHeight = 60 + insets.bottom
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: '#175ead',
         tabBarInactiveTintColor: '#9ca3af',
-        tabBarStyle: {
-          height: Platform.OS === 'ios' ? 88 : 68,
-          paddingBottom: Platform.OS === 'ios' ? 28 : 8,
+        tabBarStyle: shouldHideTabBar ? { display: 'none' } : {
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: tabBarHeight,
+          paddingBottom: insets.bottom,
           paddingTop: 8,
           backgroundColor: 'white',
           borderTopWidth: 1,
@@ -21,7 +75,8 @@ export default function SalesLayout() {
           shadowOpacity: 0.1,
           shadowRadius: 8,
           elevation: 8,
-        },
+          transform: [{ translateY }],
+        } as any,
         tabBarLabelStyle: {
           fontSize: 11,
           fontWeight: '600',
@@ -112,6 +167,30 @@ export default function SalesLayout() {
       />
       <Tabs.Screen
         name="users"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="analytics"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="categories"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="export"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="settings"
         options={{
           href: null,
         }}

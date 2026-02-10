@@ -1,32 +1,43 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet, Image, RefreshControl, TextInput } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useAuth } from '../../../src/contexts/AuthContext'
 import { supabase } from '../../../src/lib/supabase'
 import { Ionicons } from '@expo/vector-icons'
-import { useRouter } from 'expo-router'
+import { useRouter, useFocusEffect } from 'expo-router'
 
 export default function InventoryScreen() {
   const { user } = useAuth()
   const router = useRouter()
   const [profile, setProfile] = useState<any>(null)
   const [products, setProducts] = useState<any[]>([])
+  const [categories, setCategories] = useState<any[]>([])
   const [filteredProducts, setFilteredProducts] = useState<any[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
-  const [selectedCategory, setSelectedCategory] = useState<string>('all')
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
 
   useEffect(() => {
     fetchData()
   }, [])
 
+  // Auto refresh when screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      if (!loading && !refreshing) {
+        fetchData()
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+  )
+
   useEffect(() => {
     // Filter products based on search and category
     let filtered = products
 
-    if (selectedCategory !== 'all') {
-      filtered = filtered.filter(p => p.category === selectedCategory)
+    if (selectedCategory) {
+      filtered = filtered.filter(p => p.category_id === selectedCategory)
     }
 
     if (searchQuery.trim() !== '') {
@@ -34,7 +45,7 @@ export default function InventoryScreen() {
       filtered = filtered.filter(p =>
         p.name?.toLowerCase().includes(query) ||
         p.code?.toLowerCase().includes(query) ||
-        p.category?.toLowerCase().includes(query)
+        p.categories?.name?.toLowerCase().includes(query)
       )
     }
 
@@ -64,10 +75,18 @@ export default function InventoryScreen() {
 
       setProfile(profileData)
 
-      // Fetch products
+      // Fetch categories
+      const { data: categoriesData } = await supabase
+        .from('categories')
+        .select('*')
+        .order('name')
+
+      setCategories(categoriesData || [])
+
+      // Fetch products with categories
       const { data: productsData } = await supabase
         .from('products')
-        .select('*')
+        .select('*, categories(id, name)')
         .is('deleted_at', null)
         .order('name')
 
@@ -102,8 +121,6 @@ export default function InventoryScreen() {
       return { label: 'Còn hàng', color: '#10b981', bg: '#d1fae5' }
     }
   }
-
-  const categories = ['all', ...Array.from(new Set(products.map(p => p.category).filter(Boolean)))]
 
   if (loading) {
     return (
@@ -146,11 +163,53 @@ export default function InventoryScreen() {
           </Text>
         </View>
         {isAdmin && (
-          <TouchableOpacity style={styles.addButton}>
+          <TouchableOpacity 
+            style={styles.addButton}
+            onPress={() => router.push('/(sales)/inventory/add')}
+          >
             <Ionicons name="add" size={20} color="white" />
           </TouchableOpacity>
         )}
       </View>
+
+      {/* Stock Summary */}
+      {!searchQuery && !selectedCategory && (
+        <View style={styles.summaryContainer}>
+          <View style={styles.summaryCard}>
+            <View style={styles.summaryIcon}>
+              <Ionicons name="checkmark-circle" size={20} color="#10b981" />
+            </View>
+            <View style={styles.summaryContent}>
+              <Text style={styles.summaryLabel}>Còn hàng</Text>
+              <Text style={styles.summaryValue}>
+                {products.filter(p => p.stock >= 20).length}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.summaryCard}>
+            <View style={[styles.summaryIcon, { backgroundColor: '#fef3c7' }]}>
+              <Ionicons name="warning" size={20} color="#f59e0b" />
+            </View>
+            <View style={styles.summaryContent}>
+              <Text style={styles.summaryLabel}>Sắp hết</Text>
+              <Text style={styles.summaryValue}>
+                {products.filter(p => p.stock > 0 && p.stock < 20).length}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.summaryCard}>
+            <View style={[styles.summaryIcon, { backgroundColor: '#fee2e2' }]}>
+              <Ionicons name="close-circle" size={20} color="#ef4444" />
+            </View>
+            <View style={styles.summaryContent}>
+              <Text style={styles.summaryLabel}>Hết hàng</Text>
+              <Text style={styles.summaryValue}>
+                {products.filter(p => p.stock === 0).length}
+              </Text>
+            </View>
+          </View>
+        </View>
+      )}
 
       {/* Search Bar */}
       <View style={styles.searchContainer}>
@@ -178,26 +237,40 @@ export default function InventoryScreen() {
         style={styles.categoryContainer}
         contentContainerStyle={styles.categoryContent}
       >
+        <TouchableOpacity
+          style={[
+            styles.categoryChip,
+            !selectedCategory && styles.categoryChipActive
+          ]}
+          onPress={() => setSelectedCategory(null)}
+        >
+          <Text style={[
+            styles.categoryChipText,
+            !selectedCategory && styles.categoryChipTextActive
+          ]}>
+            Tất cả
+          </Text>
+        </TouchableOpacity>
         {categories.map((category) => (
           <TouchableOpacity
-            key={category}
+            key={category.id}
             style={[
               styles.categoryChip,
-              selectedCategory === category && styles.categoryChipActive
+              selectedCategory === category.id && styles.categoryChipActive
             ]}
-            onPress={() => setSelectedCategory(category)}
+            onPress={() => setSelectedCategory(category.id)}
           >
             <Text style={[
               styles.categoryChipText,
-              selectedCategory === category && styles.categoryChipTextActive
+              selectedCategory === category.id && styles.categoryChipTextActive
             ]}>
-              {category === 'all' ? 'Tất cả' : category}
+              {category.name}
             </Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
 
-      {/* Products List */}
+      {/* Products Grid */}
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -209,16 +282,16 @@ export default function InventoryScreen() {
           <View style={styles.emptyState}>
             <Ionicons name="cube-outline" size={48} color="#d1d5db" />
             <Text style={styles.emptyText}>
-              {searchQuery || selectedCategory !== 'all' 
+              {searchQuery || selectedCategory 
                 ? 'Không tìm thấy sản phẩm nào' 
                 : 'Chưa có sản phẩm nào trong kho'}
             </Text>
-            {(searchQuery || selectedCategory !== 'all') && (
+            {(searchQuery || selectedCategory) && (
               <TouchableOpacity 
                 style={styles.clearButton}
                 onPress={() => {
                   setSearchQuery('')
-                  setSelectedCategory('all')
+                  setSelectedCategory(null)
                 }}
               >
                 <Text style={styles.clearButtonText}>Xóa bộ lọc</Text>
@@ -226,55 +299,58 @@ export default function InventoryScreen() {
             )}
           </View>
         ) : (
-          filteredProducts.map((product) => {
-            const stockStatus = getStockStatus(product.stock)
-            
-            return (
-              <TouchableOpacity
-                key={product.id}
-                style={styles.productCard}
-                onPress={() => router.push(`/(sales)/inventory/${product.id}`)}
-                activeOpacity={0.7}
-              >
-                <View style={styles.productHeader}>
-                  <View style={styles.productLeft}>
-                    <View style={styles.productIcon}>
-                      <Ionicons name="cube" size={20} color="#175ead" />
-                    </View>
-                    <View style={styles.productInfo}>
-                      <View style={styles.productTitleRow}>
-                        <Text style={styles.productName} numberOfLines={1}>
-                          {product.name}
-                        </Text>
-                        {product.code && (
-                          <Text style={styles.productCode}>{product.code}</Text>
-                        )}
-                      </View>
-                      {product.category && (
-                        <Text style={styles.productCategory}>{product.category}</Text>
-                      )}
+          <View style={styles.productsGrid}>
+            {filteredProducts.map((product) => {
+              const stockStatus = getStockStatus(product.stock)
+              
+              return (
+                <TouchableOpacity
+                  key={product.id}
+                  style={styles.productCard}
+                  onPress={() => router.push(`/(sales)/inventory/${product.id}`)}
+                  activeOpacity={0.7}
+                >
+                  {/* Product Image/Icon */}
+                  <View style={styles.productImageContainer}>
+                    <Ionicons name="cube" size={40} color="#175ead" />
+                    <View style={[styles.stockBadge, { backgroundColor: stockStatus.bg }]}>
+                      <Text style={[styles.stockBadgeText, { color: stockStatus.color }]}>
+                        {stockStatus.label}
+                      </Text>
                     </View>
                   </View>
-                  <View style={[styles.stockBadge, { backgroundColor: stockStatus.bg }]}>
-                    <Text style={[styles.stockBadgeText, { color: stockStatus.color }]}>
-                      {stockStatus.label}
-                    </Text>
-                  </View>
-                </View>
 
-                <View style={styles.productFooter}>
-                  <View style={styles.productPrice}>
-                    <Text style={styles.priceLabel}>Giá bán</Text>
-                    <Text style={styles.priceAmount}>{formatCurrency(product.price)}</Text>
+                  {/* Product Info */}
+                  <View style={styles.productInfo}>
+                    <Text style={styles.productName} numberOfLines={2}>
+                      {product.name}
+                    </Text>
+                    
+                    {product.code && (
+                      <Text style={styles.productCode}>{product.code}</Text>
+                    )}
+                    
+                    {product.categories && (
+                      <Text style={styles.productCategory} numberOfLines={1}>
+                        {product.categories.name}
+                      </Text>
+                    )}
+
+                    <View style={styles.productFooter}>
+                      <View style={styles.priceContainer}>
+                        <Text style={styles.priceLabel}>Giá</Text>
+                        <Text style={styles.priceAmount}>{formatCurrency(product.price)}</Text>
+                      </View>
+                      <View style={styles.stockContainer}>
+                        <Text style={styles.stockLabel}>Kho</Text>
+                        <Text style={styles.stockAmount}>{product.stock}</Text>
+                      </View>
+                    </View>
                   </View>
-                  <View style={styles.productStock}>
-                    <Text style={styles.stockLabel}>Tồn kho</Text>
-                    <Text style={styles.stockAmount}>{product.stock}</Text>
-                  </View>
-                </View>
-              </TouchableOpacity>
-            )
-          })
+                </TouchableOpacity>
+              )
+            })}
+          </View>
         )}
       </ScrollView>
     </SafeAreaView>
@@ -359,6 +435,47 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  summaryContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    gap: 8,
+  },
+  summaryCard: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 10,
+    gap: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  summaryIcon: {
+    width: 36,
+    height: 36,
+    backgroundColor: '#d1fae5',
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  summaryContent: {
+    flex: 1,
+  },
+  summaryLabel: {
+    fontSize: 10,
+    color: '#6b7280',
+    marginBottom: 2,
+  },
+  summaryValue: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#111827',
+  },
   searchContainer: {
     paddingHorizontal: 16,
     paddingBottom: 12,
@@ -419,7 +536,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
-    gap: 12,
   },
   emptyState: {
     paddingVertical: 80,
@@ -448,101 +564,95 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: '#6b7280',
   },
+  productsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
   productCard: {
+    width: '48%',
     backgroundColor: 'white',
     borderRadius: 12,
-    padding: 12,
-    marginBottom: 12,
+    overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
     elevation: 2,
   },
-  productHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12,
-  },
-  productLeft: {
-    flexDirection: 'row',
-    flex: 1,
-    gap: 12,
-  },
-  productIcon: {
-    width: 40,
-    height: 40,
+  productImageContainer: {
+    width: '100%',
+    height: 120,
     backgroundColor: '#f0f9ff',
-    borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  productInfo: {
-    flex: 1,
-  },
-  productTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 4,
-  },
-  productName: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#111827',
-    flex: 1,
-  },
-  productCode: {
-    fontSize: 9,
-    fontWeight: 'bold',
-    color: '#9ca3af',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  productCategory: {
-    fontSize: 12,
-    color: '#6b7280',
+    position: 'relative',
   },
   stockBadge: {
-    paddingHorizontal: 10,
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 12,
+    borderRadius: 8,
   },
   stockBadgeText: {
     fontSize: 10,
     fontWeight: '600',
   },
+  productInfo: {
+    padding: 12,
+  },
+  productName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: 4,
+    minHeight: 36,
+  },
+  productCode: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#9ca3af',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 4,
+  },
+  productCategory: {
+    fontSize: 11,
+    color: '#6b7280',
+    marginBottom: 8,
+  },
   productFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingTop: 12,
+    paddingTop: 8,
     borderTopWidth: 1,
     borderTopColor: '#f3f4f6',
   },
-  productPrice: {
+  priceContainer: {
     flex: 1,
   },
   priceLabel: {
-    fontSize: 11,
+    fontSize: 10,
     color: '#6b7280',
     marginBottom: 2,
   },
   priceAmount: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
     color: '#175ead',
   },
-  productStock: {
+  stockContainer: {
     alignItems: 'flex-end',
   },
   stockLabel: {
-    fontSize: 11,
+    fontSize: 10,
     color: '#6b7280',
     marginBottom: 2,
   },
   stockAmount: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
     color: '#111827',
   },

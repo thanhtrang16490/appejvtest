@@ -3,6 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { supabase } from '../../src/lib/supabase'
 import { Ionicons } from '@expo/vector-icons'
+import NotificationDrawer from '../../src/components/NotificationDrawer'
 
 export default function ProductsScreen() {
   const [products, setProducts] = useState<any[]>([])
@@ -11,6 +12,7 @@ export default function ProductsScreen() {
   const [refreshing, setRefreshing] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const [showNotifications, setShowNotifications] = useState(false)
 
   useEffect(() => {
     fetchData()
@@ -96,6 +98,12 @@ export default function ProductsScreen() {
           />
           <Text style={styles.logoTitle}>APPE JV</Text>
         </View>
+        <TouchableOpacity 
+          style={styles.notificationButton}
+          onPress={() => setShowNotifications(true)}
+        >
+          <Ionicons name="notifications-outline" size={24} color="#111827" />
+        </TouchableOpacity>
       </View>
 
       {/* Search Bar */}
@@ -206,6 +214,12 @@ export default function ProductsScreen() {
           </View>
         )}
       </ScrollView>
+
+      {/* Notification Drawer */}
+      <NotificationDrawer
+        visible={showNotifications}
+        onClose={() => setShowNotifications(false)}
+      />
     </SafeAreaView>
   )
 }
@@ -230,6 +244,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     backgroundColor: '#f0f9ff',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   logoContainer: {
     flexDirection: 'row',
@@ -244,6 +261,12 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#111827',
+  },
+  notificationButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   searchContainer: {
     paddingHorizontal: 16,
@@ -271,26 +294,25 @@ const styles = StyleSheet.create({
   },
   categoriesContainer: {
     backgroundColor: '#f0f9ff',
-    paddingBottom: 12,
   },
   categoriesContent: {
     paddingHorizontal: 16,
     gap: 8,
   },
   categoryChip: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-    backgroundColor: 'white',
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    height: 36,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   categoryChipActive: {
     backgroundColor: '#10b981',
-    borderColor: '#10b981',
   },
   categoryText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '500',
     color: '#6b7280',
   },
@@ -302,6 +324,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
+    paddingTop: 8,
   },
   emptyState: {
     paddingVertical: 80,
