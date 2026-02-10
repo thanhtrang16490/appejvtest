@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "APPE JV",
-    "slug": "appejv-expo",
+    "slug": "appejv",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -36,6 +36,13 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "79692cfc-9c63-4807-89cc-ed56cc0903bc"
+      }
+    },
+    "owner": "thanhtrang16490"
   }
 }
