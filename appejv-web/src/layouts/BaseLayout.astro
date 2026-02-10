@@ -143,9 +143,16 @@ const websiteSchema = {
     
     <!-- Favicons -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="alternate icon" href="/favicon-32x32.png" type="image/png" sizes="32x32" />
     <link rel="alternate icon" type="image/x-icon" href="/favicon.ico" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/appejv-logo.png" />
+    <link rel="apple-touch-icon" href="/apple-icon-180.png" sizes="180x180" />
+    <link rel="apple-touch-icon-precomposed" href="/apple-icon-180.png" />
     <link rel="mask-icon" href="/appejv-logo.svg" color="#175ead" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
     
     <!-- Structured Data -->
     <script type="application/ld+json" set:html={JSON.stringify(organizationSchema)} />
