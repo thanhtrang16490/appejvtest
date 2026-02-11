@@ -1,9 +1,10 @@
 import { Tabs, usePathname } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
-import { Platform } from 'react-native'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Animated } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { useAuth } from '../../src/contexts/AuthContext'
+import { hasTeamFeatures } from '../../src/lib/feature-flags'
 
 // Create a global event emitter for scroll events
 let scrollListeners: ((visible: boolean) => void)[] = []
@@ -21,8 +22,24 @@ export const subscribeToScroll = (listener: (visible: boolean) => void) => {
 
 export default function SalesLayout() {
   const pathname = usePathname()
+  const { user } = useAuth()
+  const [profile, setProfile] = useState<any>(null)
   const translateY = useRef(new Animated.Value(0)).current
   const insets = useSafeAreaInsets()
+
+  // Fetch user profile to check role
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (user) {
+        // Profile is already in user object from AuthContext
+        setProfile(user)
+      }
+    }
+    fetchProfile()
+  }, [user])
+
+  // Check if user has team features
+  const showTeamTab = profile && hasTeamFeatures(profile.role)
 
   // Hide bottom nav on selling page
   const shouldHideTabBar = pathname.includes('/selling')
@@ -146,6 +163,21 @@ export default function SalesLayout() {
           tabBarIcon: ({ color, focused }) => (
             <Ionicons 
               name={focused ? "bar-chart" : "bar-chart-outline"}
+              size={24} 
+              color={color} 
+            />
+          ),
+        }}
+      />
+      {/* Team tab - only for sale_admin */}
+      <Tabs.Screen
+        name="team"
+        options={{
+          title: 'Team',
+          href: showTeamTab ? undefined : null,
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons 
+              name={focused ? "people-circle" : "people-circle-outline"}
               size={24} 
               color={color} 
             />
