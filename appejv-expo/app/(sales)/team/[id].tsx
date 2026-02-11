@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { supabase } from '../../../src/lib/supabase'
 import { Ionicons } from '@expo/vector-icons'
+import AppHeader from '../../../src/components/AppHeader'
 
 export default function TeamMemberDetailScreen() {
   const { id } = useLocalSearchParams()
@@ -126,7 +127,10 @@ export default function TeamMemberDetailScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Header */}
+      {/* Header with Logo */}
+      <AppHeader />
+      
+      {/* Page Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#111827" />

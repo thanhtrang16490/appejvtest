@@ -6,6 +6,7 @@ import { supabase } from '../../../src/lib/supabase'
 import { Ionicons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import { hasTeamFeatures } from '../../../src/lib/feature-flags'
+import AppHeader from '../../../src/components/AppHeader'
 
 export default function TeamManagementScreen() {
   const { user } = useAuth()
@@ -127,22 +128,8 @@ export default function TeamManagementScreen() {
   if (!team) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.topHeader}>
-          <View style={styles.logoContainer}>
-            <Image 
-              source={require('../../../assets/icon.png')} 
-              style={styles.logo}
-              resizeMode="contain"
-            />
-            <Text style={styles.logoTitle}>APPE JV</Text>
-          </View>
-          <TouchableOpacity 
-            style={styles.menuButton}
-            onPress={() => router.push('/(sales)/menu')}
-          >
-            <Ionicons name="menu" size={24} color="#111827" />
-          </TouchableOpacity>
-        </View>
+        {/* Header with Logo */}
+        <AppHeader />
 
         <View style={styles.emptyContainer}>
           <Ionicons name="people-outline" size={64} color="#d1d5db" />
@@ -162,23 +149,8 @@ export default function TeamManagementScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Header */}
-      <View style={styles.topHeader}>
-        <View style={styles.logoContainer}>
-          <Image 
-            source={require('../../../assets/icon.png')} 
-            style={styles.logo}
-            resizeMode="contain"
-          />
-          <Text style={styles.logoTitle}>APPE JV</Text>
-        </View>
-        <TouchableOpacity 
-          style={styles.menuButton}
-          onPress={() => router.push('/(sales)/menu')}
-        >
-          <Ionicons name="menu" size={24} color="#111827" />
-        </TouchableOpacity>
-      </View>
+      {/* Header with Logo */}
+      <AppHeader />
 
       {/* Page Header */}
       <View style={styles.pageHeader}>

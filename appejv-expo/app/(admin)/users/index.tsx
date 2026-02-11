@@ -68,17 +68,13 @@ export default function UsersScreen() {
       setProfile(profileData)
 
       // Fetch all profiles (exclude customers - they are in Customers page)
-      let profilesQuery = supabase
+      const { data: profilesData } = await supabase
         .from('profiles')
         .select('*')
         .neq('role', 'customer') // Exclude customers
+        .order('created_at', { ascending: false })
 
-      if (isSaleAdmin) {
-        // Sale Admin only sees their team
-        profilesQuery = profilesQuery.eq('manager_id', authUser.id)
-      }
-
-      const { data: profilesData } = await profilesQuery.order('created_at', { ascending: false })
+      console.log('Fetched profiles:', profilesData?.length, 'users')
 
       // Add manager info
       const profilesWithManager = (profilesData || []).map(p => ({
@@ -101,38 +97,61 @@ export default function UsersScreen() {
   }
 
   const handleCreateUser = async () => {
+    // Validation
     if (!newUser.email || !newUser.password || !newUser.full_name) {
-      Alert.alert('Lỗi', 'Vui lòng điền đầy đủ thông tin')
+      Alert.alert('Lỗi', 'Vui lòng điền đầy đủ thông tin bắt buộc')
       return
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(newUser.email)) {
+      Alert.alert('Lỗi', 'Email không đúng định dạng')
+      return
+    }
+
+    // Validate password length
+    if (newUser.password.length < 6) {
+      Alert.alert('Lỗi', 'Mật khẩu phải có ít nhất 6 ký tự')
+      return
+    }
+
+    // Validate full name
+    if (newUser.full_name.trim().length < 2) {
+      Alert.alert('Lỗi', 'Họ tên phải có ít nhất 2 ký tự')
+      return
+    }
+
+    // Validate phone (nếu có)
+    if (newUser.phone) {
+      const phoneRegex = /^[0-9]{10,11}$/
+      if (!phoneRegex.test(newUser.phone.replace(/\s/g, ''))) {
+        Alert.alert('Lỗi', 'Số điện thoại phải có 10-11 chữ số')
+        return
+      }
     }
 
     try {
       setCreating(true)
 
-      // Create auth user
+      // Create auth user (không dùng trigger)
       const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: newUser.email,
+        email: newUser.email.trim().toLowerCase(),
         password: newUser.password,
-        options: {
-          data: {
-            full_name: newUser.full_name,
-            phone: newUser.phone,
-          }
-        }
       })
 
       if (authError) throw authError
 
+      // Tạo profile thủ công (không dùng trigger)
       if (authData.user) {
-        // Update profile with role
         const { error: profileError } = await supabase
           .from('profiles')
-          .update({
-            full_name: newUser.full_name,
-            phone: newUser.phone,
+          .insert({
+            id: authData.user.id,
+            full_name: newUser.full_name.trim(),
+            phone: newUser.phone?.trim() || null,
             role: newUser.role,
           })
-          .eq('id', authData.user.id)
 
         if (profileError) throw profileError
 

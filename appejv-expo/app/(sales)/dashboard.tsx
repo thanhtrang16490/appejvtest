@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { emitScrollVisibility } from './_layout'
 import { useTabBarHeight } from '../../src/hooks/useTabBarHeight'
 import AppHeader from '../../src/components/AppHeader'
+import { hasSaleAdminDashboard } from '../../src/lib/feature-flags'
 
 const filterTabs = [
   { id: 'today', label: 'Hôm nay' },
@@ -36,6 +37,13 @@ export default function SalesDashboard() {
     customerCount: 0,
     totalRevenue: 0
   })
+  const [teamStats, setTeamStats] = useState({
+    teamMembers: 0,
+    teamCustomers: 0,
+    teamOrders: 0,
+    teamRevenue: 0,
+  })
+  const [topPerformers, setTopPerformers] = useState<any[]>([])
   const [recentOrders, setRecentOrders] = useState<any[]>([])
   const [activeFilter, setActiveFilter] = useState('thisMonth')
   const [loading, setLoading] = useState(true)
@@ -77,6 +85,95 @@ export default function SalesDashboard() {
     fetchData()
     isInitialMount.current = false
   }, [activeFilter])
+
+  // Fetch team stats for sale_admin
+  useEffect(() => {
+    const fetchTeamStats = async () => {
+      if (profile?.role === 'sale_admin' && hasSaleAdminDashboard(profile.role)) {
+        try {
+          const { data: { user: authUser } } = await supabase.auth.getUser()
+          if (!authUser) return
+
+          // Fetch team
+          const { data: teamData } = await supabase
+            .from('sales_teams')
+            .select('id')
+            .eq('manager_id', authUser.id)
+            .single()
+          
+          if (teamData) {
+            // Fetch team members
+            const { data: membersData } = await supabase
+              .from('team_members')
+              .select('sale_id, sale:profiles!team_members_sale_id_fkey(id, full_name)')
+              .eq('team_id', teamData.id)
+              .eq('status', 'active')
+            
+            const memberIds = membersData?.map(m => m.sale_id) || []
+            
+            // Count team customers (using customers table if available, fallback to profiles)
+            const { count: customersCount } = await supabase
+              .from('customers')
+              .select('*', { count: 'exact', head: true })
+              .in('assigned_to', memberIds)
+            
+            // Count team orders
+            const { count: ordersCount } = await supabase
+              .from('orders')
+              .select('*', { count: 'exact', head: true })
+              .in('sale_id', memberIds)
+            
+            // Calculate team revenue
+            const { data: revenueData } = await supabase
+              .from('orders')
+              .select('total_amount')
+              .in('sale_id', memberIds)
+              .eq('status', 'completed')
+            
+            const revenue = revenueData?.reduce((sum, o) => sum + (o.total_amount || 0), 0) || 0
+            
+            setTeamStats({
+              teamMembers: memberIds.length,
+              teamCustomers: customersCount || 0,
+              teamOrders: ordersCount || 0,
+              teamRevenue: revenue,
+            })
+            
+            // Fetch top performers
+            const performersWithStats = await Promise.all(
+              memberIds.slice(0, 5).map(async (id) => {
+                const member = membersData?.find(m => m.sale_id === id)
+                const { data: orders } = await supabase
+                  .from('orders')
+                  .select('total_amount')
+                  .eq('sale_id', id)
+                  .eq('status', 'completed')
+                
+                const revenue = orders?.reduce((sum, o) => sum + (o.total_amount || 0), 0) || 0
+                
+                return { 
+                  name: (member?.sale as any)?.full_name || 'Unknown',
+                  revenue 
+                }
+              })
+            )
+            
+            setTopPerformers(
+              performersWithStats
+                .sort((a, b) => b.revenue - a.revenue)
+                .slice(0, 3)
+            )
+          }
+        } catch (error) {
+          console.error('Error fetching team stats:', error)
+        }
+      }
+    }
+    
+    if (profile) {
+      fetchTeamStats()
+    }
+  }, [profile, activeFilter])
 
   // Auto refresh when screen is focused (but not on initial load)
   useFocusEffect(
@@ -427,6 +524,64 @@ export default function SalesDashboard() {
           </View>
         </View>
 
+        {/* Team Performance - Only for sale_admin */}
+        {profile?.role === 'sale_admin' && hasSaleAdminDashboard(profile.role) && (
+          <>
+            {/* Team Performance */}
+            <View style={styles.teamContainer}>
+              <Text style={styles.teamTitle}>👥 Hiệu suất Team</Text>
+              <View style={styles.statsGrid}>
+                <MetricCard 
+                  title="Thành viên" 
+                  icon="people" 
+                  value={teamStats.teamMembers.toString()} 
+                  color="#175ead" 
+                  bg="#dbeafe" 
+                />
+                <MetricCard 
+                  title="Khách hàng" 
+                  icon="person" 
+                  value={teamStats.teamCustomers.toString()} 
+                  color="#10b981" 
+                  bg="#d1fae5" 
+                />
+                <MetricCard 
+                  title="Đơn hàng" 
+                  icon="receipt" 
+                  value={teamStats.teamOrders.toString()} 
+                  color="#f59e0b" 
+                  bg="#fef3c7" 
+                />
+                <MetricCard 
+                  title="Doanh thu" 
+                  icon="cash" 
+                  value={new Intl.NumberFormat('vi-VN', {
+                    notation: 'compact',
+                  }).format(teamStats.teamRevenue)} 
+                  color="#10b981" 
+                  bg="#d1fae5" 
+                />
+              </View>
+            </View>
+            
+            {/* Top Performers */}
+            {topPerformers.length > 0 && (
+              <View style={styles.performersContainer}>
+                <Text style={styles.performersTitle}>📊 Top Performers</Text>
+                {topPerformers.map((performer, index) => (
+                  <View key={index} style={styles.performerCard}>
+                    <Text style={styles.performerRank}>#{index + 1}</Text>
+                    <Text style={styles.performerName}>{performer.name}</Text>
+                    <Text style={styles.performerRevenue}>
+                      {formatCurrency(performer.revenue)}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            )}
+          </>
+        )}
+
         {/* Recent Orders */}
         <View style={[styles.recentContainer, { paddingBottom: contentPaddingBottom }]}>
           <View style={styles.recentHeader}>
@@ -737,6 +892,58 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     textAlign: 'center',
     color: '#374151',
+  },
+  teamContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 24,
+    paddingBottom: 16,
+  },
+  teamTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: 16,
+  },
+  performersContainer: {
+    paddingHorizontal: 16,
+    paddingBottom: 24,
+  },
+  performersTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: 16,
+  },
+  performerCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'white',
+    padding: 16,
+    borderRadius: 12,
+    gap: 12,
+    marginBottom: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  performerRank: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#175ead',
+    width: 40,
+  },
+  performerName: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#111827',
+  },
+  performerRevenue: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#10b981',
   },
   recentContainer: {
     paddingHorizontal: 16,

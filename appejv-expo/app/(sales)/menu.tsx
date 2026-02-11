@@ -5,6 +5,7 @@ import { useAuth } from '../../src/contexts/AuthContext'
 import { useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { supabase } from '../../src/lib/supabase'
+import { hasTeamFeatures } from '../../src/lib/feature-flags'
 
 export default function MenuScreen() {
   const { user, signOut } = useAuth()
@@ -83,6 +84,18 @@ export default function MenuScreen() {
   const adminMenuItems = []
 
   if (isAdmin || isSaleAdmin) {
+    // Add Team Management for sale_admin
+    if (isSaleAdmin) {
+      adminMenuItems.push({
+        title: 'Quản lý Team',
+        description: 'Xem và quản lý thành viên trong team',
+        icon: 'people-circle',
+        color: '#175ead',
+        bg: '#dbeafe',
+        onPress: () => router.push('/(sales)/team'),
+      })
+    }
+
     adminMenuItems.push(
       {
         title: 'Phân tích dữ liệu',

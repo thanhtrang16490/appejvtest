@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons'
 import SuccessModal from '../../../src/components/SuccessModal'
 import { emitScrollVisibility } from '../_layout'
 import { useTabBarHeight } from '../../../src/hooks/useTabBarHeight'
+import { hasTeamFeatures } from '../../../src/lib/feature-flags'
 
 const statusMap: Record<string, { label: string; color: string; bg: string }> = {
   draft: { label: 'Đơn nháp', color: '#374151', bg: '#f3f4f6' },
@@ -26,6 +27,11 @@ const tabs = [
   { id: 'completed', label: 'Hoàn thành' },
 ]
 
+const scopeTabs = [
+  { id: 'my', label: 'Của tôi' },
+  { id: 'team', label: 'Team' },
+]
+
 export default function OrdersScreen() {
   const { user } = useAuth()
   const router = useRouter()
@@ -33,6 +39,8 @@ export default function OrdersScreen() {
   const [profile, setProfile] = useState<any>(null)
   const [orders, setOrders] = useState<any[]>([])
   const [activeTab, setActiveTab] = useState('draft')
+  const [scopeTab, setScopeTab] = useState<'my' | 'team'>('my')
+  const [teamMemberIds, setTeamMemberIds] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [updating, setUpdating] = useState<number | null>(null)
@@ -65,7 +73,42 @@ export default function OrdersScreen() {
 
   useEffect(() => {
     fetchData()
-  }, [])
+  }, [scopeTab])
+
+  // Fetch profile and team members
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (user) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single()
+        
+        setProfile(data)
+        
+        // If sale_admin, fetch team member IDs
+        if (data?.role === 'sale_admin') {
+          const { data: teamData } = await supabase
+            .from('sales_teams')
+            .select('id')
+            .eq('manager_id', user.id)
+            .single()
+          
+          if (teamData) {
+            const { data: membersData } = await supabase
+              .from('team_members')
+              .select('sale_id')
+              .eq('team_id', teamData.id)
+              .eq('status', 'active')
+            
+            setTeamMemberIds(membersData?.map(m => m.sale_id) || [])
+          }
+        }
+      }
+    }
+    fetchProfile()
+  }, [user])
 
   // Auto refresh when screen is focused
   useFocusEffect(
@@ -115,26 +158,17 @@ export default function OrdersScreen() {
       const isSale = role === 'sale'
       const isSaleAdmin = role === 'sale_admin'
 
-      // For Sale Admin, fetch managed sales IDs
-      let managedSaleIds: string[] = []
-      if (isSaleAdmin) {
-        const { data: managedSales } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('manager_id', userId)
-        managedSaleIds = managedSales?.map((s: any) => s.id) || []
-      }
-
       // Build query - fetch orders only
       let query = supabase
         .from('orders')
         .select('*')
         .order('created_at', { ascending: false })
 
-      if (isSale) {
+      // Filter based on scope tab
+      if (scopeTab === 'my') {
         query = query.eq('sale_id', userId)
-      } else if (isSaleAdmin) {
-        query = query.in('sale_id', [userId, ...managedSaleIds])
+      } else if (scopeTab === 'team' && teamMemberIds.length > 0) {
+        query = query.in('sale_id', teamMemberIds)
       }
 
       const { data, error } = await query
@@ -311,6 +345,29 @@ export default function OrdersScreen() {
           ))}
         </ScrollView>
       </View>
+
+      {/* Scope Tabs (My/Team) */}
+      {profile && hasTeamFeatures(profile.role) && (
+        <View style={styles.scopeTabsContainer}>
+          {scopeTabs.map((tab) => (
+            <TouchableOpacity
+              key={tab.id}
+              style={[
+                styles.scopeTab,
+                scopeTab === tab.id && styles.scopeTabActive
+              ]}
+              onPress={() => setScopeTab(tab.id as 'my' | 'team')}
+            >
+              <Text style={[
+                styles.scopeTabText,
+                scopeTab === tab.id && styles.scopeTabTextActive
+              ]}>
+                {tab.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
 
       {/* Orders List */}
       <ScrollView
@@ -514,6 +571,35 @@ const styles = StyleSheet.create({
     color: '#6b7280',
   },
   tabTextActive: {
+    color: 'white',
+  },
+  scopeTabsContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: '#f0f9ff',
+    gap: 8,
+  },
+  scopeTab: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    backgroundColor: 'white',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  scopeTabActive: {
+    backgroundColor: '#175ead',
+    borderColor: '#175ead',
+  },
+  scopeTabText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6b7280',
+  },
+  scopeTabTextActive: {
     color: 'white',
   },
   scrollView: {

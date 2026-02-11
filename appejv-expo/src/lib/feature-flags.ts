@@ -39,11 +39,11 @@ export const featureFlags: FeatureFlags = {
   useNewAdminRoutes: false,           // Redirect admin to /(admin) instead of /(sales)
   showAdminInNavigation: false,       // Show admin-specific navigation items
   
-  // Phase 3: Sales Enhancement (Week 3)
-  enableTeamManagement: false,        // Show team management pages for sale_admin
-  enableCustomerAssignment: false,    // Allow assigning customers to team members
-  enableSaleAdminDashboard: false,    // Show dual dashboard (personal + team)
-  enableTeamReports: false,           // Show team reports for sale_admin
+  // Phase 3: Sales Enhancement (Week 3) - ENABLED
+  enableTeamManagement: true,         // ✅ Show team management pages for sale_admin
+  enableCustomerAssignment: true,     // ✅ Allow assigning customers to team members
+  enableSaleAdminDashboard: true,     // ✅ Show dual dashboard (personal + team)
+  enableTeamReports: true,            // ✅ Show team reports for sale_admin
   enableOrderApprovals: false,        // Show order approval workflow
   
   // Phase 4: Warehouse (Future)

@@ -9,6 +9,7 @@ import { useDebounce } from '../../../src/hooks/useDebounce'
 import { emitScrollVisibility } from '../_layout'
 import { useTabBarHeight } from '../../../src/hooks/useTabBarHeight'
 import AppHeader from '../../../src/components/AppHeader'
+import { hasTeamFeatures } from '../../../src/lib/feature-flags'
 
 // Generate consistent color based on name
 const getAvatarColor = (name: string) => {
@@ -93,7 +94,7 @@ const CustomerCard = memo(({
 export default function CustomersScreen() {
   const { user } = useAuth()
   const router = useRouter()
-  const tabBarHeight = useTabBarHeight()
+  const { contentPaddingBottom } = useTabBarHeight()
   const lastScrollY = useRef(0)
   const scrollTimeout = useRef<NodeJS.Timeout | null>(null)
   const [profile, setProfile] = useState<any>(null)
@@ -101,13 +102,50 @@ export default function CustomersScreen() {
   const [searchQuery, setSearchQuery] = useState('')
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
+  const [activeTab, setActiveTab] = useState<'my' | 'team' | 'all'>('my')
+  const [teamMemberIds, setTeamMemberIds] = useState<string[]>([])
   
   // Debounce search query
   const debouncedSearchQuery = useDebounce(searchQuery, 300)
 
   useEffect(() => {
     fetchData()
-  }, [])
+  }, [activeTab])
+
+  // Fetch profile and team members
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (user) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single()
+        
+        setProfile(data)
+        
+        // If sale_admin, fetch team member IDs
+        if (data?.role === 'sale_admin') {
+          const { data: teamData } = await supabase
+            .from('sales_teams')
+            .select('id')
+            .eq('manager_id', user.id)
+            .single()
+          
+          if (teamData) {
+            const { data: membersData } = await supabase
+              .from('team_members')
+              .select('sale_id')
+              .eq('team_id', teamData.id)
+              .eq('status', 'active')
+            
+            setTeamMemberIds(membersData?.map(m => m.sale_id) || [])
+          }
+        }
+      }
+    }
+    fetchProfile()
+  }, [user])
 
   // Memoized filtered customers
   const filteredCustomers = useMemo(() => {
@@ -154,9 +192,16 @@ export default function CustomersScreen() {
         .eq('role', 'customer')
         .order('full_name', { ascending: true, nullsFirst: false })
 
-      // Note: Removed role-based filtering by created_by since profiles may not have this field
-      // All sales staff can see all customers for now
-      // TODO: Add proper customer assignment logic if needed
+      // Filter based on active tab
+      if (activeTab === 'my') {
+        // For 'my' tab, we need to check customer_assignments or assigned_to field
+        // Since we don't have assigned_to in profiles yet, show all for now
+        // TODO: Filter by assigned_to once migration is run
+      } else if (activeTab === 'team' && teamMemberIds.length > 0) {
+        // For 'team' tab, filter by team member IDs
+        // TODO: Filter by assigned_to in teamMemberIds once migration is run
+      }
+      // 'all' tab: no filter (admin sees everything)
 
       const { data: customersData, error: customersError } = await query
 
@@ -291,12 +336,48 @@ export default function CustomersScreen() {
         </View>
       </View>
 
+      {/* Tabs */}
+      {profile && (
+        <View style={styles.tabsContainer}>
+          <TouchableOpacity
+            style={[styles.tab, activeTab === 'my' && styles.tabActive]}
+            onPress={() => setActiveTab('my')}
+          >
+            <Text style={[styles.tabText, activeTab === 'my' && styles.tabTextActive]}>
+              Của tôi
+            </Text>
+          </TouchableOpacity>
+          
+          {hasTeamFeatures(profile.role) && (
+            <TouchableOpacity
+              style={[styles.tab, activeTab === 'team' && styles.tabActive]}
+              onPress={() => setActiveTab('team')}
+            >
+              <Text style={[styles.tabText, activeTab === 'team' && styles.tabTextActive]}>
+                Team
+              </Text>
+            </TouchableOpacity>
+          )}
+          
+          {profile.role === 'admin' && (
+            <TouchableOpacity
+              style={[styles.tab, activeTab === 'all' && styles.tabActive]}
+              onPress={() => setActiveTab('all')}
+            >
+              <Text style={[styles.tabText, activeTab === 'all' && styles.tabTextActive]}>
+                Tất cả
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
+
       {/* Customers List */}
       <FlatList
         data={filteredCustomers}
         renderItem={renderCustomerItem}
         keyExtractor={keyExtractor}
-        contentContainerStyle={[styles.listContent, { paddingBottom: tabBarHeight + 16 }]}
+        contentContainerStyle={[styles.listContent, { paddingBottom: contentPaddingBottom }]}
         ListEmptyComponent={renderEmptyComponent}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
@@ -382,6 +463,35 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 14,
     color: '#111827',
+  },
+  tabsContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: '#f0f9ff',
+    gap: 8,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    backgroundColor: 'white',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  tabActive: {
+    backgroundColor: '#175ead',
+    borderColor: '#175ead',
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6b7280',
+  },
+  tabTextActive: {
+    color: 'white',
   },
   listContent: {
     padding: 16,

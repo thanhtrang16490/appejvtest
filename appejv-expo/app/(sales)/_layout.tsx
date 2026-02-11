@@ -38,9 +38,6 @@ export default function SalesLayout() {
     fetchProfile()
   }, [user])
 
-  // Check if user has team features
-  const showTeamTab = profile && hasTeamFeatures(profile.role)
-
   // Hide bottom nav on selling page
   const shouldHideTabBar = pathname.includes('/selling')
 
@@ -169,22 +166,13 @@ export default function SalesLayout() {
           ),
         }}
       />
-      {/* Team tab - only for sale_admin */}
+      {/* Hidden pages - not shown in bottom nav */}
       <Tabs.Screen
         name="team"
         options={{
-          title: 'Team',
-          href: showTeamTab ? undefined : null,
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons 
-              name={focused ? "people-circle" : "people-circle-outline"}
-              size={24} 
-              color={color} 
-            />
-          ),
+          href: null,
         }}
       />
-      {/* Hidden pages - not shown in bottom nav */}
       <Tabs.Screen
         name="inventory"
         options={{
