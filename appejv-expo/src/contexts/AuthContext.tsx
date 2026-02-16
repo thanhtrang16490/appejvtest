@@ -1,7 +1,10 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { Session, User as SupabaseUser } from '@supabase/supabase-js'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { supabase } from '../lib/supabase'
 import { User } from '../types'
+import { errorTracker } from '../lib/error-tracking'
+import { Analytics, AnalyticsEvents } from '../lib/analytics'
 
 interface AuthContextType {
   session: Session | null
@@ -42,6 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         if (error) {
           console.error('AuthProvider: Session error:', error.message)
+          errorTracker.logError(error, { action: 'AuthProvider.initAuth' })
           setLoading(false)
           return
         }
@@ -56,6 +60,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (err) {
         console.error('AuthProvider: Init error:', err)
+        errorTracker.logError(err as Error, { action: 'AuthProvider.initAuth' })
         if (mounted) {
           setLoading(false)
         }
@@ -97,19 +102,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (error) {
         console.error('AuthProvider: Error fetching profile', error)
+        errorTracker.logError(error, { action: 'AuthProvider.fetchUserProfile' })
         throw error
       }
 
       console.log('AuthProvider: Got profile', profile)
-      setUser({
+      const userData = {
         id: supabaseUser.id,
         email: supabaseUser.email,
         phone: supabaseUser.phone,
         full_name: profile?.full_name,
         role: profile?.role || 'customer',
+      }
+      setUser(userData)
+      
+      // Track user properties in analytics
+      Analytics.setUserProperties({
+        userId: userData.id,
+        email: userData.email || undefined,
+        phone: userData.phone || undefined,
+        role: userData.role,
+        name: userData.full_name || undefined,
       })
     } catch (error) {
       console.error('AuthProvider: Error in fetchUserProfile', error)
+      errorTracker.logError(error as Error, { action: 'AuthProvider.fetchUserProfile' })
       setUser({
         id: supabaseUser.id,
         email: supabaseUser.email,
@@ -128,7 +145,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         password,
       })
 
-      if (error) return { error: error.message }
+      if (error) {
+        errorTracker.logWarning(error.message, { action: 'AuthProvider.signIn' })
+        return { error: error.message }
+      }
 
       if (data.user) {
         const { data: profile } = await supabase
@@ -137,11 +157,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           .eq('id', data.user.id)
           .single()
 
+        errorTracker.setUser(data.user.id, data.user.email || undefined, profile?.role || 'customer')
+        
+        // Track login event
+        Analytics.trackEvent(AnalyticsEvents.LOGIN, {
+          method: 'email',
+          role: profile?.role || 'customer',
+        })
+        
         return { role: profile?.role || 'customer' }
       }
 
       return {}
     } catch (error) {
+      errorTracker.logError(error as Error, { action: 'AuthProvider.signIn' })
       return { error: 'Có lỗi xảy ra khi đăng nhập' }
     }
   }
@@ -153,7 +182,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         password,
       })
 
-      if (error) return { error: error.message }
+      if (error) {
+        errorTracker.logWarning(error.message, { action: 'AuthProvider.signInWithPhone' })
+        return { error: error.message }
+      }
 
       if (data.user) {
         const { data: profile } = await supabase
@@ -162,16 +194,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           .eq('id', data.user.id)
           .single()
 
+        errorTracker.setUser(data.user.id, data.user.phone || undefined, profile?.role || 'customer')
+        
+        // Track login event
+        Analytics.trackEvent(AnalyticsEvents.LOGIN, {
+          method: 'phone',
+          role: profile?.role || 'customer',
+        })
+        
         return { role: profile?.role || 'customer' }
       }
 
       return {}
     } catch (error) {
+      errorTracker.logError(error as Error, { action: 'AuthProvider.signInWithPhone' })
       return { error: 'Có lỗi xảy ra khi đăng nhập' }
     }
   }
 
   const signOut = async () => {
+    // Track logout event
+    Analytics.trackEvent(AnalyticsEvents.LOGOUT, {
+      role: user?.role,
+    })
+    
+    // Save email to AsyncStorage before signing out
+    if (user?.email) {
+      try {
+        await AsyncStorage.setItem('rememberedEmail', user.email)
+      } catch (error) {
+        console.error('Error saving email:', error)
+        errorTracker.logWarning('Failed to save email to AsyncStorage', { action: 'AuthProvider.signOut' })
+      }
+    }
+    errorTracker.clearUser()
     await supabase.auth.signOut()
   }
 

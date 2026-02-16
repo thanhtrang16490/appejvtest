@@ -30,6 +30,11 @@ export default function Index() {
     return <Redirect href="/(customer)/dashboard" />
   }
 
+  // Warehouse role
+  if (user.role === 'warehouse') {
+    return <Redirect href="/(warehouse)/dashboard" />
+  }
+
   // Admin routing with feature flag
   if (user.role === 'admin') {
     if (shouldUseNewAdminRoutes(user.role)) {

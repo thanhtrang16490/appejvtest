@@ -1,20 +1,24 @@
 import { useState, useEffect } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet, Alert } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
-import { useAuth } from '../../../../src/contexts/AuthContext'
-import { supabase } from '../../../../src/lib/supabase'
+import { useAuth } from '../../../src/contexts/AuthContext'
+import { supabase } from '../../../src/lib/supabase'
 import { Ionicons } from '@expo/vector-icons'
 
 export default function CustomerAssignScreen() {
   const { user } = useAuth()
   const router = useRouter()
+  const insets = useSafeAreaInsets()
   const [loading, setLoading] = useState(true)
   const [unassignedCustomers, setUnassignedCustomers] = useState<any[]>([])
   const [teamMembers, setTeamMembers] = useState<any[]>([])
   const [selectedCustomers, setSelectedCustomers] = useState<string[]>([])
   const [selectedMember, setSelectedMember] = useState<string | null>(null)
   const [assigning, setAssigning] = useState(false)
+
+  // Calculate bottom padding for tab bar (60px tab bar + bottom inset)
+  const bottomPadding = 60 + insets.bottom
 
   useEffect(() => {
     fetchData()
@@ -24,33 +28,42 @@ export default function CustomerAssignScreen() {
     try {
       if (!user) return
 
-      // Fetch unassigned customers from profiles with role='customer'
-      // Note: assigned_to field will be available after migration
-      const { data: customersData } = await supabase
+      const { data: { user: authUser } } = await supabase.auth.getUser()
+      if (!authUser) return
+
+      // Get current user profile
+      const { data: profileData } = await supabase
         .from('profiles')
+        .select('role')
+        .eq('id', authUser.id)
+        .single()
+
+      const isAdmin = profileData?.role === 'admin'
+
+      // Fetch customers from customers table
+      const { data: customersData } = await supabase
+        .from('customers')
         .select('*')
-        .eq('role', 'customer')
         .order('full_name', { ascending: true })
       
-      // For now, show all customers (filter by assigned_to after migration)
       setUnassignedCustomers(customersData || [])
       
       // Fetch team members
-      const { data: teamData } = await supabase
-        .from('sales_teams')
-        .select('id')
-        .eq('manager_id', user.id)
-        .single()
-      
-      if (teamData) {
-        const { data: membersData } = await supabase
-          .from('team_members')
-          .select('*, sale:profiles!team_members_sale_id_fkey(*)')
-          .eq('team_id', teamData.id)
-          .eq('status', 'active')
-        
-        setTeamMembers(membersData || [])
+      let teamQuery = supabase
+        .from('profiles')
+        .select('id, full_name, email, role')
+        .eq('role', 'sale')
+        .order('full_name', { ascending: true })
+
+      // If sale_admin, only show their team members
+      if (!isAdmin) {
+        teamQuery = teamQuery.eq('manager_id', user.id)
       }
+      // If admin, show all sale users (no filter)
+
+      const { data: teamData } = await teamQuery
+      
+      setTeamMembers(teamData || [])
     } catch (error) {
       console.error('Error:', error)
     } finally {
@@ -80,23 +93,22 @@ export default function CustomerAssignScreen() {
     try {
       setAssigning(true)
       
-      // Update customers table (after migration)
-      // For now, this will fail gracefully if table doesn't exist
+      // Update customers table
       const { error } = await supabase
         .from('customers')
         .update({
           assigned_to: selectedMember,
-          assigned_at: new Date().toISOString(),
-          assigned_by: user?.id,
         })
         .in('id', selectedCustomers)
       
       if (error) {
         console.error('Assignment error:', error)
-        Alert.alert('Thông báo', 'Chức năng gán khách hàng sẽ khả dụng sau khi chạy migration database')
+        Alert.alert('Lỗi', 'Không thể gán khách hàng: ' + error.message)
       } else {
         Alert.alert('Thành công', `Đã gán ${selectedCustomers.length} khách hàng`)
-        router.back()
+        setSelectedCustomers([])
+        setSelectedMember(null)
+        fetchData()
       }
     } catch (error) {
       console.error('Error:', error)
@@ -124,28 +136,34 @@ export default function CustomerAssignScreen() {
         <View style={{ width: 24 }} />
       </View>
 
-      <ScrollView style={styles.scrollView}>
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={{ paddingBottom: bottomPadding + 80 }}
+      >
         {/* Select Team Member */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Chọn nhân viên</Text>
           {teamMembers.length === 0 ? (
-            <Text style={styles.emptyText}>Chưa có thành viên trong team</Text>
+            <Text style={styles.emptyText}>Chưa có nhân viên trong team của bạn</Text>
           ) : (
             teamMembers.map((member) => (
               <TouchableOpacity
                 key={member.id}
                 style={[
                   styles.memberCard,
-                  selectedMember === member.sale_id && styles.memberCardSelected
+                  selectedMember === member.id && styles.memberCardSelected
                 ]}
-                onPress={() => setSelectedMember(member.sale_id)}
+                onPress={() => setSelectedMember(member.id)}
               >
                 <Ionicons 
-                  name={selectedMember === member.sale_id ? "radio-button-on" : "radio-button-off"}
+                  name={selectedMember === member.id ? "radio-button-on" : "radio-button-off"}
                   size={24}
-                  color={selectedMember === member.sale_id ? "#175ead" : "#9ca3af"}
+                  color={selectedMember === member.id ? "#175ead" : "#9ca3af"}
                 />
-                <Text style={styles.memberName}>{member.sale?.full_name || 'Unknown'}</Text>
+                <View style={styles.memberInfo}>
+                  <Text style={styles.memberName}>{member.full_name || 'Unknown'}</Text>
+                  <Text style={styles.memberEmail}>{member.email}</Text>
+                </View>
               </TouchableOpacity>
             ))
           )}
@@ -184,7 +202,7 @@ export default function CustomerAssignScreen() {
       </ScrollView>
 
       {/* Assign Button */}
-      <View style={styles.footer}>
+      <View style={[styles.footer, { paddingBottom: bottomPadding }]}>
         <TouchableOpacity
           style={[styles.assignButton, assigning && styles.assignButtonDisabled]}
           onPress={handleAssign}
@@ -266,6 +284,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
     color: '#111827',
+  },
+  memberInfo: {
+    flex: 1,
+  },
+  memberEmail: {
+    fontSize: 14,
+    color: '#6b7280',
+    marginTop: 2,
   },
   customerCard: {
     flexDirection: 'row',

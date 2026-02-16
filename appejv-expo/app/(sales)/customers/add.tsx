@@ -13,6 +13,7 @@ export default function AddCustomerScreen() {
     phone: '',
     email: '',
     address: '',
+    password: '', // Bắt buộc
   })
 
   const handleSubmit = async () => {
@@ -27,44 +28,75 @@ export default function AddCustomerScreen() {
       return
     }
 
+    if (!formData.email.trim()) {
+      Alert.alert('Lỗi', 'Vui lòng nhập email')
+      return
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(formData.email)) {
+      Alert.alert('Lỗi', 'Email không hợp lệ')
+      return
+    }
+
+    if (!formData.password.trim()) {
+      Alert.alert('Lỗi', 'Vui lòng nhập mật khẩu')
+      return
+    }
+
+    if (formData.password.length < 6) {
+      Alert.alert('Lỗi', 'Mật khẩu phải có ít nhất 6 ký tự')
+      return
+    }
+
     try {
       setLoading(true)
 
-      // Create customer account via Supabase Auth
-      const tempPassword = Math.random().toString(36).slice(-8) + 'Aa1!'
-      
+      // Get current user to set as assigned_to
+      const { data: { user } } = await supabase.auth.getUser()
+
+      // Create auth account (REQUIRED for all customers)
       const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: formData.email || `${formData.phone}@temp.local`,
-        password: tempPassword,
+        email: formData.email,
+        password: formData.password,
         options: {
           data: {
             full_name: formData.full_name,
             phone: formData.phone,
-            role: 'customer',
           }
         }
       })
 
-      if (authError) throw authError
-
-      // Update profile with additional info
-      if (authData.user) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .update({
-            full_name: formData.full_name,
-            phone: formData.phone,
-            address: formData.address,
-            role: 'customer',
-          })
-          .eq('id', authData.user.id)
-
-        if (profileError) throw profileError
+      if (authError) {
+        // Check if email already exists
+        if (authError.message.includes('already registered')) {
+          Alert.alert('Lỗi', 'Email này đã được sử dụng. Vui lòng chọn email khác.')
+        } else {
+          Alert.alert('Lỗi', authError.message)
+        }
+        return
       }
+
+      // Create customer in customers table with user_id
+      const { data, error } = await supabase
+        .from('customers')
+        .insert({
+          user_id: authData.user?.id, // Always link to auth account
+          full_name: formData.full_name,
+          phone: formData.phone,
+          email: formData.email,
+          address: formData.address,
+          assigned_to: user?.id, // Assign to current user
+        })
+        .select()
+        .single()
+
+      if (error) throw error
 
       Alert.alert(
         'Thành công',
-        'Đã tạo khách hàng mới',
+        `Đã tạo khách hàng mới với tài khoản đăng nhập.\n\nEmail: ${formData.email}\nMật khẩu: ${formData.password}\n\nVui lòng gửi thông tin này cho khách hàng.`,
         [
           {
             text: 'OK',
@@ -123,16 +155,39 @@ export default function AddCustomerScreen() {
 
         {/* Email */}
         <View style={styles.formGroup}>
-          <Text style={styles.label}>Email</Text>
+          <Text style={styles.label}>
+            Email <Text style={styles.required}>*</Text>
+          </Text>
           <TextInput
             style={styles.input}
-            placeholder="Nhập email (tùy chọn)"
+            placeholder="Nhập email"
             value={formData.email}
             onChangeText={(text) => setFormData({ ...formData, email: text })}
             keyboardType="email-address"
             autoCapitalize="none"
             placeholderTextColor="#9ca3af"
           />
+          <Text style={styles.hint}>
+            Email sẽ được dùng để đăng nhập vào hệ thống
+          </Text>
+        </View>
+
+        {/* Password */}
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>
+            Mật khẩu <Text style={styles.required}>*</Text>
+          </Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Nhập mật khẩu (tối thiểu 6 ký tự)"
+            value={formData.password}
+            onChangeText={(text) => setFormData({ ...formData, password: text })}
+            secureTextEntry
+            placeholderTextColor="#9ca3af"
+          />
+          <Text style={styles.hint}>
+            Mật khẩu này sẽ được gửi cho khách hàng để đăng nhập
+          </Text>
         </View>
 
         {/* Address */}
@@ -235,5 +290,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: 'white',
+  },
+  hint: {
+    fontSize: 12,
+    color: '#6b7280',
+    marginTop: 6,
+    fontStyle: 'italic',
   },
 })

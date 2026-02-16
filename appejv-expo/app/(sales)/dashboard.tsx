@@ -252,11 +252,16 @@ export default function SalesDashboard() {
         .select('*', { count: 'exact', head: true })
         .lt('stock', 20)
 
-      // 3. Customers (from profiles with role='customer')
+      // 3. Customers (from customers table)
       let customerQuery = supabase
-        .from('profiles')
+        .from('customers')
         .select('*', { count: 'exact', head: true })
-        .eq('role', 'customer')
+      
+      if (isSale) {
+        customerQuery = customerQuery.eq('assigned_to', authUser.id)
+      } else if (isSaleAdmin) {
+        customerQuery = customerQuery.in('assigned_to', [authUser.id, ...managedSaleIds])
+      }
       
       const { count: customerCount } = await customerQuery
 

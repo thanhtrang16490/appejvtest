@@ -1,12 +1,14 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, Image } from 'react-native'
-import { useAuth } from '../../../../src/contexts/AuthContext'
-import { supabase } from '../../../../src/lib/supabase'
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, Image, RefreshControl } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { useAuth } from '../../../src/contexts/AuthContext'
+import { supabase } from '../../../src/lib/supabase'
 import { useRouter, useFocusEffect } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
-import SuccessModal from '../../../../src/components/SuccessModal'
-import PageWithStickyHeader from '../../../../src/components/PageWithStickyHeader'
-import { hasTeamFeatures } from '../../../../src/lib/feature-flags'
+import SuccessModal from '../../../src/components/SuccessModal'
+import AppHeader from '../../../src/components/AppHeader'
+import { hasTeamFeatures } from '../../../src/lib/feature-flags'
+import { useTabBarHeight } from '../../../src/hooks/useTabBarHeight'
 
 const statusMap: Record<string, { label: string; color: string; bg: string }> = {
   draft: { label: 'Đơn nháp', color: '#374151', bg: '#f3f4f6' },
@@ -33,6 +35,7 @@ const scopeTabs = [
 export default function OrdersScreen() {
   const { user } = useAuth()
   const router = useRouter()
+  const { contentPaddingBottom } = useTabBarHeight()
   const [profile, setProfile] = useState<any>(null)
   const [orders, setOrders] = useState<any[]>([])
   const [activeTab, setActiveTab] = useState('draft')
@@ -258,126 +261,167 @@ export default function OrdersScreen() {
   const filteredOrders = getFilteredOrders()
 
   return (
-    <PageWithStickyHeader
-      title={isSaleAdmin ? 'Đơn hàng nhóm' : 'Đơn hàng của tôi'}
-      subtitle="Quản lý và theo dõi tiến độ đơn hàng"
-      icon="bag-handle"
-      tabs={tabs}
-      activeTab={activeTab}
-      onTabChange={setActiveTab}
-      refreshing={refreshing}
-      onRefresh={onRefresh}
-    >
-      <View style={styles.content}>
-        {/* Scope Tabs (My/Team) */}
-        {profile && hasTeamFeatures(profile.role) && (
-          <View style={styles.scopeTabsContainer}>
-            {scopeTabs.map((tab) => (
-              <TouchableOpacity
-                key={tab.id}
-                style={[
-                  styles.scopeTab,
-                  scopeTab === tab.id && styles.scopeTabActive
-                ]}
-                onPress={() => setScopeTab(tab.id as 'my' | 'team')}
-              >
-                <Text style={[
-                  styles.scopeTabText,
-                  scopeTab === tab.id && styles.scopeTabTextActive
-                ]}>
-                  {tab.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <AppHeader />
+      
+      {/* Page Header */}
+      <View style={styles.header}>
+        <View style={styles.headerContent}>
+          <View style={styles.headerLeft}>
+            <Text style={styles.headerTitle}>
+              {isSaleAdmin ? 'Đơn hàng nhóm' : 'Đơn hàng của tôi'}
+            </Text>
+            <Text style={styles.headerSubtitle}>Quản lý và theo dõi tiến độ đơn hàng</Text>
           </View>
-        )}
+          <View style={styles.headerIcon}>
+            <Ionicons name="bag-handle" size={24} color="#175ead" />
+          </View>
+        </View>
 
-        {/* Add Button */}
-        <TouchableOpacity 
-          style={styles.addButton}
-          onPress={() => router.push('/(sales)/selling')}
+        {/* Filter Tabs */}
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          style={styles.filterContainer}
+          contentContainerStyle={styles.filterContent}
         >
-          <Ionicons name="add" size={20} color="white" />
-          <Text style={styles.addButtonText}>Tạo đơn hàng mới</Text>
-        </TouchableOpacity>
-        {filteredOrders.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Ionicons name="bag-handle-outline" size={48} color="#d1d5db" />
-            <Text style={styles.emptyText}>Không có đơn hàng nào</Text>
-          </View>
-        ) : (
-          filteredOrders.map((order) => {
-            const config = statusMap[order.status] || statusMap.draft
-            const nextStatus = getNextStatus(order.status)
-            
-            return (
-              <View key={order.id} style={styles.orderCard}>
-                {/* Order Info */}
-                <View style={styles.orderHeader}>
-                  <View style={styles.orderLeft}>
-                    <View style={styles.orderIcon}>
-                      <Ionicons name="bag-handle" size={20} color="#175ead" />
-                    </View>
-                    <View style={styles.orderInfo}>
-                      <View style={styles.orderTitleRow}>
-                        <Text style={styles.orderTitle}>Đơn hàng #{order.id}</Text>
-                        <View style={[styles.badge, { backgroundColor: config.bg }]}>
-                          <Text style={[styles.badgeText, { color: config.color }]}>
-                            {config.label}
+          {tabs.map((tab) => (
+            <TouchableOpacity
+              key={tab.id}
+              style={[
+                styles.filterTab,
+                activeTab === tab.id && styles.filterTabActive
+              ]}
+              onPress={() => setActiveTab(tab.id)}
+            >
+              <Text style={[
+                styles.filterTabText,
+                activeTab === tab.id && styles.filterTabTextActive
+              ]}>
+                {tab.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+
+      <ScrollView 
+        style={styles.scrollView}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
+        <View style={[styles.content, { paddingBottom: contentPaddingBottom }]}>
+          {/* Scope Tabs (My/Team) */}
+          {profile && hasTeamFeatures(profile.role) && (
+            <View style={styles.scopeTabsContainer}>
+              {scopeTabs.map((tab) => (
+                <TouchableOpacity
+                  key={tab.id}
+                  style={[
+                    styles.scopeTab,
+                    scopeTab === tab.id && styles.scopeTabActive
+                  ]}
+                  onPress={() => setScopeTab(tab.id as 'my' | 'team')}
+                >
+                  <Text style={[
+                    styles.scopeTabText,
+                    scopeTab === tab.id && styles.scopeTabTextActive
+                  ]}>
+                    {tab.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+
+          {/* Add Button */}
+          <TouchableOpacity 
+            style={styles.addButton}
+            onPress={() => router.push('/(sales)/selling')}
+          >
+            <Ionicons name="add" size={20} color="white" />
+            <Text style={styles.addButtonText}>Tạo đơn hàng mới</Text>
+          </TouchableOpacity>
+          {filteredOrders.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Ionicons name="bag-handle-outline" size={48} color="#d1d5db" />
+              <Text style={styles.emptyText}>Không có đơn hàng nào</Text>
+            </View>
+          ) : (
+            filteredOrders.map((order) => {
+              const config = statusMap[order.status] || statusMap.draft
+              const nextStatus = getNextStatus(order.status)
+              
+              return (
+                <View key={order.id} style={styles.orderCard}>
+                  {/* Order Info */}
+                  <View style={styles.orderHeader}>
+                    <View style={styles.orderLeft}>
+                      <View style={styles.orderIcon}>
+                        <Ionicons name="bag-handle" size={20} color="#175ead" />
+                      </View>
+                      <View style={styles.orderInfo}>
+                        <View style={styles.orderTitleRow}>
+                          <Text style={styles.orderTitle}>Đơn hàng #{order.id}</Text>
+                          <View style={[styles.badge, { backgroundColor: config.bg }]}>
+                            <Text style={[styles.badgeText, { color: config.color }]}>
+                              {config.label}
+                            </Text>
+                          </View>
+                        </View>
+                        <View style={styles.orderMeta}>
+                          <Text style={styles.orderMetaText}>#{order.id}</Text>
+                          <Text style={styles.orderMetaText}>•</Text>
+                          <Text style={styles.orderMetaText}>
+                            {new Date(order.created_at).toLocaleDateString('vi-VN')}
                           </Text>
                         </View>
+                        {order.customer && (
+                          <Text style={styles.customerName}>{order.customer.name}</Text>
+                        )}
                       </View>
-                      <View style={styles.orderMeta}>
-                        <Text style={styles.orderMetaText}>#{order.id}</Text>
-                        <Text style={styles.orderMetaText}>•</Text>
-                        <Text style={styles.orderMetaText}>
-                          {new Date(order.created_at).toLocaleDateString('vi-VN')}
-                        </Text>
-                      </View>
-                      {order.customer && (
-                        <Text style={styles.customerName}>{order.customer.name}</Text>
-                      )}
+                    </View>
+                    <View style={styles.orderRight}>
+                      <Text style={styles.orderAmount}>
+                        {formatCurrency(order.total_amount)}
+                      </Text>
                     </View>
                   </View>
-                  <View style={styles.orderRight}>
-                    <Text style={styles.orderAmount}>
-                      {formatCurrency(order.total_amount)}
-                    </Text>
+
+                  {/* Actions */}
+                  <View style={styles.orderActions}>
+                    <TouchableOpacity 
+                      style={styles.actionButtonOutline}
+                      onPress={() => router.push(`/(sales-pages)/orders/${order.id}`)}
+                    >
+                      <Text style={styles.actionButtonOutlineText}>Chi tiết</Text>
+                    </TouchableOpacity>
+                    
+                    {nextStatus && (
+                      <TouchableOpacity 
+                        style={[
+                          styles.actionButton,
+                          { backgroundColor: nextStatus.color },
+                          updating === order.id && styles.actionButtonDisabled
+                        ]}
+                        onPress={() => handleUpdateStatus(order.id, nextStatus.status)}
+                        disabled={updating === order.id}
+                      >
+                        {updating === order.id ? (
+                          <ActivityIndicator size="small" color="white" />
+                        ) : (
+                          <Text style={styles.actionButtonText}>{nextStatus.label}</Text>
+                        )}
+                      </TouchableOpacity>
+                    )}
                   </View>
                 </View>
-
-                {/* Actions */}
-                <View style={styles.orderActions}>
-                  <TouchableOpacity 
-                    style={styles.actionButtonOutline}
-                    onPress={() => router.push(`/(sales-pages)/orders/${order.id}`)}
-                  >
-                    <Text style={styles.actionButtonOutlineText}>Chi tiết</Text>
-                  </TouchableOpacity>
-                  
-                  {nextStatus && (
-                    <TouchableOpacity 
-                      style={[
-                        styles.actionButton,
-                        { backgroundColor: nextStatus.color },
-                        updating === order.id && styles.actionButtonDisabled
-                      ]}
-                      onPress={() => handleUpdateStatus(order.id, nextStatus.status)}
-                      disabled={updating === order.id}
-                    >
-                      {updating === order.id ? (
-                        <ActivityIndicator size="small" color="white" />
-                      ) : (
-                        <Text style={styles.actionButtonText}>{nextStatus.label}</Text>
-                      )}
-                    </TouchableOpacity>
-                  )}
-                </View>
-              </View>
-            )
-          })
-        )}
-      </View>
+              )
+            })
+          )}
+        </View>
+      </ScrollView>
 
       {/* Success Modal */}
       <SuccessModal
@@ -386,11 +430,78 @@ export default function OrdersScreen() {
         title="Cập nhật thành công!"
         message={successMessage}
       />
-    </PageWithStickyHeader>
+    </SafeAreaView>
   )
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f0f9ff',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  header: {
+    backgroundColor: '#f0f9ff',
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 16,
+  },
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 16,
+  },
+  headerLeft: {
+    flex: 1,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#111827',
+    marginBottom: 4,
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    color: '#6b7280',
+  },
+  headerIcon: {
+    width: 40,
+    height: 40,
+    backgroundColor: '#dbeafe',
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  filterContainer: {
+    marginTop: 8,
+  },
+  filterContent: {
+    gap: 8,
+    paddingRight: 16,
+  },
+  filterTab: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    backgroundColor: 'white',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  filterTabActive: {
+    backgroundColor: '#175ead',
+    borderColor: '#175ead',
+  },
+  filterTabText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#6b7280',
+  },
+  filterTabTextActive: {
+    color: 'white',
+  },
   content: {
     padding: 16,
     gap: 12,

@@ -1,18 +1,19 @@
 import { useState, useEffect } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet, Alert, TextInput } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { Picker } from '@react-native-picker/picker'
 import { useAuth } from '../../../src/contexts/AuthContext'
 import { supabase } from '../../../src/lib/supabase'
 import { Ionicons } from '@expo/vector-icons'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 
 export default function CustomerDetailScreen() {
-  const { user } = useAuth()
   const router = useRouter()
   const { id } = useLocalSearchParams()
   const [profile, setProfile] = useState<any>(null)
   const [customer, setCustomer] = useState<any>(null)
   const [orders, setOrders] = useState<any[]>([])
+  const [saleUsers, setSaleUsers] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
   const [editedData, setEditedData] = useState({
@@ -20,7 +21,8 @@ export default function CustomerDetailScreen() {
     phone: '',
     address: '',
     email: '',
-    role: 'customer',
+    password: '',
+    assigned_to: '',
   })
 
   useEffect(() => {
@@ -52,12 +54,14 @@ export default function CustomerDetailScreen() {
 
       setProfile(profileData)
 
-      // Fetch customer
+      // Fetch customer from customers table
       const { data: customerData } = await supabase
-        .from('profiles')
-        .select('*')
+        .from('customers')
+        .select(`
+          *,
+          assigned_sale:profiles!customers_assigned_to_fkey(id, full_name, email)
+        `)
         .eq('id', id)
-        .eq('role', 'customer')
         .single()
 
       if (!customerData) {
@@ -72,8 +76,26 @@ export default function CustomerDetailScreen() {
         phone: customerData.phone || '',
         address: customerData.address || '',
         email: customerData.email || '',
-        role: customerData.role || 'customer',
+        password: '',
+        assigned_to: customerData.assigned_to || '',
       })
+
+      // Fetch sale users for assignment (only for admin/sale_admin)
+      if (['admin', 'sale_admin'].includes(profileData.role)) {
+        let saleQuery = supabase
+          .from('profiles')
+          .select('id, full_name, email')
+          .eq('role', 'sale')
+          .order('full_name', { ascending: true })
+
+        // If sale_admin, only show their team
+        if (profileData.role === 'sale_admin') {
+          saleQuery = saleQuery.eq('manager_id', authUser.id)
+        }
+
+        const { data: saleData } = await saleQuery
+        setSaleUsers(saleData || [])
+      }
 
       // Fetch customer orders
       const { data: ordersData } = await supabase
@@ -93,31 +115,132 @@ export default function CustomerDetailScreen() {
 
   const handleSave = async () => {
     try {
+      // Validate password if provided
+      if (editedData.password && editedData.password.trim()) {
+        if (editedData.password.length < 6) {
+          Alert.alert('Lỗi', 'Mật khẩu phải có ít nhất 6 ký tự')
+          return
+        }
+
+        if (!customer.user_id) {
+          Alert.alert('Lỗi', 'Khách hàng chưa có tài khoản đăng nhập. Không thể đổi mật khẩu.')
+          return
+        }
+      }
+
       const updateData: any = {
         full_name: editedData.full_name,
         phone: editedData.phone,
         address: editedData.address,
-      }
-
-      // Only admin can change role
-      if (profile?.role === 'admin') {
-        updateData.role = editedData.role
+        email: editedData.email,
+        assigned_to: editedData.assigned_to || null,
       }
 
       const { error } = await supabase
-        .from('profiles')
+        .from('customers')
         .update(updateData)
         .eq('id', id)
 
       if (error) throw error
 
-      Alert.alert('Thành công', 'Đã cập nhật thông tin khách hàng')
+      // Show message about password change limitation
+      if (editedData.password && editedData.password.trim()) {
+        Alert.alert(
+          'Lưu ý',
+          `Thông tin đã được cập nhật.\n\nĐể đổi mật khẩu, khách hàng cần:\n1. Vào trang đăng nhập\n2. Chọn "Quên mật khẩu"\n3. Nhập email: ${customer.email}\n4. Làm theo hướng dẫn trong email\n\nHoặc liên hệ admin hệ thống.`,
+          [{ text: 'OK' }]
+        )
+      } else if (customer.user_id && editedData.email !== customer.email) {
+        // If customer has user_id (can login), we need to update auth.users.email too
+        Alert.alert(
+          'Lưu ý',
+          'Email đã được cập nhật trong hệ thống. Nếu khách hàng có tài khoản đăng nhập, họ cần liên hệ admin để cập nhật email đăng nhập.',
+          [{ text: 'OK' }]
+        )
+      } else {
+        Alert.alert('Thành công', 'Đã cập nhật thông tin khách hàng')
+      }
+
       setEditing(false)
       fetchData()
     } catch (error) {
       console.error('Error updating customer:', error)
       Alert.alert('Lỗi', 'Không thể cập nhật thông tin')
     }
+  }
+
+  const handleCreateAccount = async () => {
+    // Validate email first
+    if (!customer.email) {
+      Alert.alert('Lỗi', 'Khách hàng chưa có email. Vui lòng cập nhật email trước.')
+      return
+    }
+
+    // Prompt for password
+    Alert.prompt(
+      'Tạo tài khoản đăng nhập',
+      'Nhập mật khẩu cho khách hàng (tối thiểu 6 ký tự):',
+      [
+        {
+          text: 'Hủy',
+          style: 'cancel'
+        },
+        {
+          text: 'Tạo',
+          onPress: async (password) => {
+            if (!password || password.length < 6) {
+              Alert.alert('Lỗi', 'Mật khẩu phải có ít nhất 6 ký tự')
+              return
+            }
+
+            try {
+              setLoading(true)
+
+              // Create auth account
+              const { data: authData, error: authError } = await supabase.auth.signUp({
+                email: customer.email,
+                password: password,
+                options: {
+                  data: {
+                    full_name: customer.full_name,
+                    phone: customer.phone,
+                  }
+                }
+              })
+
+              if (authError) {
+                if (authError.message.includes('already registered')) {
+                  Alert.alert('Lỗi', 'Email này đã được sử dụng cho tài khoản khác.')
+                } else {
+                  Alert.alert('Lỗi', authError.message)
+                }
+                return
+              }
+
+              // Update customer with user_id
+              const { error: updateError } = await supabase
+                .from('customers')
+                .update({ user_id: authData.user?.id })
+                .eq('id', id)
+
+              if (updateError) throw updateError
+
+              Alert.alert(
+                'Thành công',
+                `Đã tạo tài khoản đăng nhập cho khách hàng.\n\nEmail: ${customer.email}\nMật khẩu: ${password}\n\nVui lòng gửi thông tin này cho khách hàng.`,
+                [{ text: 'OK', onPress: () => fetchData() }]
+              )
+            } catch (error: any) {
+              console.error('Error creating account:', error)
+              Alert.alert('Lỗi', error.message || 'Không thể tạo tài khoản')
+            } finally {
+              setLoading(false)
+            }
+          }
+        }
+      ],
+      'secure-text'
+    )
   }
 
   const formatCurrency = (amount: number) => {
@@ -225,6 +348,16 @@ export default function CustomerDetailScreen() {
                   keyboardType="phone-pad"
                 />
                 
+                <Text style={styles.inputLabel}>Email</Text>
+                <TextInput
+                  style={styles.input}
+                  value={editedData.email}
+                  onChangeText={(text) => setEditedData({ ...editedData, email: text })}
+                  placeholder="Nhập email"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                />
+                
                 <Text style={styles.inputLabel}>Địa chỉ</Text>
                 <TextInput
                   style={[styles.input, styles.textArea]}
@@ -234,87 +367,37 @@ export default function CustomerDetailScreen() {
                   multiline
                   numberOfLines={3}
                 />
-
-                {/* Role Selector - Only for Admin */}
-                {isAdmin && (
+                
+                <Text style={styles.inputLabel}>Mật khẩu mới (tùy chọn)</Text>
+                <TextInput
+                  style={styles.input}
+                  value={editedData.password}
+                  onChangeText={(text) => setEditedData({ ...editedData, password: text })}
+                  placeholder="Nhập mật khẩu mới (tùy chọn)"
+                  secureTextEntry
+                  autoCapitalize="none"
+                />
+                <Text style={styles.passwordHint}>Để trống nếu không muốn đổi mật khẩu. Tối thiểu 6 ký tự.</Text>
+                
+                {/* Sale Assignment - Only for admin/sale_admin */}
+                {['admin', 'sale_admin'].includes(profile?.role) && (
                   <>
-                    <Text style={styles.inputLabel}>Vai trò</Text>
-                    <View style={styles.roleSelector}>
-                      <TouchableOpacity
-                        style={[
-                          styles.roleOption,
-                          editedData.role === 'customer' && styles.roleOptionActive,
-                          editedData.role === 'customer' && { borderColor: '#10b981' }
-                        ]}
-                        onPress={() => setEditedData({ ...editedData, role: 'customer' })}
+                    <Text style={styles.inputLabel}>Sale phụ trách</Text>
+                    <View style={styles.pickerContainer}>
+                      <Picker
+                        selectedValue={editedData.assigned_to}
+                        onValueChange={(value) => setEditedData({ ...editedData, assigned_to: value })}
+                        style={styles.picker}
                       >
-                        <View style={[styles.roleIcon, { backgroundColor: '#d1fae5' }]}>
-                          <Ionicons name="person" size={20} color="#10b981" />
-                        </View>
-                        <Text style={[
-                          styles.roleText,
-                          editedData.role === 'customer' && styles.roleTextActive
-                        ]}>
-                          Khách hàng
-                        </Text>
-                      </TouchableOpacity>
-
-                      <TouchableOpacity
-                        style={[
-                          styles.roleOption,
-                          editedData.role === 'sale' && styles.roleOptionActive,
-                          editedData.role === 'sale' && { borderColor: '#175ead' }
-                        ]}
-                        onPress={() => setEditedData({ ...editedData, role: 'sale' })}
-                      >
-                        <View style={[styles.roleIcon, { backgroundColor: '#dbeafe' }]}>
-                          <Ionicons name="briefcase" size={20} color="#175ead" />
-                        </View>
-                        <Text style={[
-                          styles.roleText,
-                          editedData.role === 'sale' && styles.roleTextActive
-                        ]}>
-                          Sale
-                        </Text>
-                      </TouchableOpacity>
-
-                      <TouchableOpacity
-                        style={[
-                          styles.roleOption,
-                          editedData.role === 'sale_admin' && styles.roleOptionActive,
-                          editedData.role === 'sale_admin' && { borderColor: '#f59e0b' }
-                        ]}
-                        onPress={() => setEditedData({ ...editedData, role: 'sale_admin' })}
-                      >
-                        <View style={[styles.roleIcon, { backgroundColor: '#fef3c7' }]}>
-                          <Ionicons name="people" size={20} color="#f59e0b" />
-                        </View>
-                        <Text style={[
-                          styles.roleText,
-                          editedData.role === 'sale_admin' && styles.roleTextActive
-                        ]}>
-                          Sale Admin
-                        </Text>
-                      </TouchableOpacity>
-
-                      <TouchableOpacity
-                        style={[
-                          styles.roleOption,
-                          editedData.role === 'admin' && styles.roleOptionActive,
-                          editedData.role === 'admin' && { borderColor: '#ef4444' }
-                        ]}
-                        onPress={() => setEditedData({ ...editedData, role: 'admin' })}
-                      >
-                        <View style={[styles.roleIcon, { backgroundColor: '#fee2e2' }]}>
-                          <Ionicons name="shield-checkmark" size={20} color="#ef4444" />
-                        </View>
-                        <Text style={[
-                          styles.roleText,
-                          editedData.role === 'admin' && styles.roleTextActive
-                        ]}>
-                          Admin
-                        </Text>
-                      </TouchableOpacity>
+                        <Picker.Item label="-- Chưa gán --" value="" />
+                        {saleUsers.map((sale) => (
+                          <Picker.Item 
+                            key={sale.id} 
+                            label={`${sale.full_name} (${sale.email})`} 
+                            value={sale.id} 
+                          />
+                        ))}
+                      </Picker>
                     </View>
                   </>
                 )}
@@ -376,6 +459,24 @@ export default function CustomerDetailScreen() {
                   </Text>
                 </View>
               </View>
+
+              {/* Sale phụ trách */}
+              {['admin', 'sale_admin'].includes(profile?.role) && (
+                <View style={styles.infoRow}>
+                  <View style={styles.infoIcon}>
+                    <Ionicons name="person-outline" size={20} color="#6b7280" />
+                  </View>
+                  <View style={styles.infoContent}>
+                    <Text style={styles.infoLabel}>Sale phụ trách</Text>
+                    <Text style={styles.infoValue}>
+                      {customer.assigned_sale?.full_name || 'Chưa gán'}
+                    </Text>
+                    {customer.assigned_sale?.email && (
+                      <Text style={styles.infoSubValue}>{customer.assigned_sale.email}</Text>
+                    )}
+                  </View>
+                </View>
+              )}
             </View>
 
             {/* Recent Orders */}
@@ -437,7 +538,8 @@ export default function CustomerDetailScreen() {
                 phone: customer.phone || '',
                 address: customer.address || '',
                 email: customer.email || '',
-                role: customer.role || 'customer',
+                password: '',
+                assigned_to: customer.assigned_to || '',
               })
             }}
           >
@@ -590,39 +692,26 @@ const styles = StyleSheet.create({
     height: 80,
     textAlignVertical: 'top',
   },
-  roleSelector: {
-    gap: 8,
-  },
-  roleOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    backgroundColor: '#f9fafb',
-    borderWidth: 2,
-    borderColor: '#e5e7eb',
-    borderRadius: 12,
-    padding: 12,
-  },
-  roleOptionActive: {
-    backgroundColor: 'white',
-    borderWidth: 2,
-  },
-  roleIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  roleText: {
-    fontSize: 14,
-    fontWeight: '500',
+  passwordHint: {
+    fontSize: 12,
     color: '#6b7280',
-    flex: 1,
+    marginTop: 4,
+    fontStyle: 'italic',
   },
-  roleTextActive: {
-    fontWeight: '600',
-    color: '#111827',
+  pickerContainer: {
+    backgroundColor: '#f9fafb',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  picker: {
+    height: 50,
+  },
+  infoSubValue: {
+    fontSize: 12,
+    color: '#9ca3af',
+    marginTop: 2,
   },
   infoCard: {
     backgroundColor: 'white',

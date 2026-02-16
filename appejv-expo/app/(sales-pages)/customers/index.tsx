@@ -1,15 +1,15 @@
 import { useState, useEffect, useMemo, useCallback, memo, useRef } from 'react'
 import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, StyleSheet, RefreshControl, TextInput } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useAuth } from '../../../../src/contexts/AuthContext'
-import { supabase } from '../../../../src/lib/supabase'
+import { useAuth } from '../../../src/contexts/AuthContext'
+import { supabase } from '../../../src/lib/supabase'
 import { Ionicons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
-import { useDebounce } from '../../../../src/hooks/useDebounce'
+import { useDebounce } from '../../../src/hooks/useDebounce'
 import { emitScrollVisibility } from '../../(sales)/_layout'
-import { useTabBarHeight } from '../../../../src/hooks/useTabBarHeight'
-import AppHeader from '../../../../src/components/AppHeader'
-import { hasTeamFeatures } from '../../../../src/lib/feature-flags'
+import { useTabBarHeight } from '../../../src/hooks/useTabBarHeight'
+import AppHeader from '../../../src/components/AppHeader'
+import { hasTeamFeatures } from '../../../src/lib/feature-flags'
 
 // Generate consistent color based on name
 const getAvatarColor = (name: string) => {
@@ -185,21 +185,19 @@ export default function CustomersScreen() {
 
       setProfile(profileData)
 
-      // Fetch customers from profiles with role='customer'
+      // Fetch customers from customers table
       let query = supabase
-        .from('profiles')
-        .select('*')
-        .eq('role', 'customer')
+        .from('customers')
+        .select('*, assigned_sale:profiles!customers_assigned_to_fkey(full_name, role)')
         .order('full_name', { ascending: true, nullsFirst: false })
 
       // Filter based on active tab
       if (activeTab === 'my') {
-        // For 'my' tab, we need to check customer_assignments or assigned_to field
-        // Since we don't have assigned_to in profiles yet, show all for now
-        // TODO: Filter by assigned_to once migration is run
+        // For 'my' tab, show customers assigned to current user
+        query = query.eq('assigned_to', authUser.id)
       } else if (activeTab === 'team' && teamMemberIds.length > 0) {
         // For 'team' tab, filter by team member IDs
-        // TODO: Filter by assigned_to in teamMemberIds once migration is run
+        query = query.in('assigned_to', teamMemberIds)
       }
       // 'all' tab: no filter (admin sees everything)
 
@@ -212,12 +210,16 @@ export default function CustomersScreen() {
       console.log('Customers loaded:', customersData?.length)
       console.log('Sample customer:', customersData?.[0])
 
-      // Map profiles to customer format
-      const mappedCustomers = (customersData || []).map(p => ({
-        id: p.id,
-        name: p.full_name || 'No Name',
-        code: p.id.substring(0, 8), // Use first 8 chars of ID as code
-        phone: p.phone || '',
+      // Map customers to display format
+      const mappedCustomers = (customersData || []).map(c => ({
+        id: c.id,
+        name: c.full_name || 'No Name',
+        code: c.id.substring(0, 8), // Use first 8 chars of ID as code
+        phone: c.phone || '',
+        email: c.email || '',
+        company: c.company || '',
+        assigned_to: c.assigned_to,
+        assigned_sale: c.assigned_sale,
         address: p.address || '',
         email: p.email || '',
         created_at: p.created_at,

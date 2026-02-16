@@ -153,7 +153,7 @@ export default function SellingScreen() {
       const { data: { user: authUser } } = await supabase.auth.getUser()
       
       if (!authUser) {
-        router.replace('/(auth)/customer-login')
+        router.replace('/(auth)/login')
         return
       }
 
@@ -165,7 +165,7 @@ export default function SellingScreen() {
         .single()
 
       if (!profileData || profileData.role !== 'customer') {
-        router.replace('/(auth)/customer-login')
+        router.replace('/(auth)/login')
         return
       }
 

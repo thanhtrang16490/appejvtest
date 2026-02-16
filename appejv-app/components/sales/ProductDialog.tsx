@@ -58,8 +58,28 @@ export function ProductDialog({ product, isOpen, onOpenChange, onSuccess }: Prod
     useEffect(() => {
         if (isOpen) {
             fetchCategories()
+            // Reset form data when opening dialog
+            if (product) {
+                setFormData(product)
+                setImagePreview(product.image_url || null)
+            } else {
+                setFormData({
+                    name: '',
+                    code: '',
+                    price: 0,
+                    stock: 0,
+                    unit: 'Cái',
+                    category: 'Chung',
+                    category_id: undefined,
+                    description: '',
+                    specifications: '',
+                    image_url: ''
+                })
+                setImagePreview(null)
+            }
+            setImagePath(null)
         }
-    }, [isOpen])
+    }, [isOpen, product])
 
     const fetchCategories = async () => {
         try {
@@ -162,6 +182,9 @@ export function ProductDialog({ product, isOpen, onOpenChange, onSuccess }: Prod
                 price: Number(formData.price),
                 stock: Number(formData.stock)
             }
+
+            console.log('Submitting product data:', dataToSubmit)
+            console.log('Image URL:', dataToSubmit.image_url)
 
             const result = isEdit
                 ? await updateProduct(product.id!, dataToSubmit)

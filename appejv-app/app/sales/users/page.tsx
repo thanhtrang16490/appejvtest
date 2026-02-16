@@ -19,6 +19,7 @@ const RoleBadge = ({ role }: { role: string }) => {
         case 'admin': return <Badge variant="default" className="bg-rose-500 hover:bg-rose-600">Admin</Badge>
         case 'sale_admin': return <Badge variant="secondary" className="bg-amber-500 text-white hover:bg-amber-600">Sale Admin</Badge>
         case 'sale': return <Badge variant="secondary" className="bg-indigo-500 text-white hover:bg-indigo-600">Sale</Badge>
+        case 'warehouse': return <Badge variant="secondary" className="bg-orange-500 text-white hover:bg-orange-600">Kho</Badge>
         default: return <Badge variant="outline">Customer</Badge>
     }
 }

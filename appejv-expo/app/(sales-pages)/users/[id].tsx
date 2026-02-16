@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet, Image, Alert, TextInput } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useAuth } from '../../../../src/contexts/AuthContext'
-import { supabase } from '../../../../src/lib/supabase'
+import { useAuth } from '../../../src/contexts/AuthContext'
+import { supabase } from '../../../src/lib/supabase'
 import { Ionicons } from '@expo/vector-icons'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 
@@ -14,6 +14,8 @@ const getRoleBadge = (role: string) => {
       return { label: 'Sale Admin', color: '#f59e0b', bg: '#fef3c7', icon: 'shield-checkmark' }
     case 'sale':
       return { label: 'Sale', color: '#6366f1', bg: '#e0e7ff', icon: 'person' }
+    case 'warehouse':
+      return { label: 'Kho', color: '#f59e0b', bg: '#fef3c7', icon: 'cube' }
     default:
       return { label: 'Customer', color: '#6b7280', bg: '#f3f4f6', icon: 'person-outline' }
   }
@@ -30,10 +32,11 @@ export default function UserDetailScreen() {
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
   const [editedData, setEditedData] = useState({
+    email: '',
     full_name: '',
     phone: '',
     address: '',
-    role: 'sale' as 'sale' | 'sale_admin' | 'admin' | 'customer',
+    role: 'sale' as 'sale' | 'sale_admin' | 'admin' | 'customer' | 'warehouse',
   })
 
   useEffect(() => {
@@ -83,6 +86,7 @@ export default function UserDetailScreen() {
 
       setUserProfile(userProfileData)
       setEditedData({
+        email: userProfileData.email || '',
         full_name: userProfileData.full_name || '',
         phone: userProfileData.phone || '',
         address: userProfileData.address || '',
@@ -116,9 +120,17 @@ export default function UserDetailScreen() {
 
   const handleSave = async () => {
     try {
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(editedData.email)) {
+        Alert.alert('Lỗi', 'Email không hợp lệ')
+        return
+      }
+
       const { error } = await supabase
         .from('profiles')
         .update({
+          email: editedData.email,
           full_name: editedData.full_name,
           phone: editedData.phone,
           address: editedData.address,
@@ -243,6 +255,16 @@ export default function UserDetailScreen() {
           <View style={styles.profileBody}>
             {editing ? (
               <>
+                <Text style={styles.inputLabel}>Email</Text>
+                <TextInput
+                  style={styles.input}
+                  value={editedData.email}
+                  onChangeText={(text) => setEditedData({ ...editedData, email: text })}
+                  placeholder="Nhập email"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                />
+                
                 <Text style={styles.inputLabel}>Họ và tên</Text>
                 <TextInput
                   style={styles.input}
@@ -314,6 +336,21 @@ export default function UserDetailScreen() {
                       editedData.role === 'sale_admin' && styles.roleButtonTextActive
                     ]}>
                       Sale Admin
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[
+                      styles.roleButton,
+                      editedData.role === 'warehouse' && styles.roleButtonActiveOrange
+                    ]}
+                    onPress={() => setEditedData({ ...editedData, role: 'warehouse' })}
+                  >
+                    <Text style={[
+                      styles.roleButtonText,
+                      editedData.role === 'warehouse' && styles.roleButtonTextActive
+                    ]}>
+                      Kho
                     </Text>
                   </TouchableOpacity>
 

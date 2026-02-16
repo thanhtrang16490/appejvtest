@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet, RefreshControl } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { supabase } from '../../../../src/lib/supabase'
+import { supabase } from '../../../src/lib/supabase'
 import { Ionicons } from '@expo/vector-icons'
-import AppHeader from '../../../../src/components/AppHeader'
+import AppHeader from '../../../src/components/AppHeader'
 
 export default function TeamMemberDetailScreen() {
   const { id } = useLocalSearchParams()

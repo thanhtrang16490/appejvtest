@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, Alert } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { supabase } from '../../../../src/lib/supabase'
+import { supabase } from '../../../src/lib/supabase'
 import { Ionicons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
-import SuccessModal from '../../../../src/components/SuccessModal'
+import SuccessModal from '../../../src/components/SuccessModal'
 
 export default function AddProductScreen() {
   const router = useRouter()

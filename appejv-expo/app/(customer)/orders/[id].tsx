@@ -50,7 +50,7 @@ export default function OrderDetailScreen() {
       const { data: { user: authUser } } = await supabase.auth.getUser()
 
       if (!authUser) {
-        router.replace('/(auth)/customer-login')
+        router.replace('/(auth)/login')
         return
       }
 

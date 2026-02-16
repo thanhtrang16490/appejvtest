@@ -185,21 +185,19 @@ export default function CustomersScreen() {
 
       setProfile(profileData)
 
-      // Fetch customers from profiles with role='customer'
+      // Fetch customers from customers table
       let query = supabase
-        .from('profiles')
-        .select('*')
-        .eq('role', 'customer')
+        .from('customers')
+        .select('*, assigned_sale:profiles!customers_assigned_to_fkey(full_name, role)')
         .order('full_name', { ascending: true, nullsFirst: false })
 
       // Filter based on active tab
       if (activeTab === 'my') {
-        // For 'my' tab, we need to check customer_assignments or assigned_to field
-        // Since we don't have assigned_to in profiles yet, show all for now
-        // TODO: Filter by assigned_to once migration is run
+        // For 'my' tab, show customers assigned to current user
+        query = query.eq('assigned_to', authUser.id)
       } else if (activeTab === 'team' && teamMemberIds.length > 0) {
         // For 'team' tab, filter by team member IDs
-        // TODO: Filter by assigned_to in teamMemberIds once migration is run
+        query = query.in('assigned_to', teamMemberIds)
       }
       // 'all' tab: no filter (admin sees everything)
 

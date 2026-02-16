@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet, Image, RefreshControl, Alert, Modal, TextInput } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useAuth } from '../../../../src/contexts/AuthContext'
-import { supabase } from '../../../../src/lib/supabase'
+import { useAuth } from '../../../src/contexts/AuthContext'
+import { supabase } from '../../../src/lib/supabase'
 import { Ionicons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 
@@ -14,6 +14,8 @@ const getRoleBadge = (role: string) => {
       return { label: 'Sale Admin', color: '#f59e0b', bg: '#fef3c7' }
     case 'sale':
       return { label: 'Sale', color: '#6366f1', bg: '#e0e7ff' }
+    case 'warehouse':
+      return { label: 'Kho', color: '#f59e0b', bg: '#fef3c7' }
     default:
       return { label: 'Customer', color: '#6b7280', bg: '#f3f4f6' }
   }
@@ -32,7 +34,7 @@ export default function UsersScreen() {
     password: '',
     full_name: '',
     phone: '',
-    role: 'sale' as 'sale' | 'sale_admin' | 'admin' | 'customer',
+    role: 'sale' as 'sale' | 'sale_admin' | 'admin' | 'customer' | 'warehouse',
   })
   const [creating, setCreating] = useState(false)
 
@@ -454,6 +456,22 @@ export default function UsersScreen() {
                       newUser.role === 'sale_admin' && styles.roleButtonTextActive
                     ]}>
                       Sale Admin
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[
+                      styles.roleButton,
+                      newUser.role === 'warehouse' && styles.roleButtonActiveOrange
+                    ]}
+                    onPress={() => setNewUser({ ...newUser, role: 'warehouse' })}
+                    disabled={creating}
+                  >
+                    <Text style={[
+                      styles.roleButtonText,
+                      newUser.role === 'warehouse' && styles.roleButtonTextActive
+                    ]}>
+                      Kho
                     </Text>
                   </TouchableOpacity>
 

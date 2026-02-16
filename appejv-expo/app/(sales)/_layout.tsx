@@ -1,10 +1,8 @@
 import { Tabs, usePathname } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { Animated } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { useAuth } from '../../src/contexts/AuthContext'
-import { hasTeamFeatures } from '../../src/lib/feature-flags'
 
 // Create a global event emitter for scroll events
 let scrollListeners: ((visible: boolean) => void)[] = []
@@ -22,21 +20,8 @@ export const subscribeToScroll = (listener: (visible: boolean) => void) => {
 
 export default function SalesLayout() {
   const pathname = usePathname()
-  const { user } = useAuth()
-  const [profile, setProfile] = useState<any>(null)
   const translateY = useRef(new Animated.Value(0)).current
   const insets = useSafeAreaInsets()
-
-  // Fetch user profile to check role
-  useEffect(() => {
-    const fetchProfile = async () => {
-      if (user) {
-        // Profile is already in user object from AuthContext
-        setProfile(user)
-      }
-    }
-    fetchProfile()
-  }, [user])
 
   // Hide bottom nav on selling page
   const shouldHideTabBar = pathname.includes('/selling')
@@ -167,12 +152,6 @@ export default function SalesLayout() {
         }}
       />
       {/* Hidden pages - not shown in bottom nav */}
-      <Tabs.Screen
-        name="team"
-        options={{
-          href: null,
-        }}
-      />
       <Tabs.Screen
         name="inventory"
         options={{

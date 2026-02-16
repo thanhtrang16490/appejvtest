@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet, Image, RefreshControl, Alert } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useAuth } from '../../../../src/contexts/AuthContext'
-import { supabase } from '../../../../src/lib/supabase'
+import { useAuth } from '../../../src/contexts/AuthContext'
+import { supabase } from '../../../src/lib/supabase'
 import { Ionicons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
-import { hasTeamFeatures } from '../../../../src/lib/feature-flags'
-import AppHeader from '../../../../src/components/AppHeader'
+import { hasTeamFeatures } from '../../../src/lib/feature-flags'
+import AppHeader from '../../../src/components/AppHeader'
 
 export default function TeamManagementScreen() {
   const { user } = useAuth()

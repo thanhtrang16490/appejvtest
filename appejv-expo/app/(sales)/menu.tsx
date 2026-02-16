@@ -81,6 +81,18 @@ export default function MenuScreen() {
     },
   ]
 
+  // Add customer assignment for sale_admin and admin
+  if (isSaleAdmin || isAdmin) {
+    menuItems.push({
+      title: 'Gán khách hàng',
+      description: 'Phân công khách hàng cho nhân viên',
+      icon: 'person-add',
+      color: '#10b981',
+      bg: '#d1fae5',
+      onPress: () => router.push('/(sales)/customers/assign'),
+    })
+  }
+
   const adminMenuItems = []
 
   if (isAdmin || isSaleAdmin) {

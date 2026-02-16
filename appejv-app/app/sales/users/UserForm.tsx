@@ -62,6 +62,7 @@ export function UserForm({ onSuccess, saleAdmins }: { onSuccess: () => void, sal
                     <option value="customer">Khách hàng</option>
                     <option value="sale">Nhân viên Sale</option>
                     <option value="sale_admin">Sale Admin (Quản lý)</option>
+                    <option value="warehouse">Nhân viên Kho</option>
                     <option value="admin">Quản trị viên (Admin)</option>
                 </select>
             </div>

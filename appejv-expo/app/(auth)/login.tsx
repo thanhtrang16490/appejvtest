@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { View, Text, TextInput, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, ScrollView, Image, StyleSheet } from 'react-native'
 import { useRouter } from 'expo-router'
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import { Ionicons } from '@expo/vector-icons'
 import { useAuth } from '../../src/contexts/AuthContext'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
@@ -8,8 +10,37 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [rememberMe, setRememberMe] = useState(true)
+  const [hasRememberedEmail, setHasRememberedEmail] = useState(false)
   const { signIn } = useAuth()
   const router = useRouter()
+
+  useEffect(() => {
+    loadRememberedEmail()
+  }, [])
+
+  const loadRememberedEmail = async () => {
+    try {
+      const savedEmail = await AsyncStorage.getItem('rememberedEmail')
+      if (savedEmail) {
+        setEmail(savedEmail)
+        setHasRememberedEmail(true)
+      }
+    } catch (error) {
+      console.error('Error loading email:', error)
+    }
+  }
+
+  const clearRememberedEmail = async () => {
+    try {
+      await AsyncStorage.removeItem('rememberedEmail')
+      setEmail('')
+      setHasRememberedEmail(false)
+      Alert.alert('Thành công', 'Đã xóa tài khoản đã lưu')
+    } catch (error) {
+      console.error('Error clearing email:', error)
+    }
+  }
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -24,6 +55,17 @@ export default function LoginScreen() {
     if (result.error) {
       Alert.alert('Lỗi đăng nhập', result.error)
       return
+    }
+
+    // Save or remove email based on rememberMe checkbox
+    try {
+      if (rememberMe) {
+        await AsyncStorage.setItem('rememberedEmail', email)
+      } else {
+        await AsyncStorage.removeItem('rememberedEmail')
+      }
+    } catch (error) {
+      console.error('Error saving remember preference:', error)
     }
 
     // Redirect based on role
@@ -57,15 +99,30 @@ export default function LoginScreen() {
             <View style={styles.form}>
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Email</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="email@example.com"
-                  value={email}
-                  onChangeText={setEmail}
-                  autoCapitalize="none"
-                  keyboardType="email-address"
-                  editable={!loading}
-                />
+                <View style={styles.inputWithButton}>
+                  <TextInput
+                    style={[styles.input, hasRememberedEmail && styles.inputWithClear]}
+                    placeholder="email@example.com"
+                    value={email}
+                    onChangeText={setEmail}
+                    autoCapitalize="none"
+                    keyboardType="email-address"
+                    editable={!loading}
+                  />
+                  {hasRememberedEmail && (
+                    <TouchableOpacity
+                      style={styles.clearButton}
+                      onPress={clearRememberedEmail}
+                    >
+                      <Ionicons name="close-circle" size={20} color="#9ca3af" />
+                    </TouchableOpacity>
+                  )}
+                </View>
+                {hasRememberedEmail && (
+                  <Text style={styles.rememberedText}>
+                    <Ionicons name="checkmark-circle" size={14} color="#10b981" /> Tài khoản đã lưu
+                  </Text>
+                )}
               </View>
 
               <View style={styles.inputGroup}>
@@ -79,6 +136,17 @@ export default function LoginScreen() {
                   editable={!loading}
                 />
               </View>
+
+              <TouchableOpacity
+                style={styles.rememberMeContainer}
+                onPress={() => setRememberMe(!rememberMe)}
+                disabled={loading}
+              >
+                <View style={[styles.checkbox, rememberMe && styles.checkboxChecked]}>
+                  {rememberMe && <Ionicons name="checkmark" size={16} color="white" />}
+                </View>
+                <Text style={styles.rememberMeText}>Ghi nhớ tài khoản</Text>
+              </TouchableOpacity>
 
               <TouchableOpacity
                 style={[styles.button, loading && styles.buttonDisabled]}
@@ -166,6 +234,45 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 16,
+  },
+  inputWithButton: {
+    position: 'relative',
+  },
+  inputWithClear: {
+    paddingRight: 40,
+  },
+  clearButton: {
+    position: 'absolute',
+    right: 12,
+    top: 12,
+  },
+  rememberedText: {
+    fontSize: 12,
+    color: '#10b981',
+    marginTop: 4,
+  },
+  rememberMeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderWidth: 2,
+    borderColor: '#d1d5db',
+    borderRadius: 4,
+    marginRight: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  checkboxChecked: {
+    backgroundColor: '#175ead',
+    borderColor: '#175ead',
+  },
+  rememberMeText: {
+    fontSize: 14,
+    color: '#374151',
   },
   button: {
     backgroundColor: '#175ead',

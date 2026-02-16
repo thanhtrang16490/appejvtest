@@ -56,15 +56,19 @@ export default function ProductDetailPage() {
 
             setProfile(profileData)
 
-            // Fetch product
+            // Fetch product with cache busting
             const { data: productData } = await supabase
                 .from('products')
                 .select('*')
                 .eq('id', id)
-                .is('deleted_at', null) // Filter out soft-deleted products
+                .is('deleted_at', null)
                 .single()
 
-            setProduct(productData)
+            // Force update state to trigger re-render
+            setProduct(null)
+            setTimeout(() => {
+                setProduct(productData)
+            }, 0)
         } catch (error) {
             console.error('Error fetching data:', error)
         } finally {
@@ -150,10 +154,12 @@ export default function ProductDetailPage() {
                             <div className="relative aspect-square bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl overflow-hidden">
                                 {product.image_url ? (
                                     <Image
-                                        src={product.image_url}
+                                        src={`${product.image_url}?t=${Date.now()}`}
                                         alt={product.name}
                                         fill
                                         className="object-cover"
+                                        unoptimized
+                                        key={product.image_url}
                                     />
                                 ) : (
                                     <div className="absolute inset-0 flex items-center justify-center">

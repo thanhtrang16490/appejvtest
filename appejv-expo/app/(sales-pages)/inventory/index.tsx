@@ -1,13 +1,13 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet, RefreshControl, TextInput, NativeScrollEvent, NativeSyntheticEvent } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useAuth } from '../../../../src/contexts/AuthContext'
-import { supabase } from '../../../../src/lib/supabase'
+import { useAuth } from '../../../src/contexts/AuthContext'
+import { supabase } from '../../../src/lib/supabase'
 import { Ionicons } from '@expo/vector-icons'
 import { useRouter, useFocusEffect } from 'expo-router'
 import { emitScrollVisibility } from '../../(sales)/_layout'
-import { useTabBarHeight } from '../../../../src/hooks/useTabBarHeight'
-import AppHeader from '../../../../src/components/AppHeader'
+import { useTabBarHeight } from '../../../src/hooks/useTabBarHeight'
+import AppHeader from '../../../src/components/AppHeader'
 
 export default function InventoryScreen() {
   const { user } = useAuth()
