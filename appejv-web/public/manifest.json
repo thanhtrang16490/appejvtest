@@ -1,12 +1,43 @@
 {
-  "name": "APPE JV",
+  "name": "APPE JV Việt Nam - Thức ăn chăn nuôi chất lượng cao",
   "short_name": "APPE JV",
-  "description": "Thức ăn chăn nuôi và thủy sản chất lượng cao",
+  "description": "Công ty Cổ phần APPE JV Việt Nam chuyên sản xuất và cung cấp thức ăn chăn nuôi chất lượng cao cho heo, gia cầm và thủy sản. Thành lập từ 2008, ứng dụng công nghệ tiên tiến.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
   "background_color": "#ffffff",
   "theme_color": "#175ead",
   "orientation": "portrait-primary",
+  "dir": "ltr",
+  "lang": "vi",
+  "categories": ["business", "productivity", "agriculture"],
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Sản phẩm",
+      "short_name": "Sản phẩm",
+      "description": "Xem danh mục sản phẩm",
+      "url": "/san-pham",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Liên hệ",
+      "short_name": "Liên hệ",
+      "description": "Liên hệ với chúng tôi",
+      "url": "/lien-he",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/og-image.png",
+      "sizes": "1200x630",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "APPE JV Homepage"
+    }
+  ],
   "icons": [
     {
       "src": "/icon-192.png",
@@ -39,9 +70,16 @@
       "purpose": "any"
     }
   ],
-  "categories": ["business", "productivity"],
-  "lang": "vi",
-  "dir": "ltr",
-  "scope": "/",
-  "prefer_related_applications": false
+  "related_applications": [],
+  "iarc_rating_id": "",
+  "share_target": {
+    "action": "/lien-he",
+    "method": "GET",
+    "enctype": "application/x-www-form-urlencoded",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  }
 }

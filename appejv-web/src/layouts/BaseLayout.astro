@@ -27,7 +27,7 @@ const {
     'Hà Nam',
     'thức ăn chất lượng cao'
   ],
-  ogImage = '/appejv-logo.png',
+  ogImage = '/og-image.png',
   canonical
 } = Astro.props
 
@@ -123,6 +123,44 @@ const websiteSchema = {
     <meta property="zalo:description" content={description} />
     <meta property="zalo:image" content={ogImageUrl} />
     <meta property="zalo:url" content={fullUrl} />
+    <meta property="zalo:app_id" content="YOUR_ZALO_APP_ID" />
+    
+    <!-- Additional SEO Meta Tags -->
+    <meta name="geo.region" content="VN-63" />
+    <meta name="geo.placename" content="Hà Nam" />
+    <meta name="geo.position" content="20.5385;105.9189" />
+    <meta name="ICBM" content="20.5385, 105.9189" />
+    <meta name="language" content="Vietnamese" />
+    <meta name="revisit-after" content="7 days" />
+    <meta name="rating" content="general" />
+    <meta name="distribution" content="global" />
+    <meta name="coverage" content="Worldwide" />
+    <meta name="target" content="all" />
+    <meta name="audience" content="all" />
+    <meta name="classification" content="Business" />
+    <meta name="category" content="Agriculture, Animal Feed, Aquaculture" />
+    <meta name="subject" content="Thức ăn chăn nuôi và thủy sản" />
+    <meta name="copyright" content="APPE JV Việt Nam" />
+    <meta name="owner" content="APPE JV Việt Nam" />
+    <meta name="reply-to" content="info@appe.com.vn" />
+    <meta name="url" content={fullUrl} />
+    <meta name="identifier-URL" content={fullUrl} />
+    <meta name="directory" content="submission" />
+    <meta name="pagename" content={title} />
+    <meta name="page-topic" content="Animal Feed, Livestock Nutrition, Aquaculture Feed" />
+    <meta name="page-type" content="Business Website" />
+    
+    <!-- Facebook Domain Verification -->
+    <meta name="facebook-domain-verification" content="YOUR_FB_DOMAIN_VERIFICATION" />
+    
+    <!-- Google Site Verification -->
+    <meta name="google-site-verification" content="YOUR_GOOGLE_VERIFICATION_CODE" />
+    
+    <!-- Bing Webmaster -->
+    <meta name="msvalidate.01" content="YOUR_BING_VERIFICATION_CODE" />
+    
+    <!-- Yandex Verification -->
+    <meta name="yandex-verification" content="YOUR_YANDEX_VERIFICATION_CODE" />
     
     <!-- Theme & Mobile -->
     <meta name="theme-color" content="#175ead" />
@@ -161,6 +199,63 @@ const websiteSchema = {
     <!-- Preconnect to external domains -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://www.google-analytics.com" />
+    <link rel="preconnect" href="https://www.googletagmanager.com" />
+    <link rel="dns-prefetch" href="https://connect.facebook.net" />
+    <link rel="dns-prefetch" href="https://sp.zalo.me" />
+    
+    <!-- Google Analytics 4 -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script is:inline>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-XXXXXXXXXX', {
+        page_path: window.location.pathname,
+        send_page_view: true
+      });
+    </script>
+    
+    <!-- Facebook Pixel -->
+    <script is:inline>
+      !function(f,b,e,v,n,t,s)
+      {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+      n.queue=[];t=b.createElement(e);t.async=!0;
+      t.src=v;s=b.getElementsByTagName(e)[0];
+      s.parentNode.insertBefore(t,s)}(window, document,'script',
+      'https://connect.facebook.net/en_US/fbevents.js');
+      fbq('init', 'YOUR_FACEBOOK_PIXEL_ID');
+      fbq('track', 'PageView');
+    </script>
+    <noscript>
+      <img height="1" width="1" style="display:none"
+        src="https://www.facebook.com/tr?id=YOUR_FACEBOOK_PIXEL_ID&ev=PageView&noscript=1"
+      />
+    </noscript>
+    
+    <!-- Zalo Tracking -->
+    <script is:inline>
+      (function(z,a,l,o){
+        z[o]=z[o]||function(){(z[o].q=z[o].q||[]).push(arguments)};
+        var d=a.createElement(l),s=a.getElementsByTagName(l)[0];
+        d.async=1;d.src='https://sp.zalo.me/plugins/sdk.js';
+        s.parentNode.insertBefore(d,s);
+      })(window,document,'script','ZaloSocialSDK');
+    </script>
+    
+    <!-- Hotjar Tracking (Optional) -->
+    <script is:inline>
+      (function(h,o,t,j,a,r){
+        h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};
+        h._hjSettings={hjid:YOUR_HOTJAR_ID,hjsv:6};
+        a=o.getElementsByTagName('head')[0];
+        r=o.createElement('script');r.async=1;
+        r.src=t+h._hjSettings.hjid+j+h._hjSettings.hjsv;
+        a.appendChild(r);
+      })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
+    </script>
   </head>
   <body class="bg-white min-h-screen">
     <!-- Header - Apple Style -->
