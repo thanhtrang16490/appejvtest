@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro'
-import { getProducts, getCategories } from '../../lib/api'
+import FloatingContactButtons from '../../components/FloatingContactButtons.astro'
+import { getProducts, getCategories } from '../../lib/supabase'
 
 const seoTitle = "Sản phẩm - APPE JV | Thức ăn heo, gia cầm, thủy sản"
 const seoDescription = "Danh mục sản phẩm thức ăn chăn nuôi APPE JV: Pig Feed (thức ăn heo), Poultry Feed (gia cầm), Fish Feed (thủy sản). Chất lượng cao, dinh dưỡng tối ưu, công nghệ tiên tiến."
@@ -21,19 +22,28 @@ const url = new URL(Astro.request.url)
 const categoryFilter = url.searchParams.get('category') || 'all'
 const searchQuery = url.searchParams.get('search') || ''
 
-// Fetch data from API
+// Fetch data from Supabase
 const allProducts = await getProducts()
 const apiCategories = await getCategories()
+
 const categories = [
   { id: 'all', name: 'Tất cả', icon: '🏭' },
   ...apiCategories
 ]
 
+// Count products per category
+const categoriesWithCount = categories.map(cat => {
+  const count = cat.id === 'all' 
+    ? allProducts.length 
+    : allProducts.filter(p => p.category_id === cat.id).length
+  return { ...cat, count }
+}).filter(cat => cat.count > 0)
+
 // Filter products
 let filteredProducts = allProducts
 
 if (categoryFilter !== 'all') {
-  filteredProducts = filteredProducts.filter(p => p.category === categoryFilter)
+  filteredProducts = filteredProducts.filter(p => p.category_id === categoryFilter)
 }
 
 if (searchQuery) {
@@ -42,13 +52,8 @@ if (searchQuery) {
   )
 }
 
-// Pagination
-const page = parseInt(url.searchParams.get('page') || '1')
-const perPage = 12
-const totalPages = Math.ceil(filteredProducts.length / perPage)
-const startIndex = (page - 1) * perPage
-const endIndex = startIndex + perPage
-const paginatedProducts = filteredProducts.slice(startIndex, endIndex)
+// Initial load: show first 12 products
+const initialProducts = filteredProducts.slice(0, 12)
 
 function formatPrice(price: number): string {
   return new Intl.NumberFormat('vi-VN').format(price)
@@ -61,178 +66,1120 @@ function formatPrice(price: number): string {
   keywords={seoKeywords}
   canonical="/san-pham"
 >
-  <div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+  <div class="min-h-screen bg-white">
     
-    <!-- Hero Section -->
-    <div class="bg-gradient-to-r from-[#175ead] to-[#2575be] text-white py-12 md:py-16">
-      <div class="container mx-auto px-4">
-        <div class="max-w-3xl mx-auto text-center">
-          <h1 class="text-3xl md:text-5xl font-bold mb-4">
-            Danh Mục Sản Phẩm
+    <!-- Hero Section - Apple Style -->
+    <section class="relative min-h-[70vh] flex items-center overflow-hidden bg-black">
+      <!-- Gradient Background -->
+      <div class="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/60"></div>
+      
+      <!-- Animated Gradient Mesh -->
+      <div class="absolute inset-0 opacity-30">
+        <div class="absolute top-0 left-1/4 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl animate-blob"></div>
+        <div class="absolute top-0 right-1/4 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000"></div>
+        <div class="absolute bottom-0 left-1/2 w-96 h-96 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-4000"></div>
+      </div>
+      
+      <div class="container mx-auto px-4 relative z-10">
+        <div class="max-w-4xl mx-auto text-center">
+          <!-- Animated Title -->
+          <h1 class="text-6xl md:text-7xl font-semibold text-white mb-6 tracking-tight">
+            <span class="block opacity-0 animate-fade-in">Dinh dưỡng</span>
+            <span class="block opacity-0 animate-fade-in animation-delay-200">chuyên nghiệp</span>
+            <span class="block text-gray-400 text-4xl md:text-5xl opacity-0 animate-fade-in animation-delay-400 font-light">
+              cho mọi giai đoạn phát triển
+            </span>
           </h1>
-          <p class="text-lg md:text-xl text-blue-100 mb-8">
-            Thức ăn chăn nuôi và thủy sản chất lượng cao từ APPE JV
+          
+          <!-- Subtitle -->
+          <p class="text-xl text-gray-300 mb-12 font-light opacity-0 animate-fade-in animation-delay-600">
+            Khám phá dòng sản phẩm được tin dùng bởi hàng nghìn trang trại
           </p>
           
-          <!-- Search Bar -->
-          <form method="get" class="relative max-w-2xl mx-auto">
-            <svg class="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input
-              type="search"
-              name="search"
-              placeholder="Tìm kiếm sản phẩm..."
-              value={searchQuery}
-              class="w-full pl-12 pr-4 py-4 rounded-full text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white shadow-lg"
-            />
-            <input type="hidden" name="category" value={categoryFilter} />
-          </form>
+          <!-- Search Bar - Apple Style -->
+          <div class="max-w-2xl mx-auto opacity-0 animate-fade-in animation-delay-800">
+            <form method="get" class="relative group">
+              <svg class="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input
+                type="search"
+                name="search"
+                id="product-search"
+                placeholder="Tìm kiếm sản phẩm..."
+                value={searchQuery}
+                class="w-full pl-14 pr-6 py-5 bg-white/10 backdrop-blur-xl border border-white/20 rounded-full text-white placeholder-gray-400 focus:outline-none focus:bg-white/20 focus:border-white/40 transition-all text-lg"
+                autocomplete="off"
+              />
+              <input type="hidden" name="category" value={categoryFilter} />
+            </form>
+          </div>
+          
+          <!-- Quick Stats -->
+          <div class="flex justify-center gap-12 mt-16 opacity-0 animate-fade-in animation-delay-1000">
+            <div class="text-center">
+              <div class="text-4xl font-bold text-white mb-1">{allProducts.length}+</div>
+              <div class="text-sm text-gray-400">Sản phẩm</div>
+            </div>
+            <div class="text-center">
+              <div class="text-4xl font-bold text-white mb-1">1500+</div>
+              <div class="text-sm text-gray-400">Khách hàng</div>
+            </div>
+            <div class="text-center">
+              <div class="text-4xl font-bold text-white mb-1">4.9</div>
+              <div class="text-sm text-gray-400">Đánh giá</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Scroll Indicator -->
+      <div class="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
+        <svg class="w-6 h-6 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+        </svg>
+      </div>
+    </section>
+
+    <!-- Filter Bar - Apple Style -->
+    <div class="sticky top-16 z-40 bg-white/80 backdrop-blur-2xl border-b border-gray-200/50 shadow-sm transition-all duration-300" id="filter-bar">
+      <div class="container mx-auto px-4">
+        <!-- Main Filter Row -->
+        <div class="flex items-center justify-between py-4">
+          <!-- Category Pills -->
+          <div class="flex-1 flex items-center gap-2 overflow-x-auto scrollbar-hide">
+            {categoriesWithCount.map((cat) => (
+              <a
+                href={`/san-pham?category=${cat.id}${searchQuery ? `&search=${searchQuery}` : ''}`}
+                class={`filter-pill ${categoryFilter === cat.id ? 'active' : ''}`}
+              >
+                <span class="icon">{cat.icon}</span>
+                <span>{cat.name}</span>
+                <span class="count">{cat.count}</span>
+              </a>
+            ))}
+          </div>
+          
+          <!-- Filter Actions -->
+          <div class="flex items-center gap-3 ml-4">
+            <!-- Sort Dropdown -->
+            <div class="relative">
+              <button class="filter-action" id="sort-btn">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
+                </svg>
+                <span>Sắp xếp</span>
+              </button>
+              <!-- Dropdown Menu -->
+              <div class="dropdown-menu hidden absolute top-full right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden z-50">
+                <button class="dropdown-item" data-sort="newest">Mới nhất</button>
+                <button class="dropdown-item" data-sort="price-asc">Giá thấp → cao</button>
+                <button class="dropdown-item" data-sort="price-desc">Giá cao → thấp</button>
+                <button class="dropdown-item" data-sort="popular">Phổ biến nhất</button>
+              </div>
+            </div>
+            
+            <!-- Filter Button -->
+            <button class="filter-action" id="filter-btn">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+              </svg>
+              <span>Lọc</span>
+            </button>
+            
+            <!-- View Toggle -->
+            <div class="view-toggle">
+              <button class="view-btn active" data-view="grid">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                </svg>
+              </button>
+              <button class="view-btn" data-view="list">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Category Filter -->
-    <div class="sticky top-16 z-40 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-sm">
-      <div class="container mx-auto px-4 py-4">
-        <div class="flex gap-2 overflow-x-auto scrollbar-hide">
-          {categories.map((cat) => (
-            <a
-              href={`/san-pham?category=${cat.id}`}
-              class={`flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap transition-all ${
-                categoryFilter === cat.id
-                  ? 'bg-gradient-to-r from-[#175ead] to-[#2575be] text-white shadow-lg'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              <span class="text-xl">{cat.icon}</span>
-              <span class="font-medium">{cat.name}</span>
-            </a>
-          ))}
+    <!-- Filter Sidebar - Slide-in from right -->
+    <div id="filter-sidebar" class="fixed inset-y-0 right-0 w-96 bg-white shadow-2xl transform translate-x-full transition-transform duration-300 z-50">
+      <div class="h-full flex flex-col">
+        <!-- Header -->
+        <div class="flex items-center justify-between p-6 border-b border-gray-200">
+          <h3 class="text-xl font-semibold">Bộ lọc</h3>
+          <button id="close-filter" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        
+        <!-- Filter Content -->
+        <div class="flex-1 overflow-y-auto p-6 space-y-8">
+          <!-- Price Range -->
+          <div class="filter-group">
+            <h4 class="text-sm font-semibold text-gray-900 mb-4">Khoảng giá</h4>
+            <div class="space-y-4">
+              <div class="relative">
+                <input 
+                  type="range" 
+                  id="price-min" 
+                  min="0" 
+                  max="1000000" 
+                  step="10000"
+                  value="0"
+                  class="range-slider w-full"
+                />
+                <input 
+                  type="range" 
+                  id="price-max" 
+                  min="0" 
+                  max="1000000" 
+                  step="10000"
+                  value="1000000"
+                  class="range-slider w-full"
+                />
+              </div>
+              <div class="flex items-center justify-between text-sm">
+                <span id="price-min-display" class="font-mono">0đ</span>
+                <span class="text-gray-400">—</span>
+                <span id="price-max-display" class="font-mono">1,000,000đ</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Stock Status -->
+          <div class="filter-group">
+            <h4 class="text-sm font-semibold text-gray-900 mb-4">Tình trạng</h4>
+            <div class="space-y-2">
+              <label class="checkbox-label">
+                <input type="checkbox" value="in-stock" checked>
+                <span>Còn hàng</span>
+                <span class="count">({filteredProducts.length})</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" value="pre-order">
+                <span>Đặt trước</span>
+                <span class="count">(0)</span>
+              </label>
+            </div>
+          </div>
+          
+          <!-- Features -->
+          <div class="filter-group">
+            <h4 class="text-sm font-semibold text-gray-900 mb-4">Đặc điểm</h4>
+            <div class="space-y-2">
+              <label class="checkbox-label">
+                <input type="checkbox" value="organic">
+                <span>Hữu cơ</span>
+                <span class="count">(0)</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" value="premium">
+                <span>Cao cấp</span>
+                <span class="count">(0)</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" value="export">
+                <span>Xuất khẩu</span>
+                <span class="count">(0)</span>
+              </label>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Footer Actions -->
+        <div class="p-6 border-t border-gray-200 space-y-3">
+          <button class="w-full bg-black text-white px-8 py-4 rounded-full font-semibold hover:bg-gray-800 transition-all">
+            Áp dụng bộ lọc
+          </button>
+          <button class="w-full bg-gray-100 text-gray-700 px-8 py-4 rounded-full font-semibold hover:bg-gray-200 transition-all">
+            Xóa tất cả
+          </button>
         </div>
       </div>
     </div>
+
+    <!-- Overlay -->
+    <div id="filter-overlay" class="hidden fixed inset-0 bg-black/20 backdrop-blur-sm z-40"></div>
 
     <!-- Products Grid -->
-    <div class="container mx-auto px-4 py-12">
-      {paginatedProducts.length === 0 ? (
-        <div class="text-center py-20">
-          <div class="text-6xl mb-4">🔍</div>
-          <h3 class="text-2xl font-bold text-gray-900 mb-2">Không tìm thấy sản phẩm</h3>
-          <p class="text-gray-600 mb-6">Thử tìm kiếm với từ khóa khác hoặc chọn danh mục khác</p>
-          <a href="/san-pham" class="inline-block bg-gradient-to-r from-[#175ead] to-[#2575be] text-white px-6 py-3 rounded-full font-medium hover:shadow-lg transition-all">
+    <div class="container mx-auto px-4 py-16 bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      {filteredProducts.length === 0 ? (
+        <div class="text-center py-32">
+          <div class="text-8xl mb-6">🔍</div>
+          <h3 class="text-3xl font-semibold text-gray-900 mb-4 tracking-tight">Không tìm thấy sản phẩm</h3>
+          <p class="text-xl text-gray-600 mb-8 font-light">Thử tìm kiếm với từ khóa khác hoặc chọn danh mục khác</p>
+          <a href="/san-pham" class="inline-block bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-4 rounded-full font-semibold hover:shadow-xl hover:scale-105 transition-all">
             Xem tất cả sản phẩm
           </a>
         </div>
       ) : (
         <>
-          <div class="mb-6 text-gray-600">
-            Hiển thị {startIndex + 1}-{Math.min(endIndex, filteredProducts.length)} trong tổng số {filteredProducts.length} sản phẩm
+          <div class="mb-8 text-gray-600 text-lg">
+            <span id="product-count">Hiển thị 1-{Math.min(12, filteredProducts.length)}</span> trong tổng số <span class="font-semibold text-gray-900">{filteredProducts.length}</span> sản phẩm
           </div>
           
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {paginatedProducts.map((product) => (
-              <a
-                href={`/san-pham/${product.slug}`}
-                class="group bg-white rounded-2xl shadow-md hover:shadow-xl transition-all overflow-hidden border-2 border-transparent hover:border-[#2575be]"
-              >
-                <div class="aspect-square bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center p-8">
+          <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            {initialProducts.map((product) => (
+              <div class="product-card group">
+                <!-- Image Container -->
+                <div class="relative aspect-square bg-gray-50 rounded-2xl overflow-hidden mb-4">
                   {product.image_url ? (
                     <img 
                       src={product.image_url} 
                       alt={product.name}
-                      class="w-full h-full object-contain group-hover:scale-110 transition-transform"
+                      class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      loading="lazy"
                     />
                   ) : (
-                    <div class="text-6xl">📦</div>
+                    <div class="w-full h-full flex items-center justify-center text-7xl">📦</div>
                   )}
-                </div>
-                <div class="p-4">
-                  <div class="text-xs font-semibold text-[#175ead] mb-2 uppercase">
-                    {categories.find(c => c.id === product.category)?.name || product.category}
+                  
+                  <!-- Quick Actions Overlay -->
+                  <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div class="absolute bottom-4 left-4 right-4 flex gap-2">
+                      <button class="quick-action flex-1" data-action="quick-view" data-product-id={product.id}>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                        <span>Xem nhanh</span>
+                      </button>
+                      <button class="quick-action" data-action="compare" data-product-id={product.id}>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                      </button>
+                    </div>
                   </div>
-                  <h3 class="font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-[#175ead] transition-colors">
-                    {product.name}
-                  </h3>
+                  
+                  <!-- Badges -->
+                  {product.is_new && (
+                    <div class="absolute top-4 left-4">
+                      <span class="badge badge-new">Mới</span>
+                    </div>
+                  )}
+                  
+                  <!-- Wishlist -->
+                  <button class="absolute top-4 right-4 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:scale-110">
+                    <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                  </button>
+                </div>
+                
+                <!-- Product Info -->
+                <div class="space-y-2">
+                  <!-- Category -->
+                  <div class="text-xs font-semibold text-blue-600 uppercase tracking-wider">
+                    {categoriesWithCount.find(c => c.id === product.category_id)?.name || 'Sản phẩm'}
+                  </div>
+                  
+                  <!-- Name -->
+                  <a href={`/san-pham/${product.slug}`}>
+                    <h3 class="text-lg font-semibold text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                      {product.name}
+                    </h3>
+                  </a>
+                  
+                  <!-- Description -->
                   {product.description && (
-                    <p class="text-sm text-gray-600 mb-3 line-clamp-2">
+                    <p class="text-sm text-gray-600 line-clamp-2 font-light">
                       {product.description}
                     </p>
                   )}
-                  <div class="flex items-baseline gap-2">
-                    <span class="text-2xl font-bold text-[#175ead]">
+                  
+                  <!-- Rating -->
+                  <div class="flex items-center gap-2">
+                    <div class="flex items-center">
+                      <svg class="w-4 h-4 text-yellow-400 fill-current" viewBox="0 0 20 20">
+                        <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                      </svg>
+                      <span class="text-sm font-medium text-gray-900 ml-1">4.9</span>
+                    </div>
+                    <span class="text-sm text-gray-500">(127)</span>
+                  </div>
+                  
+                  <!-- Price -->
+                  <div class="flex items-baseline gap-2 pt-2">
+                    <span class="text-2xl font-bold text-gray-900">
                       {formatPrice(product.price)}đ
                     </span>
-                    <span class="text-sm text-gray-500">/{product.unit}</span>
+                    <span class="text-sm text-gray-500 font-light">/{product.unit}</span>
+                  </div>
+                  
+                  <!-- Stock Status -->
+                  <div class="flex items-center gap-2 text-sm">
+                    <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                    <span class="text-gray-600">Còn hàng</span>
                   </div>
                 </div>
-              </a>
+              </div>
             ))}
           </div>
 
-          <!-- Pagination -->
-          {totalPages > 1 && (
-            <div class="mt-12 flex justify-center gap-2">
-              {page > 1 && (
-                <a
-                  href={`/san-pham?category=${categoryFilter}&search=${searchQuery}&page=${page - 1}`}
-                  class="px-4 py-2 rounded-lg bg-white border-2 border-gray-200 hover:border-[#2575be] text-gray-700 font-medium transition-all"
-                >
-                  ← Trước
-                </a>
-              )}
-              
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                <a
-                  href={`/san-pham?category=${categoryFilter}&search=${searchQuery}&page=${p}`}
-                  class={`px-4 py-2 rounded-lg font-medium transition-all ${
-                    p === page
-                      ? 'bg-gradient-to-r from-[#175ead] to-[#2575be] text-white shadow-lg'
-                      : 'bg-white border-2 border-gray-200 hover:border-[#2575be] text-gray-700'
-                  }`}
-                >
-                  {p}
-                </a>
-              ))}
-              
-              {page < totalPages && (
-                <a
-                  href={`/san-pham?category=${categoryFilter}&search=${searchQuery}&page=${page + 1}`}
-                  class="px-4 py-2 rounded-lg bg-white border-2 border-gray-200 hover:border-[#2575be] text-gray-700 font-medium transition-all"
-                >
-                  Sau →
-                </a>
-              )}
-            </div>
+          <!-- Loading Indicator -->
+          {filteredProducts.length > 12 && (
+            <>
+              <div id="loading-indicator" class="hidden mt-12 text-center">
+                <div class="inline-flex items-center gap-3 bg-white px-6 py-3 rounded-full shadow-lg">
+                  <svg class="animate-spin h-5 w-5 text-[#175ead]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span class="text-gray-700 font-medium">Đang tải thêm sản phẩm...</span>
+                </div>
+              </div>
+              <!-- Sentinel element for intersection observer -->
+              <div id="scroll-sentinel" class="h-1"></div>
+            </>
           )}
+
+          <!-- End Message -->
+          <div id="end-message" class="hidden mt-12 text-center text-gray-500">
+            <div class="inline-block bg-white px-6 py-3 rounded-full shadow-md">
+              ✓ Đã hiển thị tất cả {filteredProducts.length} sản phẩm
+            </div>
+          </div>
         </>
       )}
     </div>
 
-    <!-- Footer Info -->
-    <div class="bg-gradient-to-r from-blue-50 to-purple-50 py-12">
-      <div class="container mx-auto px-4">
-        <div class="max-w-4xl mx-auto text-center">
-          <h2 class="text-2xl font-bold text-gray-900 mb-4">Cần tư vấn sản phẩm?</h2>
-          <p class="text-gray-600 mb-6">
-            Đội ngũ chuyên gia của chúng tôi sẵn sàng hỗ trợ bạn chọn sản phẩm phù hợp nhất
-          </p>
-          <div class="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="tel:+84351359520" class="inline-flex items-center justify-center gap-2 bg-white text-[#175ead] px-6 py-3 rounded-full font-medium border-2 border-[#175ead] hover:bg-[#175ead] hover:text-white transition-all">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-              </svg>
-              Gọi ngay
-            </a>
-            <a href="/lien-he" class="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-[#175ead] to-[#2575be] text-white px-6 py-3 rounded-full font-medium hover:shadow-lg transition-all">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
-              Liên hệ
-            </a>
+    <!-- Infinite Scroll Script -->
+    <script define:vars={{ allProducts: filteredProducts, categories: categoriesWithCount }}>
+      console.log('Total products available:', allProducts.length)
+      
+      let currentIndex = 12
+      const productsPerLoad = 12
+      const productsGrid = document.getElementById('products-grid')
+      const loadingIndicator = document.getElementById('loading-indicator')
+      const endMessage = document.getElementById('end-message')
+      const productCount = document.getElementById('product-count')
+      
+      console.log('Initial load: 12 products')
+      console.log('Remaining products:', allProducts.length - currentIndex)
+      
+      function formatPrice(price) {
+        return new Intl.NumberFormat('vi-VN').format(price)
+      }
+
+      function getCategoryName(categoryId) {
+        const category = categories.find(c => c.id === categoryId)
+        return category ? category.name : categoryId
+      }
+
+      function loadMoreProducts() {
+        console.log('loadMoreProducts called, currentIndex:', currentIndex, 'total:', allProducts.length)
+        
+        if (currentIndex >= allProducts.length) {
+          console.log('All products loaded')
+          loadingIndicator?.classList.add('hidden')
+          endMessage?.classList.remove('hidden')
+          const sentinel = document.getElementById('scroll-sentinel')
+          if (sentinel) sentinel.style.display = 'none'
+          return
+        }
+
+        console.log('Loading more products...')
+        loadingIndicator?.classList.remove('hidden')
+
+        setTimeout(() => {
+          const nextProducts = allProducts.slice(currentIndex, currentIndex + productsPerLoad)
+          console.log('Loading', nextProducts.length, 'products')
+          
+          nextProducts.forEach(product => {
+            const productCard = document.createElement('div')
+            productCard.className = 'product-card group'
+            
+            productCard.innerHTML = `
+              <div class="relative aspect-square bg-gray-50 rounded-2xl overflow-hidden mb-4">
+                ${product.image_url 
+                  ? `<img src="${product.image_url}" alt="${product.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />`
+                  : '<div class="w-full h-full flex items-center justify-center text-7xl">📦</div>'
+                }
+                <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <div class="absolute bottom-4 left-4 right-4 flex gap-2">
+                    <button class="quick-action flex-1" data-action="quick-view" data-product-id="${product.id}">
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                      <span>Xem nhanh</span>
+                    </button>
+                    <button class="quick-action" data-action="compare" data-product-id="${product.id}">
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+                <button class="absolute top-4 right-4 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:scale-110">
+                  <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                  </svg>
+                </button>
+              </div>
+              <div class="space-y-2">
+                <div class="text-xs font-semibold text-blue-600 uppercase tracking-wider">
+                  ${getCategoryName(product.category_id)}
+                </div>
+                <a href="/san-pham/${product.slug}">
+                  <h3 class="text-lg font-semibold text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                    ${product.name}
+                  </h3>
+                </a>
+                ${product.description ? `<p class="text-sm text-gray-600 line-clamp-2 font-light">${product.description}</p>` : ''}
+                <div class="flex items-center gap-2">
+                  <div class="flex items-center">
+                    <svg class="w-4 h-4 text-yellow-400 fill-current" viewBox="0 0 20 20">
+                      <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                    </svg>
+                    <span class="text-sm font-medium text-gray-900 ml-1">4.9</span>
+                  </div>
+                  <span class="text-sm text-gray-500">(127)</span>
+                </div>
+                <div class="flex items-baseline gap-2 pt-2">
+                  <span class="text-2xl font-bold text-gray-900">
+                    ${formatPrice(product.price)}đ
+                  </span>
+                  <span class="text-sm text-gray-500 font-light">/${product.unit}</span>
+                </div>
+                <div class="flex items-center gap-2 text-sm">
+                  <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                  <span class="text-gray-600">Còn hàng</span>
+                </div>
+              </div>
+            `
+            
+            productsGrid?.appendChild(productCard)
+          })
+
+          currentIndex += productsPerLoad
+          
+          if (productCount) {
+            productCount.textContent = `Hiển thị 1-${Math.min(currentIndex, allProducts.length)}`
+          }
+
+          loadingIndicator?.classList.add('hidden')
+
+          if (currentIndex >= allProducts.length) {
+            endMessage?.classList.remove('hidden')
+            const sentinel = document.getElementById('scroll-sentinel')
+            if (sentinel) sentinel.style.display = 'none'
+          }
+          
+          // Re-attach event listeners for new products
+          attachQuickViewListeners()
+          attachCompareListeners()
+        }, 500)
+      }
+
+      const sentinel = document.getElementById('scroll-sentinel')
+      
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting && currentIndex < allProducts.length) {
+            loadMoreProducts()
+          }
+        })
+      }, {
+        rootMargin: '200px'
+      })
+
+      if (sentinel && allProducts.length > 12) {
+        observer.observe(sentinel)
+      }
+      
+      // Quick View Modal
+      const modal = document.getElementById('quick-view-modal')
+      const modalContent = document.getElementById('modal-content')
+      const closeModal = document.getElementById('close-modal')
+      const backdrop = document.getElementById('modal-backdrop')
+      
+      function attachQuickViewListeners() {
+        document.querySelectorAll('[data-action="quick-view"]').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            const productId = btn.dataset.productId
+            const product = allProducts.find(p => p.id == productId)
+            if (product) {
+              document.getElementById('qv-main-image').src = product.image_url || ''
+              document.getElementById('qv-category').textContent = getCategoryName(product.category_id)
+              document.getElementById('qv-name').textContent = product.name
+              document.getElementById('qv-description').textContent = product.description || ''
+              document.getElementById('qv-price').textContent = formatPrice(product.price) + 'đ'
+              document.getElementById('qv-unit').textContent = '/' + product.unit
+              document.getElementById('qv-detail-link').href = '/san-pham/' + product.slug
+              
+              modal.classList.remove('hidden')
+              setTimeout(() => {
+                modalContent.classList.remove('scale-95', 'opacity-0')
+                modalContent.classList.add('scale-100', 'opacity-100')
+              }, 10)
+            }
+          })
+        })
+      }
+      
+      function closeQuickView() {
+        modalContent.classList.remove('scale-100', 'opacity-100')
+        modalContent.classList.add('scale-95', 'opacity-0')
+        setTimeout(() => {
+          modal.classList.add('hidden')
+        }, 300)
+      }
+      
+      closeModal?.addEventListener('click', closeQuickView)
+      backdrop?.addEventListener('click', closeQuickView)
+      
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+          closeQuickView()
+        }
+      })
+      
+      // Comparison functionality
+      let comparisonProducts = []
+      const comparisonBar = document.getElementById('comparison-bar')
+      const comparisonCount = document.getElementById('comparison-count')
+      const comparisonProductsContainer = document.getElementById('comparison-products')
+      
+      function attachCompareListeners() {
+        document.querySelectorAll('[data-action="compare"]').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            const productId = btn.dataset.productId
+            const product = allProducts.find(p => p.id == productId)
+            
+            if (product && !comparisonProducts.find(p => p.id === product.id)) {
+              if (comparisonProducts.length < 4) {
+                comparisonProducts.push(product)
+                updateComparisonBar()
+              }
+            }
+          })
+        })
+      }
+      
+      function updateComparisonBar() {
+        comparisonCount.textContent = comparisonProducts.length
+        
+        if (comparisonProducts.length > 0) {
+          comparisonBar.classList.add('translate-y-0')
+          comparisonBar.classList.remove('translate-y-full')
+        } else {
+          comparisonBar.classList.remove('translate-y-0')
+          comparisonBar.classList.add('translate-y-full')
+        }
+        
+        comparisonProductsContainer.innerHTML = comparisonProducts.map(p => `
+          <div class="relative w-16 h-16 rounded-xl overflow-hidden border-2 border-gray-200">
+            <img src="${p.image_url || ''}" alt="${p.name}" class="w-full h-full object-cover" />
+            <button class="absolute -top-2 -right-2 w-6 h-6 bg-black text-white rounded-full flex items-center justify-center text-xs hover:bg-gray-800" onclick="removeFromComparison('${p.id}')">×</button>
+          </div>
+        `).join('')
+      }
+      
+      window.removeFromComparison = function(productId) {
+        comparisonProducts = comparisonProducts.filter(p => p.id != productId)
+        updateComparisonBar()
+      }
+      
+      document.getElementById('clear-comparison')?.addEventListener('click', () => {
+        comparisonProducts = []
+        updateComparisonBar()
+      })
+      
+      document.getElementById('compare-btn')?.addEventListener('click', () => {
+        alert('Tính năng so sánh sản phẩm đang được phát triển')
+      })
+      
+      // Filter sidebar
+      const filterBtn = document.getElementById('filter-btn')
+      const filterSidebar = document.getElementById('filter-sidebar')
+      const filterOverlay = document.getElementById('filter-overlay')
+      const closeFilter = document.getElementById('close-filter')
+      
+      filterBtn?.addEventListener('click', () => {
+        filterSidebar.classList.remove('translate-x-full')
+        filterOverlay.classList.remove('hidden')
+      })
+      
+      closeFilter?.addEventListener('click', () => {
+        filterSidebar.classList.add('translate-x-full')
+        filterOverlay.classList.add('hidden')
+      })
+      
+      filterOverlay?.addEventListener('click', () => {
+        filterSidebar.classList.add('translate-x-full')
+        filterOverlay.classList.add('hidden')
+      })
+      
+      // Sort dropdown
+      const sortBtn = document.getElementById('sort-btn')
+      const dropdownMenu = sortBtn?.nextElementSibling
+      
+      sortBtn?.addEventListener('click', () => {
+        dropdownMenu?.classList.toggle('hidden')
+      })
+      
+      document.addEventListener('click', (e) => {
+        if (!sortBtn?.contains(e.target) && !dropdownMenu?.contains(e.target)) {
+          dropdownMenu?.classList.add('hidden')
+        }
+      })
+      
+      // View toggle
+      document.querySelectorAll('.view-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'))
+          btn.classList.add('active')
+          
+          const view = btn.dataset.view
+          if (view === 'list') {
+            productsGrid.classList.remove('grid-cols-1', 'sm:grid-cols-2', 'lg:grid-cols-3', 'xl:grid-cols-4')
+            productsGrid.classList.add('grid-cols-1')
+          } else {
+            productsGrid.classList.remove('grid-cols-1')
+            productsGrid.classList.add('grid-cols-1', 'sm:grid-cols-2', 'lg:grid-cols-3', 'xl:grid-cols-4')
+          }
+        })
+      })
+      
+      // Initial attachment
+      attachQuickViewListeners()
+      attachCompareListeners()
+    </script>
+
+    <style>
+      @keyframes fade-in {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .animate-fade-in {
+        animation: fade-in 0.8s ease-out forwards;
+      }
+
+      .animation-delay-200 { animation-delay: 0.2s; }
+      .animation-delay-400 { animation-delay: 0.4s; }
+      .animation-delay-600 { animation-delay: 0.6s; }
+      .animation-delay-800 { animation-delay: 0.8s; }
+      .animation-delay-1000 { animation-delay: 1s; }
+      
+      @keyframes blob {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        25% { transform: translate(20px, -50px) scale(1.1); }
+        50% { transform: translate(-20px, 20px) scale(0.9); }
+        75% { transform: translate(50px, 50px) scale(1.05); }
+      }
+      
+      .animate-blob {
+        animation: blob 20s infinite;
+      }
+      
+      .animation-delay-2000 {
+        animation-delay: 2s;
+      }
+      
+      .animation-delay-4000 {
+        animation-delay: 4s;
+      }
+      
+      .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+      }
+      
+      .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+      
+      .filter-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        background: #f5f5f5;
+        border-radius: 24px;
+        border: 2px solid transparent;
+        font-size: 14px;
+        font-weight: 500;
+        color: #171717;
+        white-space: nowrap;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+      }
+
+      .filter-pill:hover {
+        background: #e5e5e5;
+        transform: translateY(-1px);
+      }
+
+      .filter-pill.active {
+        background: #171717;
+        color: white;
+        border-color: #171717;
+      }
+
+      .filter-pill .icon {
+        font-size: 18px;
+      }
+
+      .filter-pill .count {
+        padding: 2px 8px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .filter-pill.active .count {
+        background: rgba(255, 255, 255, 0.2);
+      }
+
+      .filter-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 10px 16px;
+        background: #f5f5f5;
+        border-radius: 12px;
+        font-size: 14px;
+        font-weight: 500;
+        color: #171717;
+        transition: all 0.2s;
+        cursor: pointer;
+        border: none;
+      }
+
+      .filter-action:hover {
+        background: #e5e5e5;
+      }
+
+      .view-toggle {
+        display: flex;
+        gap: 4px;
+        background: #f5f5f5;
+        padding: 4px;
+        border-radius: 12px;
+      }
+
+      .view-btn {
+        padding: 8px;
+        border-radius: 8px;
+        transition: all 0.2s;
+        cursor: pointer;
+        border: none;
+        background: transparent;
+      }
+
+      .view-btn:hover {
+        background: #e5e5e5;
+      }
+
+      .view-btn.active {
+        background: white;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+      
+      .dropdown-menu {
+        display: flex;
+        flex-direction: column;
+      }
+      
+      .dropdown-item {
+        padding: 12px 16px;
+        text-align: left;
+        font-size: 14px;
+        color: #171717;
+        transition: background 0.2s;
+        border: none;
+        background: white;
+        cursor: pointer;
+      }
+      
+      .dropdown-item:hover {
+        background: #f5f5f5;
+      }
+      
+      .checkbox-label {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+
+      .checkbox-label:hover {
+        background: #f5f5f5;
+      }
+
+      .checkbox-label input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        border-radius: 6px;
+        border: 2px solid #d4d4d4;
+        cursor: pointer;
+      }
+
+      .checkbox-label input[type="checkbox"]:checked {
+        background: #171717;
+        border-color: #171717;
+      }
+
+      .checkbox-label .count {
+        margin-left: auto;
+        font-size: 12px;
+        color: #a3a3a3;
+      }
+
+      .range-slider {
+        height: 4px;
+        background: #e5e5e5;
+        border-radius: 2px;
+        outline: none;
+        -webkit-appearance: none;
+      }
+
+      .range-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 20px;
+        height: 20px;
+        background: #171717;
+        border-radius: 50%;
+        cursor: pointer;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+      
+      .product-card {
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .product-card:hover {
+        transform: translateY(-4px);
+      }
+
+      .quick-action {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 10px 16px;
+        background: white;
+        border-radius: 12px;
+        font-size: 13px;
+        font-weight: 500;
+        color: #171717;
+        transition: all 0.2s;
+        cursor: pointer;
+        border: none;
+      }
+
+      .quick-action:hover {
+        background: #f5f5f5;
+        transform: translateY(-2px);
+      }
+
+      .badge {
+        padding: 4px 12px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .badge-new {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+      }
+    </style>
+
+    <!-- Quick View Modal -->
+    <div id="quick-view-modal" class="fixed inset-0 z-50 hidden">
+      <!-- Backdrop -->
+      <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" id="modal-backdrop"></div>
+      
+      <!-- Modal Content -->
+      <div class="absolute inset-0 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-5xl w-full max-h-[90vh] overflow-y-auto shadow-2xl transform scale-95 opacity-0 transition-all duration-300" id="modal-content">
+          <!-- Close Button -->
+          <button class="absolute top-6 right-6 z-10 w-10 h-10 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-colors" id="close-modal">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+          
+          <div class="grid md:grid-cols-2 gap-8 p-8">
+            <!-- Image -->
+            <div class="space-y-4">
+              <div class="aspect-square bg-gray-50 rounded-2xl overflow-hidden">
+                <img 
+                  id="qv-main-image"
+                  src="" 
+                  alt="Product"
+                  class="w-full h-full object-cover"
+                />
+              </div>
+            </div>
+            
+            <!-- Product Info -->
+            <div class="flex flex-col">
+              <div class="text-sm font-semibold text-blue-600 uppercase tracking-wider mb-2" id="qv-category"></div>
+              <h2 class="text-3xl font-bold text-gray-900 mb-4" id="qv-name"></h2>
+              
+              <div class="flex items-center gap-3 mb-4">
+                <div class="flex items-center">
+                  <svg class="w-5 h-5 text-yellow-400 fill-current" viewBox="0 0 20 20">
+                    <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                  </svg>
+                  <span class="text-sm font-medium text-gray-900 ml-2">4.9</span>
+                </div>
+                <span class="text-sm text-gray-500">(127 đánh giá)</span>
+              </div>
+              
+              <p class="text-gray-600 mb-6 leading-relaxed" id="qv-description"></p>
+              
+              <div class="space-y-3 mb-6">
+                <div class="flex items-start gap-3">
+                  <svg class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span class="text-sm text-gray-700">Chất lượng đảm bảo</span>
+                </div>
+                <div class="flex items-start gap-3">
+                  <svg class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span class="text-sm text-gray-700">Giao hàng toàn quốc</span>
+                </div>
+                <div class="flex items-start gap-3">
+                  <svg class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span class="text-sm text-gray-700">Hỗ trợ kỹ thuật 24/7</span>
+                </div>
+              </div>
+              
+              <div class="bg-gray-50 rounded-2xl p-6 mb-6">
+                <div class="flex items-baseline gap-3 mb-2">
+                  <span class="text-4xl font-bold text-gray-900" id="qv-price"></span>
+                  <span class="text-lg text-gray-500 font-light" id="qv-unit"></span>
+                </div>
+                <div class="flex items-center gap-2 text-sm">
+                  <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                  <span class="text-gray-600">Còn hàng - Giao trong 1-2 ngày</span>
+                </div>
+              </div>
+              
+              <div class="flex gap-3 mt-auto">
+                <a href="#" id="qv-detail-link" class="flex-1 bg-black text-white px-8 py-4 rounded-full font-semibold text-center hover:bg-gray-800 transition-all">
+                  Xem chi tiết
+                </a>
+                <a href="tel:+84351359520" class="flex-1 bg-gray-100 text-gray-900 px-8 py-4 rounded-full font-semibold text-center hover:bg-gray-200 transition-all">
+                  Gọi ngay
+                </a>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
+
+    <!-- Comparison Bar -->
+    <div id="comparison-bar" class="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-gray-200 shadow-2xl transform translate-y-full transition-transform duration-300 z-40">
+      <div class="container mx-auto px-4 py-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <span class="text-sm font-medium text-gray-700">So sánh:</span>
+            <div class="flex gap-2" id="comparison-products"></div>
+            <span class="text-sm text-gray-500">
+              <span id="comparison-count">0</span>/4 sản phẩm
+            </span>
+          </div>
+          
+          <div class="flex items-center gap-3">
+            <button id="clear-comparison" class="text-sm text-gray-600 hover:text-gray-900 font-medium">
+              Xóa tất cả
+            </button>
+            <button id="compare-btn" class="bg-black text-white px-6 py-3 rounded-full font-semibold hover:bg-gray-800 transition-all">
+              So sánh ngay
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer Info -->
+    <section class="py-20 bg-gradient-to-br from-blue-50 to-purple-50">
+      <div class="container mx-auto px-4">
+        <div class="max-w-5xl mx-auto">
+          <!-- Trust Indicators -->
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
+            <div class="text-center p-6 bg-white/80 backdrop-blur-sm rounded-3xl shadow-lg">
+              <div class="text-5xl mb-3">✓</div>
+              <h4 class="font-semibold text-gray-900 mb-1">Chất lượng đảm bảo</h4>
+              <p class="text-sm text-gray-600 font-light">ISO 9001:2015</p>
+            </div>
+            <div class="text-center p-6 bg-white/80 backdrop-blur-sm rounded-3xl shadow-lg">
+              <div class="text-5xl mb-3">🚚</div>
+              <h4 class="font-semibold text-gray-900 mb-1">Giao hàng toàn quốc</h4>
+              <p class="text-sm text-gray-600 font-light">1-3 ngày</p>
+            </div>
+            <div class="text-center p-6 bg-white/80 backdrop-blur-sm rounded-3xl shadow-lg">
+              <div class="text-5xl mb-3">💯</div>
+              <h4 class="font-semibold text-gray-900 mb-1">Giá cả cạnh tranh</h4>
+              <p class="text-sm text-gray-600 font-light">Ưu đãi số lượng</p>
+            </div>
+            <div class="text-center p-6 bg-white/80 backdrop-blur-sm rounded-3xl shadow-lg">
+              <div class="text-5xl mb-3">🎯</div>
+              <h4 class="font-semibold text-gray-900 mb-1">Hỗ trợ 24/7</h4>
+              <p class="text-sm text-gray-600 font-light">Tư vấn miễn phí</p>
+            </div>
+          </div>
+
+          <!-- CTA -->
+          <div class="text-center bg-white/80 backdrop-blur-sm rounded-3xl p-12 shadow-xl">
+            <h2 class="text-3xl md:text-4xl font-semibold text-gray-900 mb-4 tracking-tight">Cần tư vấn sản phẩm?</h2>
+            <p class="text-lg text-gray-600 mb-8 font-light max-w-2xl mx-auto">
+              Đội ngũ chuyên gia của chúng tôi sẵn sàng hỗ trợ bạn chọn sản phẩm phù hợp nhất
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+              <a href="tel:+84351359520" class="inline-flex items-center justify-center gap-2 bg-white text-blue-600 px-8 py-4 rounded-full font-semibold border-2 border-blue-600 hover:bg-blue-600 hover:text-white hover:scale-105 transition-all shadow-lg">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                </svg>
+                Gọi ngay
+              </a>
+              <a href="/lien-he" class="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-4 rounded-full font-semibold hover:shadow-xl hover:scale-105 transition-all">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                Liên hệ
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
   </div>
+
+  <!-- Floating Contact Buttons -->
+  <FloatingContactButtons />
 </BaseLayout>

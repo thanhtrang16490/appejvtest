@@ -1,6 +1,6 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro'
-import { getProductBySlug, getProducts } from '../../lib/api'
+import { getProductBySlug, getProducts, getCategories } from '../../lib/supabase'
 
 // Generate static paths for all products
 export async function getStaticPaths() {
@@ -22,10 +22,14 @@ if (!product) {
   return Astro.redirect('/san-pham')
 }
 
+// Get categories for display
+const categories = await getCategories()
+const productCategory = categories.find(c => c.id === product.category_id)
+
 // Get related products (same category)
 const allProducts = await getProducts()
 const relatedProducts = allProducts
-  .filter(p => p.category === product.category && p.id !== product.id)
+  .filter(p => p.category_id === product.category_id && p.id !== product.id)
   .slice(0, 4)
 
 function formatPrice(price: number): string {
@@ -64,16 +68,29 @@ function formatPrice(price: number): string {
           <!-- Product Info -->
           <div class="flex flex-col justify-center">
             <div class="text-sm font-semibold text-[#175ead] mb-2 uppercase">
-              {product.category}
+              {productCategory?.name || 'Sản phẩm'}
             </div>
             <h1 class="text-4xl font-bold text-gray-900 mb-4">
               {product.name}
             </h1>
             
+            {product.code && (
+              <div class="text-sm text-gray-500 mb-4">
+                Mã sản phẩm: <span class="font-mono font-semibold">{product.code}</span>
+              </div>
+            )}
+            
             {product.description && (
               <p class="text-lg text-gray-600 mb-6 leading-relaxed">
                 {product.description}
               </p>
+            )}
+
+            {product.specifications && (
+              <div class="bg-gray-50 rounded-xl p-4 mb-6">
+                <h3 class="font-semibold text-gray-900 mb-2">Thông số kỹ thuật:</h3>
+                <p class="text-gray-700 whitespace-pre-line">{product.specifications}</p>
+              </div>
             )}
 
             <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 mb-6">

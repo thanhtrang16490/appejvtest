@@ -108,9 +108,43 @@ export function InventoryTable({ initialProducts, isAdmin = false }: { initialPr
 
     const lowStockCount = products.filter(p => p.stock > 0 && p.stock < 20).length
     const outOfStockCount = products.filter(p => p.stock === 0).length
+    const inStockCount = products.filter(p => p.stock >= 20).length
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4">
+            {/* Stock Summary */}
+            {!search && stockFilter === 'all' && categoryFilter === 'all' && (
+                <div className="grid grid-cols-3 gap-2">
+                    <div className="bg-white rounded-xl p-3 shadow-sm flex items-center gap-2">
+                        <div className="w-9 h-9 bg-emerald-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <Package className="w-5 h-5 text-emerald-600" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-[10px] text-gray-600">Còn hàng</p>
+                            <p className="text-base font-bold text-gray-900">{inStockCount}</p>
+                        </div>
+                    </div>
+                    <div className="bg-white rounded-xl p-3 shadow-sm flex items-center gap-2">
+                        <div className="w-9 h-9 bg-amber-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <AlertCircle className="w-5 h-5 text-amber-600" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-[10px] text-gray-600">Sắp hết</p>
+                            <p className="text-base font-bold text-gray-900">{lowStockCount}</p>
+                        </div>
+                    </div>
+                    <div className="bg-white rounded-xl p-3 shadow-sm flex items-center gap-2">
+                        <div className="w-9 h-9 bg-red-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <AlertCircle className="w-5 h-5 text-red-600" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-[10px] text-gray-600">Hết hàng</p>
+                            <p className="text-base font-bold text-gray-900">{outOfStockCount}</p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="flex flex-col gap-4">
                 <div className="relative group flex-1">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
@@ -186,66 +220,68 @@ export function InventoryTable({ initialProducts, isAdmin = false }: { initialPr
                 </div>
             </div>
 
-            {/* Mobile View: Cards */}
-            <div className="grid grid-cols-1 gap-4 md:hidden">
+            {/* Mobile View: Product Grid */}
+            <div className="grid grid-cols-2 gap-3 md:hidden">
                 {filteredProducts.map((product) => {
                     const status = product.stock === 0 ? 'out' : product.stock < 20 ? 'low' : 'ok'
-                    const statusColors = {
-                        out: { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-600', badge: 'bg-red-100' },
-                        low: { bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-600', badge: 'bg-amber-100' },
-                        ok: { bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-600', badge: 'bg-emerald-100' }
+                    const statusConfig = {
+                        out: { label: 'Hết hàng', color: 'text-red-600', bg: 'bg-red-100' },
+                        low: { label: 'Sắp hết', color: 'text-amber-600', bg: 'bg-amber-100' },
+                        ok: { label: 'Còn hàng', color: 'text-emerald-600', bg: 'bg-emerald-100' }
                     }
-                    const colors = statusColors[status]
+                    const config = statusConfig[status]
                     
                     return (
-                        <Card key={product.id} className={`border ${colors.border} shadow-sm overflow-hidden bg-white hover:shadow-md transition-all`}>
-                            <CardContent className="p-4">
-                                <div className="flex gap-3 mb-3">
-                                    <div className={`w-10 h-10 ${colors.bg} rounded-xl flex items-center justify-center flex-shrink-0`}>
-                                        <Package className={`w-5 h-5 ${colors.text}`} />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <h3 className="font-bold text-base leading-tight mb-1">{product.name}</h3>
-                                        {product.code && (
-                                            <p className="text-xs text-gray-500">SKU: {product.code}</p>
-                                        )}
-                                        <p className="text-sm font-semibold text-amber-600 mt-1">
+                        <Card 
+                            key={product.id} 
+                            className="border-none shadow-sm overflow-hidden bg-white hover:shadow-md transition-all cursor-pointer"
+                            onClick={() => window.location.href = `/sales/inventory/${product.id}`}
+                        >
+                            {/* Product Image/Icon */}
+                            <div className="relative w-full aspect-square bg-blue-50 flex items-center justify-center overflow-hidden">
+                                {product.image_url ? (
+                                    <img 
+                                        src={product.image_url} 
+                                        alt={product.name}
+                                        className="w-full h-full object-cover"
+                                    />
+                                ) : (
+                                    <Package className="w-10 h-10 text-[#175ead]" />
+                                )}
+                                <div className={`absolute top-2 right-2 px-2 py-1 rounded-lg ${config.bg}`}>
+                                    <span className={`text-[10px] font-semibold ${config.color}`}>
+                                        {config.label}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <CardContent className="p-3">
+                                <h3 className="font-semibold text-sm leading-tight mb-1 line-clamp-2 min-h-[2.5rem]">
+                                    {product.name}
+                                </h3>
+                                {product.code && (
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1">
+                                        {product.code}
+                                    </p>
+                                )}
+                                {product.category && (
+                                    <p className="text-[11px] text-gray-600 mb-2 truncate">
+                                        {product.category}
+                                    </p>
+                                )}
+                                <div className="flex justify-between items-center pt-2 border-t border-gray-100">
+                                    <div>
+                                        <p className="text-[10px] text-gray-600">Giá</p>
+                                        <p className="text-sm font-bold text-[#175ead]">
                                             {formatCurrency(product.price)}
                                         </p>
                                     </div>
-                                    <div className="flex flex-col items-end gap-1">
-                                        <div className={`px-3 py-1.5 rounded-lg ${colors.badge}`}>
-                                            <p className={`text-sm font-bold ${colors.text}`}>
-                                                {product.stock} {product.unit || 'cái'}
-                                            </p>
-                                        </div>
-                                        <StockStatus stock={product.stock} />
+                                    <div className="text-right">
+                                        <p className="text-[10px] text-gray-600">Kho</p>
+                                        <p className="text-sm font-bold text-gray-900">
+                                            {product.stock}
+                                        </p>
                                     </div>
-                                </div>
-                                <div className="flex gap-2">
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="flex-1"
-                                        onClick={() => window.location.href = `/sales/inventory/${product.id}`}
-                                    >
-                                        <ChevronRight className="w-4 h-4 mr-1" />
-                                        Chi tiết
-                                    </Button>
-                                    {isAdmin && (
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="flex-1 border-amber-200 text-amber-600 hover:bg-amber-50"
-                                            onClick={(e) => {
-                                                e.stopPropagation()
-                                                openStockEditor(product)
-                                            }}
-                                        >
-                                            <Edit className="w-4 h-4 mr-1" />
-                                            Cập nhật
-                                        </Button>
-                                    )}
                                 </div>
                             </CardContent>
                         </Card>
@@ -258,7 +294,7 @@ export function InventoryTable({ initialProducts, isAdmin = false }: { initialPr
                 <Table>
                     <TableHeader className="bg-gray-50">
                         <TableRow className="hover:bg-transparent border-none">
-                            <TableHead className="py-4 font-bold text-xs uppercase tracking-wider pl-6">Mã</TableHead>
+                            <TableHead className="py-4 font-bold text-xs uppercase tracking-wider pl-6">Ảnh</TableHead>
                             <TableHead className="py-4 font-bold text-xs uppercase tracking-wider">Tên sản phẩm</TableHead>
                             <TableHead className="py-4 font-bold text-xs uppercase tracking-wider">Trạng thái</TableHead>
                             <TableHead className="py-4 font-bold text-xs uppercase tracking-wider">Tồn kho</TableHead>
@@ -277,19 +313,33 @@ export function InventoryTable({ initialProducts, isAdmin = false }: { initialPr
                             const colors = statusColors[status]
                             
                             return (
-                                <TableRow key={product.id} className="hover:bg-amber-50/50 transition-colors border-gray-100">
-                                    <TableCell className="font-mono text-xs pl-6 text-gray-600">{product.code}</TableCell>
+                                <TableRow key={product.id} className="hover:bg-blue-50/50 transition-colors border-gray-100">
+                                    <TableCell className="pl-6">
+                                        <div className="w-16 h-16 bg-blue-50 rounded-lg overflow-hidden flex items-center justify-center">
+                                            {product.image_url ? (
+                                                <img 
+                                                    src={product.image_url} 
+                                                    alt={product.name}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            ) : (
+                                                <Package className="w-8 h-8 text-[#175ead]" />
+                                            )}
+                                        </div>
+                                    </TableCell>
                                     <TableCell>
-                                        <div className="flex items-center gap-3">
-                                            <div className={`w-10 h-10 ${colors.bg} rounded-lg flex items-center justify-center`}>
-                                                <Package className={`w-5 h-5 ${colors.text}`} />
-                                            </div>
-                                            <div>
-                                                <div className="font-bold text-gray-900">{product.name}</div>
-                                                <div className="text-xs text-gray-500">
-                                                    {product.unit || 'đơn vị'}
+                                        <div>
+                                            <div className="font-bold text-gray-900">{product.name}</div>
+                                            {product.code && (
+                                                <div className="text-xs text-gray-500 font-mono">
+                                                    {product.code}
                                                 </div>
-                                            </div>
+                                            )}
+                                            {product.category && (
+                                                <div className="text-xs text-gray-500">
+                                                    {product.category}
+                                                </div>
+                                            )}
                                         </div>
                                     </TableCell>
                                     <TableCell>
@@ -299,7 +349,7 @@ export function InventoryTable({ initialProducts, isAdmin = false }: { initialPr
                                         <span className={`font-bold ${colors.text}`}>{product.stock} {product.unit || 'cái'}</span>
                                     </TableCell>
                                     <TableCell>
-                                        <span className="font-semibold text-amber-600">{formatCurrency(product.price)}</span>
+                                        <span className="font-semibold text-[#175ead]">{formatCurrency(product.price)}</span>
                                     </TableCell>
                                     <TableCell className="pr-6">
                                         <div className="flex items-center justify-end gap-2">

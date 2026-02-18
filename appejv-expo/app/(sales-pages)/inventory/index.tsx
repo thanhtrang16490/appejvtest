@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet, RefreshControl, TextInput, NativeScrollEvent, NativeSyntheticEvent } from 'react-native'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet, RefreshControl, TextInput, NativeScrollEvent, NativeSyntheticEvent, Image } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useAuth } from '../../../src/contexts/AuthContext'
 import { supabase } from '../../../src/lib/supabase'
@@ -150,6 +150,18 @@ export default function InventoryScreen() {
     }
   }
 
+  // Calculate categories with product count and filter out empty categories
+  const categoriesWithProducts = useMemo(() => {
+    const categoriesWithCount = categories
+      .map(cat => ({
+        ...cat,
+        count: products.filter(p => p.category_id === cat.id).length
+      }))
+      .filter(cat => cat.count > 0) // Only show categories with products
+    
+    return [{ id: 'all', name: 'Tất cả', count: products.length }, ...categoriesWithCount]
+  }, [categories, products])
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -261,10 +273,10 @@ export default function InventoryScreen() {
             styles.categoryChipText,
             !selectedCategory && styles.categoryChipTextActive
           ]}>
-            Tất cả
+            Tất cả ({products.length})
           </Text>
         </TouchableOpacity>
-        {categories.map((category) => (
+        {categoriesWithProducts.slice(1).map((category) => (
           <TouchableOpacity
             key={category.id}
             style={[
@@ -277,7 +289,7 @@ export default function InventoryScreen() {
               styles.categoryChipText,
               selectedCategory === category.id && styles.categoryChipTextActive
             ]}>
-              {category.name}
+              {category.name} ({category.count})
             </Text>
           </TouchableOpacity>
         ))}
@@ -327,7 +339,15 @@ export default function InventoryScreen() {
                 >
                   {/* Product Image/Icon */}
                   <View style={styles.productImageContainer}>
-                    <Ionicons name="cube" size={40} color="#175ead" />
+                    {product.image_url ? (
+                      <Image
+                        source={{ uri: product.image_url }}
+                        style={styles.productImage}
+                        resizeMode="cover"
+                      />
+                    ) : (
+                      <Ionicons name="cube" size={40} color="#175ead" />
+                    )}
                     <View style={[styles.stockBadge, { backgroundColor: stockStatus.bg }]}>
                       <Text style={[styles.stockBadgeText, { color: stockStatus.color }]}>
                         {stockStatus.label}
@@ -341,15 +361,14 @@ export default function InventoryScreen() {
                       {product.name}
                     </Text>
                     
-                    {product.code && (
-                      <Text style={styles.productCode}>{product.code}</Text>
-                    )}
-                    
-                    {product.categories && (
+                    <View style={styles.productMeta}>
                       <Text style={styles.productCategory} numberOfLines={1}>
-                        {product.categories.name}
+                        {product.categories?.name || 'Uncategory'}
                       </Text>
-                    )}
+                      {product.code && (
+                        <Text style={styles.productCode}>{product.code}</Text>
+                      )}
+                    </View>
 
                     <View style={styles.productFooter}>
                       <View style={styles.priceContainer}>
@@ -499,20 +518,17 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   categoryChip: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    backgroundColor: 'white',
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: '#f3f4f6',
   },
   categoryChipActive: {
     backgroundColor: '#175ead',
-    borderColor: '#175ead',
   },
   categoryChipText: {
-    fontSize: 11,
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: '500',
     color: '#6b7280',
   },
   categoryChipTextActive: {
@@ -569,11 +585,15 @@ const styles = StyleSheet.create({
   },
   productImageContainer: {
     width: '100%',
-    height: 120,
+    aspectRatio: 1,
     backgroundColor: '#f0f9ff',
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
+  },
+  productImage: {
+    width: '100%',
+    height: '100%',
   },
   stockBadge: {
     position: 'absolute',
@@ -597,18 +617,24 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     minHeight: 36,
   },
+  productMeta: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+    gap: 8,
+  },
+  productCategory: {
+    fontSize: 11,
+    color: '#6b7280',
+    flex: 1,
+  },
   productCode: {
     fontSize: 10,
     fontWeight: 'bold',
     color: '#9ca3af',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    marginBottom: 4,
-  },
-  productCategory: {
-    fontSize: 11,
-    color: '#6b7280',
-    marginBottom: 8,
   },
   productFooter: {
     flexDirection: 'row',

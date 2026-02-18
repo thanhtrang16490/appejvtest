@@ -907,12 +907,12 @@ const styles = StyleSheet.create({
   },
   productImage: {
     width: '100%',
-    height: 300,
+    aspectRatio: 1,
     backgroundColor: '#f3f4f6',
   },
   noImage: {
     width: '100%',
-    height: 300,
+    aspectRatio: 1,
     backgroundColor: '#f9fafb',
     justifyContent: 'center',
     alignItems: 'center',

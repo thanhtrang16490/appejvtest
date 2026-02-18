@@ -40,10 +40,11 @@ export default function CustomerAssignScreen() {
 
       const isAdmin = profileData?.role === 'admin'
 
-      // Fetch customers from customers table
+      // Fetch customers from customers table (only unassigned ones)
       const { data: customersData } = await supabase
         .from('customers')
         .select('*')
+        .is('assigned_to', null)
         .order('full_name', { ascending: true })
       
       setUnassignedCustomers(customersData || [])

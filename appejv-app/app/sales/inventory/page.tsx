@@ -69,7 +69,7 @@ export default function InventoryPage() {
 
     if (loading) {
         return (
-            <div className="bg-amber-50 min-h-screen">
+            <div className="bg-blue-50 min-h-screen">
                 <div className="pt-24 pb-20 px-4">
                     <InventoryLoading />
                 </div>
@@ -79,7 +79,7 @@ export default function InventoryPage() {
 
     if (!user || !profile) {
         return (
-            <div className="bg-amber-50 min-h-screen flex items-center justify-center">
+            <div className="bg-blue-50 min-h-screen flex items-center justify-center">
                 <div className="text-center">
                     <p className="text-gray-600 mb-4">Vui lòng đăng nhập</p>
                     <Button onClick={() => router.push('/auth/login')}>
@@ -93,10 +93,10 @@ export default function InventoryPage() {
     const isAdmin = profile.role === 'admin'
 
     return (
-        <div className="bg-amber-50 min-h-screen">
+        <div className="bg-blue-50 min-h-screen">
             {/* Fixed Header */}
             <div className={cn(
-                "fixed top-0 left-0 right-0 z-50 bg-amber-50 transition-transform duration-300",
+                "fixed top-0 left-0 right-0 z-50 bg-blue-50 transition-transform duration-300",
                 isHeaderVisible ? "translate-y-0" : "-translate-y-full"
             )}>
                 {/* Logo and AI Assistant Row */}
@@ -116,14 +116,15 @@ export default function InventoryPage() {
 
             {/* Sticky Page Title */}
             <div className={cn(
-                "sticky left-0 right-0 z-40 bg-amber-50 px-4 pb-2 pt-2 transition-all duration-300",
+                "sticky left-0 right-0 z-40 bg-blue-50 px-4 pb-2 pt-2 transition-all duration-300",
                 !isHeaderVisible ? "top-0" : "top-20"
             )}>
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">Sản phẩm</h1>
+                        <h1 className="text-2xl font-bold text-gray-900">Kho hàng</h1>
                         <p className="text-sm text-gray-600">
                             {products.length} sản phẩm
+                            {isAdmin && <span className="ml-2 text-xs text-blue-600 font-bold">• ADMIN</span>}
                         </p>
                     </div>
                     {isAdmin && (
@@ -132,7 +133,7 @@ export default function InventoryPage() {
                                 const event = new CustomEvent('openAddProduct')
                                 window.dispatchEvent(event)
                             }}
-                            className="w-10 h-10 rounded-full bg-amber-500 hover:bg-amber-600 text-white shadow-lg p-0 flex items-center justify-center"
+                            className="w-10 h-10 rounded-full bg-[#175ead] hover:bg-blue-600 text-white shadow-lg p-0 flex items-center justify-center"
                         >
                             <Plus className="w-5 h-5" />
                         </Button>
