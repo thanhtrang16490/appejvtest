@@ -1,0 +1,284 @@
+---
+interface Props {
+  title: string
+  subtitle: string
+  description: string
+  features: string[]
+  image: string
+  reverse?: boolean
+  color?: string
+}
+
+const { 
+  title, 
+  subtitle, 
+  description, 
+  features, 
+  image, 
+  reverse = false,
+  color = '#175ead'
+} = Astro.props
+---
+
+<section class="scroll-product-section" data-reverse={reverse}>
+  <div class="scroll-product-container">
+    <!-- Sticky Content -->
+    <div class="scroll-product-sticky">
+      <div class={`scroll-product-content ${reverse ? 'reverse' : ''}`}>
+        <!-- Text Content -->
+        <div class="scroll-product-text">
+          <div class="scroll-product-label" style={`color: ${color}`}>
+            {subtitle}
+          </div>
+          <h2 class="scroll-product-title">
+            {title}
+          </h2>
+          <p class="scroll-product-description">
+            {description}
+          </p>
+          <ul class="scroll-product-features">
+            {features.map(feature => (
+              <li class="scroll-product-feature">
+                <svg class="feature-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                <span>{feature}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <!-- Image Content -->
+        <div class="scroll-product-image">
+          <div class="image-wrapper">
+            <img src={image} alt={title} loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .scroll-product-section {
+    min-height: 100vh;
+    position: relative;
+    padding: 10vh 0;
+  }
+
+  .scroll-product-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem;
+  }
+
+  .scroll-product-sticky {
+    position: sticky;
+    top: 10vh;
+    height: 80vh;
+    display: flex;
+    align-items: center;
+  }
+
+  .scroll-product-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+    width: 100%;
+    opacity: 0;
+    transform: translateY(50px);
+    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+  }
+
+  .scroll-product-content.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .scroll-product-content.reverse {
+    direction: rtl;
+  }
+
+  .scroll-product-content.reverse > * {
+    direction: ltr;
+  }
+
+  .scroll-product-text {
+    max-width: 600px;
+  }
+
+  .scroll-product-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 1rem;
+  }
+
+  .scroll-product-title {
+    font-size: 3.5rem;
+    font-weight: 700;
+    line-height: 1.1;
+    margin-bottom: 1.5rem;
+    color: #1a1a1a;
+    letter-spacing: -0.02em;
+  }
+
+  .scroll-product-description {
+    font-size: 1.25rem;
+    line-height: 1.6;
+    color: #666;
+    margin-bottom: 2rem;
+    font-weight: 300;
+  }
+
+  .scroll-product-features {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .scroll-product-feature {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1rem;
+    color: #333;
+  }
+
+  .feature-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+    color: #10b981;
+    flex-shrink: 0;
+  }
+
+  .scroll-product-image {
+    position: relative;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .image-wrapper {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 2rem;
+    overflow: hidden;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    transform: scale(0.95);
+    transition: transform 0.8s ease-out;
+  }
+
+  .scroll-product-content.visible .image-wrapper {
+    transform: scale(1);
+  }
+
+  .image-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease-out;
+  }
+
+  .image-wrapper:hover img {
+    transform: scale(1.05);
+  }
+
+  /* Responsive */
+  @media (max-width: 1024px) {
+    .scroll-product-content {
+      grid-template-columns: 1fr;
+      gap: 3rem;
+    }
+
+    .scroll-product-content.reverse {
+      direction: ltr;
+    }
+
+    .scroll-product-title {
+      font-size: 2.5rem;
+    }
+
+    .scroll-product-description {
+      font-size: 1.125rem;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .scroll-product-section {
+      padding: 5vh 0;
+    }
+
+    .scroll-product-sticky {
+      top: 5vh;
+      height: auto;
+      position: relative;
+    }
+
+    .scroll-product-title {
+      font-size: 2rem;
+    }
+
+    .scroll-product-description {
+      font-size: 1rem;
+    }
+  }
+</style>
+
+<script>
+  // Intersection Observer for scroll animations
+  const observerOptions = {
+    threshold: 0.2,
+    rootMargin: '0px 0px -100px 0px'
+  }
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible')
+      }
+    })
+  }, observerOptions)
+
+  // Observe all product content sections
+  document.querySelectorAll('.scroll-product-content').forEach(content => {
+    observer.observe(content)
+  })
+
+  // Parallax effect on scroll
+  let ticking = false
+
+  function updateParallax() {
+    const sections = document.querySelectorAll('.scroll-product-section')
+    
+    sections.forEach(section => {
+      const rect = section.getBoundingClientRect()
+      const scrollProgress = 1 - (rect.top / window.innerHeight)
+      
+      if (scrollProgress > 0 && scrollProgress < 1) {
+        const image = section.querySelector('.image-wrapper')
+        if (image) {
+          const translateY = (scrollProgress - 0.5) * 50
+          image.style.transform = `scale(1) translateY(${translateY}px)`
+        }
+      }
+    })
+    
+    ticking = false
+  }
+
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      window.requestAnimationFrame(updateParallax)
+      ticking = true
+    }
+  })
+</script>

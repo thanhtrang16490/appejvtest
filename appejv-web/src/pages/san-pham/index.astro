@@ -83,16 +83,16 @@ function formatPrice(price: number): string {
       <div class="container mx-auto px-4 relative z-10">
         <div class="max-w-4xl mx-auto text-center">
           <!-- Animated Title -->
-          <h1 class="text-6xl md:text-7xl font-semibold text-white mb-6 tracking-tight">
+          <h1 class="text-4xl md:text-6xl lg:text-7xl font-semibold text-white mb-6 tracking-tight">
             <span class="block opacity-0 animate-fade-in">Dinh dưỡng</span>
             <span class="block opacity-0 animate-fade-in animation-delay-200">chuyên nghiệp</span>
-            <span class="block text-gray-400 text-4xl md:text-5xl opacity-0 animate-fade-in animation-delay-400 font-light">
+            <span class="block text-gray-400 text-2xl md:text-4xl lg:text-5xl opacity-0 animate-fade-in animation-delay-400 font-light">
               cho mọi giai đoạn phát triển
             </span>
           </h1>
           
           <!-- Subtitle -->
-          <p class="text-xl text-gray-300 mb-12 font-light opacity-0 animate-fade-in animation-delay-600">
+          <p class="text-lg md:text-xl text-gray-300 mb-8 md:mb-12 font-light opacity-0 animate-fade-in animation-delay-600">
             Khám phá dòng sản phẩm được tin dùng bởi hàng nghìn trang trại
           </p>
           
@@ -116,18 +116,18 @@ function formatPrice(price: number): string {
           </div>
           
           <!-- Quick Stats -->
-          <div class="flex justify-center gap-12 mt-16 opacity-0 animate-fade-in animation-delay-1000">
+          <div class="grid grid-cols-2 md:flex md:justify-center gap-6 md:gap-12 mt-12 md:mt-16 opacity-0 animate-fade-in animation-delay-1000">
             <div class="text-center">
-              <div class="text-4xl font-bold text-white mb-1">{allProducts.length}+</div>
-              <div class="text-sm text-gray-400">Sản phẩm</div>
+              <div class="text-3xl md:text-4xl font-bold text-white mb-1">{allProducts.length}+</div>
+              <div class="text-xs md:text-sm text-gray-400">Sản phẩm</div>
             </div>
             <div class="text-center">
-              <div class="text-4xl font-bold text-white mb-1">1500+</div>
-              <div class="text-sm text-gray-400">Khách hàng</div>
+              <div class="text-3xl md:text-4xl font-bold text-white mb-1">150+</div>
+              <div class="text-xs md:text-sm text-gray-400">Đại lý</div>
             </div>
-            <div class="text-center">
-              <div class="text-4xl font-bold text-white mb-1">4.9</div>
-              <div class="text-sm text-gray-400">Đánh giá</div>
+            <div class="text-center col-span-2 md:col-span-1">
+              <div class="text-3xl md:text-4xl font-bold text-white mb-1">16+</div>
+              <div class="text-xs md:text-sm text-gray-400">Năm kinh nghiệm</div>
             </div>
           </div>
         </div>
@@ -143,9 +143,9 @@ function formatPrice(price: number): string {
 
     <!-- Filter Bar - Apple Style -->
     <div class="sticky top-16 z-40 bg-white/80 backdrop-blur-2xl border-b border-gray-200/50 shadow-sm transition-all duration-300" id="filter-bar">
-      <div class="container mx-auto px-4">
+      <div class="container mx-auto px-3 md:px-4">
         <!-- Main Filter Row -->
-        <div class="flex items-center justify-between py-4">
+        <div class="flex items-center justify-between py-3 md:py-4">
           <!-- Category Pills -->
           <div class="flex-1 flex items-center gap-2 overflow-x-auto scrollbar-hide">
             {categoriesWithCount.map((cat) => (
@@ -161,9 +161,9 @@ function formatPrice(price: number): string {
           </div>
           
           <!-- Filter Actions -->
-          <div class="flex items-center gap-3 ml-4">
-            <!-- Sort Dropdown -->
-            <div class="relative">
+          <div class="flex items-center gap-2 md:gap-3 ml-2 md:ml-4">
+            <!-- Sort Dropdown - Hidden on mobile -->
+            <div class="relative hidden md:block">
               <button class="filter-action" id="sort-btn">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
@@ -171,7 +171,7 @@ function formatPrice(price: number): string {
                 <span>Sắp xếp</span>
               </button>
               <!-- Dropdown Menu -->
-              <div class="dropdown-menu hidden absolute top-full right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden z-50">
+              <div class="dropdown-menu hidden absolute top-full right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden z-50 flex flex-col">
                 <button class="dropdown-item" data-sort="newest">Mới nhất</button>
                 <button class="dropdown-item" data-sort="price-asc">Giá thấp → cao</button>
                 <button class="dropdown-item" data-sort="price-desc">Giá cao → thấp</button>
@@ -184,11 +184,11 @@ function formatPrice(price: number): string {
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
               </svg>
-              <span>Lọc</span>
+              <span class="hidden md:inline">Lọc</span>
             </button>
             
-            <!-- View Toggle -->
-            <div class="view-toggle">
+            <!-- View Toggle - Hidden on mobile -->
+            <div class="view-toggle hidden md:flex">
               <button class="view-btn active" data-view="grid">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
@@ -206,7 +206,7 @@ function formatPrice(price: number): string {
     </div>
 
     <!-- Filter Sidebar - Slide-in from right -->
-    <div id="filter-sidebar" class="fixed inset-y-0 right-0 w-96 bg-white shadow-2xl transform translate-x-full transition-transform duration-300 z-50">
+    <div id="filter-sidebar" class="fixed inset-y-0 right-0 w-full md:w-96 bg-white shadow-2xl transform translate-x-full transition-transform duration-300 z-50">
       <div class="h-full flex flex-col">
         <!-- Header -->
         <div class="flex items-center justify-between p-6 border-b border-gray-200">
@@ -307,8 +307,27 @@ function formatPrice(price: number): string {
     <!-- Overlay -->
     <div id="filter-overlay" class="hidden fixed inset-0 bg-black/20 backdrop-blur-sm z-40"></div>
 
+    <!-- Breadcrumb -->
+    <div class="container mx-auto px-3 md:px-4 py-4 bg-white">
+      <nav aria-label="Breadcrumb">
+        <ol class="flex items-center gap-2 text-sm text-gray-600">
+          <li><a href="/" class="hover:text-blue-600 transition-colors">Trang chủ</a></li>
+          <li><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg></li>
+          <li><a href="/san-pham" class="hover:text-blue-600 transition-colors">Sản phẩm</a></li>
+          {categoryFilter !== 'all' && (
+            <>
+              <li><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg></li>
+              <li class="text-gray-900 font-medium">
+                {categoriesWithCount.find(c => c.id === categoryFilter)?.name}
+              </li>
+            </>
+          )}
+        </ol>
+      </nav>
+    </div>
+
     <!-- Products Grid -->
-    <div class="container mx-auto px-4 py-16 bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div class="container mx-auto px-3 md:px-4 py-8 md:py-16 bg-gradient-to-br from-blue-50 via-white to-purple-50">
       {filteredProducts.length === 0 ? (
         <div class="text-center py-32">
           <div class="text-8xl mb-6">🔍</div>
@@ -324,7 +343,7 @@ function formatPrice(price: number): string {
             <span id="product-count">Hiển thị 1-{Math.min(12, filteredProducts.length)}</span> trong tổng số <span class="font-semibold text-gray-900">{filteredProducts.length}</span> sản phẩm
           </div>
           
-          <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+          <div id="products-grid" class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 md:gap-6 lg:gap-8">
             {initialProducts.map((product) => (
               <div class="product-card group">
                 <!-- Image Container -->
@@ -349,11 +368,6 @@ function formatPrice(price: number): string {
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                         </svg>
                         <span>Xem nhanh</span>
-                      </button>
-                      <button class="quick-action" data-action="compare" data-product-id={product.id}>
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                        </svg>
                       </button>
                     </div>
                   </div>
@@ -412,12 +426,6 @@ function formatPrice(price: number): string {
                     </span>
                     <span class="text-sm text-gray-500 font-light">/{product.unit}</span>
                   </div>
-                  
-                  <!-- Stock Status -->
-                  <div class="flex items-center gap-2 text-sm">
-                    <span class="w-2 h-2 bg-green-500 rounded-full"></span>
-                    <span class="text-gray-600">Còn hàng</span>
-                  </div>
                 </div>
               </div>
             ))}
@@ -452,7 +460,9 @@ function formatPrice(price: number): string {
 
     <!-- Infinite Scroll Script -->
     <script define:vars={{ allProducts: filteredProducts, categories: categoriesWithCount }}>
-      console.log('Total products available:', allProducts.length)
+      // Wait for DOM to be fully loaded
+      document.addEventListener('DOMContentLoaded', function() {
+        console.log('Total products available:', allProducts.length)
       
       let currentIndex = 12
       const productsPerLoad = 12
@@ -493,69 +503,7 @@ function formatPrice(price: number): string {
           console.log('Loading', nextProducts.length, 'products')
           
           nextProducts.forEach(product => {
-            const productCard = document.createElement('div')
-            productCard.className = 'product-card group'
-            
-            productCard.innerHTML = `
-              <div class="relative aspect-square bg-gray-50 rounded-2xl overflow-hidden mb-4">
-                ${product.image_url 
-                  ? `<img src="${product.image_url}" alt="${product.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />`
-                  : '<div class="w-full h-full flex items-center justify-center text-7xl">📦</div>'
-                }
-                <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <div class="absolute bottom-4 left-4 right-4 flex gap-2">
-                    <button class="quick-action flex-1" data-action="quick-view" data-product-id="${product.id}">
-                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                      </svg>
-                      <span>Xem nhanh</span>
-                    </button>
-                    <button class="quick-action" data-action="compare" data-product-id="${product.id}">
-                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-                <button class="absolute top-4 right-4 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:scale-110">
-                  <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                  </svg>
-                </button>
-              </div>
-              <div class="space-y-2">
-                <div class="text-xs font-semibold text-blue-600 uppercase tracking-wider">
-                  ${getCategoryName(product.category_id)}
-                </div>
-                <a href="/san-pham/${product.slug}">
-                  <h3 class="text-lg font-semibold text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
-                    ${product.name}
-                  </h3>
-                </a>
-                ${product.description ? `<p class="text-sm text-gray-600 line-clamp-2 font-light">${product.description}</p>` : ''}
-                <div class="flex items-center gap-2">
-                  <div class="flex items-center">
-                    <svg class="w-4 h-4 text-yellow-400 fill-current" viewBox="0 0 20 20">
-                      <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
-                    </svg>
-                    <span class="text-sm font-medium text-gray-900 ml-1">4.9</span>
-                  </div>
-                  <span class="text-sm text-gray-500">(127)</span>
-                </div>
-                <div class="flex items-baseline gap-2 pt-2">
-                  <span class="text-2xl font-bold text-gray-900">
-                    ${formatPrice(product.price)}đ
-                  </span>
-                  <span class="text-sm text-gray-500 font-light">/${product.unit}</span>
-                </div>
-                <div class="flex items-center gap-2 text-sm">
-                  <span class="w-2 h-2 bg-green-500 rounded-full"></span>
-                  <span class="text-gray-600">Còn hàng</span>
-                </div>
-              </div>
-            `
-            
+            const productCard = createProductCard(product)
             productsGrid?.appendChild(productCard)
           })
 
@@ -575,7 +523,6 @@ function formatPrice(price: number): string {
           
           // Re-attach event listeners for new products
           attachQuickViewListeners()
-          attachCompareListeners()
         }, 500)
       }
 
@@ -601,105 +548,78 @@ function formatPrice(price: number): string {
       const closeModal = document.getElementById('close-modal')
       const backdrop = document.getElementById('modal-backdrop')
       
+      console.log('Modal elements:', { modal, modalContent, closeModal, backdrop })
+      
       function attachQuickViewListeners() {
-        document.querySelectorAll('[data-action="quick-view"]').forEach(btn => {
+        const quickViewButtons = document.querySelectorAll('[data-action="quick-view"]')
+        console.log('Found quick view buttons:', quickViewButtons.length)
+        
+        quickViewButtons.forEach(btn => {
           btn.addEventListener('click', (e) => {
             e.preventDefault()
             e.stopPropagation()
             const productId = btn.dataset.productId
+            console.log('Quick view clicked for product:', productId)
             const product = allProducts.find(p => p.id == productId)
+            
             if (product) {
-              document.getElementById('qv-main-image').src = product.image_url || ''
-              document.getElementById('qv-category').textContent = getCategoryName(product.category_id)
-              document.getElementById('qv-name').textContent = product.name
-              document.getElementById('qv-description').textContent = product.description || ''
-              document.getElementById('qv-price').textContent = formatPrice(product.price) + 'đ'
-              document.getElementById('qv-unit').textContent = '/' + product.unit
-              document.getElementById('qv-detail-link').href = '/san-pham/' + product.slug
+              console.log('Product found:', product.name)
+              const qvImage = document.getElementById('qv-main-image')
+              const qvCategory = document.getElementById('qv-category')
+              const qvName = document.getElementById('qv-name')
+              const qvDescription = document.getElementById('qv-description')
+              const qvPrice = document.getElementById('qv-price')
+              const qvUnit = document.getElementById('qv-unit')
+              const qvLink = document.getElementById('qv-detail-link')
               
-              modal.classList.remove('hidden')
-              setTimeout(() => {
-                modalContent.classList.remove('scale-95', 'opacity-0')
-                modalContent.classList.add('scale-100', 'opacity-100')
-              }, 10)
+              if (qvImage) qvImage.src = product.image_url || ''
+              if (qvCategory) qvCategory.textContent = getCategoryName(product.category_id)
+              if (qvName) qvName.textContent = product.name
+              if (qvDescription) qvDescription.textContent = product.description || ''
+              if (qvPrice) qvPrice.textContent = formatPrice(product.price) + 'đ'
+              if (qvUnit) qvUnit.textContent = '/' + product.unit
+              if (qvLink) qvLink.href = '/san-pham/' + product.slug
+              
+              if (modal && modalContent) {
+                modal.classList.remove('hidden')
+                setTimeout(() => {
+                  modalContent.classList.remove('scale-95', 'opacity-0')
+                  modalContent.classList.add('scale-100', 'opacity-100')
+                }, 10)
+              } else {
+                console.error('Modal elements not found!')
+              }
+            } else {
+              console.error('Product not found for id:', productId)
             }
           })
         })
       }
       
       function closeQuickView() {
-        modalContent.classList.remove('scale-100', 'opacity-100')
-        modalContent.classList.add('scale-95', 'opacity-0')
-        setTimeout(() => {
-          modal.classList.add('hidden')
-        }, 300)
+        if (modalContent && modal) {
+          modalContent.classList.remove('scale-100', 'opacity-100')
+          modalContent.classList.add('scale-95', 'opacity-0')
+          setTimeout(() => {
+            modal.classList.add('hidden')
+          }, 300)
+        }
       }
       
-      closeModal?.addEventListener('click', closeQuickView)
-      backdrop?.addEventListener('click', closeQuickView)
+      if (closeModal) {
+        closeModal.addEventListener('click', closeQuickView)
+      }
+      
+      if (backdrop) {
+        backdrop.addEventListener('click', closeQuickView)
+      }
       
       document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+        if (e.key === 'Escape' && modal && !modal.classList.contains('hidden')) {
           closeQuickView()
         }
       })
       
-      // Comparison functionality
-      let comparisonProducts = []
-      const comparisonBar = document.getElementById('comparison-bar')
-      const comparisonCount = document.getElementById('comparison-count')
-      const comparisonProductsContainer = document.getElementById('comparison-products')
-      
-      function attachCompareListeners() {
-        document.querySelectorAll('[data-action="compare"]').forEach(btn => {
-          btn.addEventListener('click', (e) => {
-            e.preventDefault()
-            e.stopPropagation()
-            const productId = btn.dataset.productId
-            const product = allProducts.find(p => p.id == productId)
-            
-            if (product && !comparisonProducts.find(p => p.id === product.id)) {
-              if (comparisonProducts.length < 4) {
-                comparisonProducts.push(product)
-                updateComparisonBar()
-              }
-            }
-          })
-        })
-      }
-      
-      function updateComparisonBar() {
-        comparisonCount.textContent = comparisonProducts.length
-        
-        if (comparisonProducts.length > 0) {
-          comparisonBar.classList.add('translate-y-0')
-          comparisonBar.classList.remove('translate-y-full')
-        } else {
-          comparisonBar.classList.remove('translate-y-0')
-          comparisonBar.classList.add('translate-y-full')
-        }
-        
-        comparisonProductsContainer.innerHTML = comparisonProducts.map(p => `
-          <div class="relative w-16 h-16 rounded-xl overflow-hidden border-2 border-gray-200">
-            <img src="${p.image_url || ''}" alt="${p.name}" class="w-full h-full object-cover" />
-            <button class="absolute -top-2 -right-2 w-6 h-6 bg-black text-white rounded-full flex items-center justify-center text-xs hover:bg-gray-800" onclick="removeFromComparison('${p.id}')">×</button>
-          </div>
-        `).join('')
-      }
-      
-      window.removeFromComparison = function(productId) {
-        comparisonProducts = comparisonProducts.filter(p => p.id != productId)
-        updateComparisonBar()
-      }
-      
-      document.getElementById('clear-comparison')?.addEventListener('click', () => {
-        comparisonProducts = []
-        updateComparisonBar()
-      })
-      
-      document.getElementById('compare-btn')?.addEventListener('click', () => {
-        alert('Tính năng so sánh sản phẩm đang được phát triển')
-      })
       
       // Filter sidebar
       const filterBtn = document.getElementById('filter-btn')
@@ -725,8 +645,10 @@ function formatPrice(price: number): string {
       // Sort dropdown
       const sortBtn = document.getElementById('sort-btn')
       const dropdownMenu = sortBtn?.nextElementSibling
+      let currentSort = 'default'
       
-      sortBtn?.addEventListener('click', () => {
+      sortBtn?.addEventListener('click', (e) => {
+        e.stopPropagation()
         dropdownMenu?.classList.toggle('hidden')
       })
       
@@ -734,6 +656,139 @@ function formatPrice(price: number): string {
         if (!sortBtn?.contains(e.target) && !dropdownMenu?.contains(e.target)) {
           dropdownMenu?.classList.add('hidden')
         }
+      })
+      
+      // Sort functionality
+      function sortProducts(sortType) {
+        console.log('Sorting by:', sortType)
+        currentSort = sortType
+        
+        // Create a copy to sort
+        let sortedProducts = [...allProducts]
+        
+        switch(sortType) {
+          case 'price-asc':
+            sortedProducts.sort((a, b) => a.price - b.price)
+            break
+          case 'price-desc':
+            sortedProducts.sort((a, b) => b.price - a.price)
+            break
+          case 'newest':
+            sortedProducts.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0))
+            break
+          case 'popular':
+            // Sort by name for now (can be changed to actual popularity metric)
+            sortedProducts.sort((a, b) => a.name.localeCompare(b.name))
+            break
+          default:
+            // Keep original order
+            break
+        }
+        
+        // Update allProducts array
+        allProducts = sortedProducts
+        
+        // Clear and reload products
+        productsGrid.innerHTML = ''
+        currentIndex = 0
+        
+        // Load first batch
+        const firstBatch = allProducts.slice(0, productsPerLoad)
+        firstBatch.forEach(product => {
+          const productCard = createProductCard(product)
+          productsGrid?.appendChild(productCard)
+        })
+        
+        currentIndex = productsPerLoad
+        
+        // Update count
+        if (productCount) {
+          productCount.textContent = `Hiển thị 1-${Math.min(currentIndex, allProducts.length)}`
+        }
+        
+        // Reset end message
+        endMessage?.classList.add('hidden')
+        const sentinel = document.getElementById('scroll-sentinel')
+        if (sentinel) sentinel.style.display = 'block'
+        
+        // Re-attach listeners
+        attachQuickViewListeners()
+      }
+      
+      // Create product card function
+      function createProductCard(product) {
+        const productCard = document.createElement('div')
+        productCard.className = 'product-card group'
+        
+        productCard.innerHTML = `
+          <div class="relative aspect-square bg-gray-50 rounded-2xl overflow-hidden mb-4">
+            ${product.image_url 
+              ? `<img src="${product.image_url}" alt="${product.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />`
+              : '<div class="w-full h-full flex items-center justify-center text-7xl">📦</div>'
+            }
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <div class="absolute bottom-4 left-4 right-4 flex gap-2">
+                <button class="quick-action flex-1" data-action="quick-view" data-product-id="${product.id}">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                  <span>Xem nhanh</span>
+                </button>
+              </div>
+            </div>
+            <button class="absolute top-4 right-4 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:scale-110">
+              <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+            </button>
+          </div>
+          <div class="space-y-2">
+            <div class="text-xs font-semibold text-blue-600 uppercase tracking-wider">
+              ${getCategoryName(product.category_id)}
+            </div>
+            <a href="/san-pham/${product.slug}">
+              <h3 class="text-lg font-semibold text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                ${product.name}
+              </h3>
+            </a>
+            ${product.description ? `<p class="text-sm text-gray-600 line-clamp-2 font-light">${product.description}</p>` : ''}
+            <div class="flex items-center gap-2">
+              <div class="flex items-center">
+                <svg class="w-4 h-4 text-yellow-400 fill-current" viewBox="0 0 20 20">
+                  <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                </svg>
+                <span class="text-sm font-medium text-gray-900 ml-1">4.9</span>
+              </div>
+              <span class="text-sm text-gray-500">(127)</span>
+            </div>
+            <div class="flex items-baseline gap-2 pt-2">
+              <span class="text-2xl font-bold text-gray-900">
+                ${formatPrice(product.price)}đ
+              </span>
+              <span class="text-sm text-gray-500 font-light">/${product.unit}</span>
+            </div>
+          </div>
+        `
+        
+        return productCard
+      }
+      
+      // Add click handlers to dropdown items
+      document.querySelectorAll('.dropdown-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+          e.stopPropagation()
+          const sortType = item.dataset.sort
+          sortProducts(sortType)
+          dropdownMenu?.classList.add('hidden')
+          
+          // Update button text to show current sort
+          const sortText = item.textContent
+          const btnText = sortBtn?.querySelector('span')
+          if (btnText) {
+            btnText.textContent = sortText
+          }
+        })
       })
       
       // View toggle
@@ -744,18 +799,19 @@ function formatPrice(price: number): string {
           
           const view = btn.dataset.view
           if (view === 'list') {
-            productsGrid.classList.remove('grid-cols-1', 'sm:grid-cols-2', 'lg:grid-cols-3', 'xl:grid-cols-4')
+            productsGrid.classList.remove('grid-cols-2', 'sm:grid-cols-2', 'md:grid-cols-3', 'lg:grid-cols-4', 'xl:grid-cols-5', '2xl:grid-cols-6')
             productsGrid.classList.add('grid-cols-1')
           } else {
             productsGrid.classList.remove('grid-cols-1')
-            productsGrid.classList.add('grid-cols-1', 'sm:grid-cols-2', 'lg:grid-cols-3', 'xl:grid-cols-4')
+            productsGrid.classList.add('grid-cols-2', 'sm:grid-cols-2', 'md:grid-cols-3', 'lg:grid-cols-4', 'xl:grid-cols-5', '2xl:grid-cols-6')
           }
         })
       })
       
       // Initial attachment
       attachQuickViewListeners()
-      attachCompareListeners()
+      
+      }); // End DOMContentLoaded
     </script>
 
     <style>
@@ -896,11 +952,6 @@ function formatPrice(price: number): string {
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
       }
       
-      .dropdown-menu {
-        display: flex;
-        flex-direction: column;
-      }
-      
       .dropdown-item {
         padding: 12px 16px;
         text-align: left;
@@ -1017,16 +1068,16 @@ function formatPrice(price: number): string {
       <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" id="modal-backdrop"></div>
       
       <!-- Modal Content -->
-      <div class="absolute inset-0 flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-5xl w-full max-h-[90vh] overflow-y-auto shadow-2xl transform scale-95 opacity-0 transition-all duration-300" id="modal-content">
+      <div class="absolute inset-0 flex items-center justify-center p-0 md:p-4">
+        <div class="bg-white rounded-none md:rounded-3xl w-full md:max-w-5xl h-full md:h-auto md:max-h-[90vh] overflow-y-auto shadow-2xl transform scale-95 opacity-0 transition-all duration-300" id="modal-content">
           <!-- Close Button -->
-          <button class="absolute top-6 right-6 z-10 w-10 h-10 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-colors" id="close-modal">
+          <button class="absolute top-4 right-4 md:top-6 md:right-6 z-10 w-10 h-10 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-colors" id="close-modal">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
           
-          <div class="grid md:grid-cols-2 gap-8 p-8">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 p-4 md:p-8">
             <!-- Image -->
             <div class="space-y-4">
               <div class="aspect-square bg-gray-50 rounded-2xl overflow-hidden">
@@ -1067,7 +1118,7 @@ function formatPrice(price: number): string {
                   <svg class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                   </svg>
-                  <span class="text-sm text-gray-700">Giao hàng toàn quốc</span>
+                  <span class="text-sm text-gray-700">Mua qua 150+ đại lý toàn quốc</span>
                 </div>
                 <div class="flex items-start gap-3">
                   <svg class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1078,49 +1129,21 @@ function formatPrice(price: number): string {
               </div>
               
               <div class="bg-gray-50 rounded-2xl p-6 mb-6">
-                <div class="flex items-baseline gap-3 mb-2">
+                <div class="flex items-baseline gap-3">
                   <span class="text-4xl font-bold text-gray-900" id="qv-price"></span>
                   <span class="text-lg text-gray-500 font-light" id="qv-unit"></span>
-                </div>
-                <div class="flex items-center gap-2 text-sm">
-                  <span class="w-2 h-2 bg-green-500 rounded-full"></span>
-                  <span class="text-gray-600">Còn hàng - Giao trong 1-2 ngày</span>
                 </div>
               </div>
               
               <div class="flex gap-3 mt-auto">
-                <a href="#" id="qv-detail-link" class="flex-1 bg-black text-white px-8 py-4 rounded-full font-semibold text-center hover:bg-gray-800 transition-all">
+                <a href="#" id="qv-detail-link" class="flex-1 bg-black text-white px-6 md:px-8 py-3 md:py-4 rounded-full font-semibold text-sm md:text-base text-center hover:bg-gray-800 transition-all">
                   Xem chi tiết
                 </a>
-                <a href="tel:+84351359520" class="flex-1 bg-gray-100 text-gray-900 px-8 py-4 rounded-full font-semibold text-center hover:bg-gray-200 transition-all">
+                <a href="tel:+84351359520" class="flex-1 bg-gray-100 text-gray-900 px-6 md:px-8 py-3 md:py-4 rounded-full font-semibold text-sm md:text-base text-center hover:bg-gray-200 transition-all">
                   Gọi ngay
                 </a>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Comparison Bar -->
-    <div id="comparison-bar" class="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-gray-200 shadow-2xl transform translate-y-full transition-transform duration-300 z-40">
-      <div class="container mx-auto px-4 py-4">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-4">
-            <span class="text-sm font-medium text-gray-700">So sánh:</span>
-            <div class="flex gap-2" id="comparison-products"></div>
-            <span class="text-sm text-gray-500">
-              <span id="comparison-count">0</span>/4 sản phẩm
-            </span>
-          </div>
-          
-          <div class="flex items-center gap-3">
-            <button id="clear-comparison" class="text-sm text-gray-600 hover:text-gray-900 font-medium">
-              Xóa tất cả
-            </button>
-            <button id="compare-btn" class="bg-black text-white px-6 py-3 rounded-full font-semibold hover:bg-gray-800 transition-all">
-              So sánh ngay
-            </button>
           </div>
         </div>
       </div>
@@ -1138,9 +1161,9 @@ function formatPrice(price: number): string {
               <p class="text-sm text-gray-600 font-light">ISO 9001:2015</p>
             </div>
             <div class="text-center p-6 bg-white/80 backdrop-blur-sm rounded-3xl shadow-lg">
-              <div class="text-5xl mb-3">🚚</div>
-              <h4 class="font-semibold text-gray-900 mb-1">Giao hàng toàn quốc</h4>
-              <p class="text-sm text-gray-600 font-light">1-3 ngày</p>
+              <div class="text-5xl mb-3">📍</div>
+              <h4 class="font-semibold text-gray-900 mb-1">150+ Đại lý</h4>
+              <p class="text-sm text-gray-600 font-light">Toàn quốc</p>
             </div>
             <div class="text-center p-6 bg-white/80 backdrop-blur-sm rounded-3xl shadow-lg">
               <div class="text-5xl mb-3">💯</div>
@@ -1182,4 +1205,37 @@ function formatPrice(price: number): string {
 
   <!-- Floating Contact Buttons -->
   <FloatingContactButtons />
+
+  <!-- Back to Top Button -->
+  <button 
+    id="back-to-top"
+    class="fixed bottom-24 right-4 md:right-6 w-12 h-12 bg-black text-white rounded-full shadow-xl opacity-0 pointer-events-none transition-all duration-300 hover:bg-gray-800 hover:scale-110 z-40"
+    aria-label="Back to top"
+  >
+    <svg class="w-6 h-6 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+    </svg>
+  </button>
+
+  <script>
+    // Back to top functionality
+    const backToTopBtn = document.getElementById('back-to-top')
+    
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 500) {
+        backToTopBtn?.classList.remove('opacity-0', 'pointer-events-none')
+        backToTopBtn?.classList.add('opacity-100', 'pointer-events-auto')
+      } else {
+        backToTopBtn?.classList.add('opacity-0', 'pointer-events-none')
+        backToTopBtn?.classList.remove('opacity-100', 'pointer-events-auto')
+      }
+    })
+    
+    backToTopBtn?.addEventListener('click', () => {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      })
+    })
+  </script>
 </BaseLayout>

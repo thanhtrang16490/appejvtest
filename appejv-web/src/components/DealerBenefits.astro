@@ -1,0 +1,218 @@
+---
+const benefits = [
+  {
+    icon: '💰',
+    title: 'Chính sách giá cạnh tranh',
+    description: 'Giá ưu đãi đặc biệt cho đại lý, chiết khấu theo số lượng',
+    features: [
+      'Chiết khấu cao theo doanh số',
+      'Chính sách thanh toán linh hoạt',
+      'Hỗ trợ vốn cho đơn hàng lớn'
+    ]
+  },
+  {
+    icon: '🏪',
+    title: 'Hệ thống đại lý rộng khắp',
+    description: 'Mạng lưới đại lý trên toàn quốc, thuận tiện mua hàng',
+    features: [
+      'Đại lý tại hầu hết các tỉnh thành',
+      'Tư vấn trực tiếp tại đại lý',
+      'Giao hàng tận nơi (qua đại lý)'
+    ]
+  },
+  {
+    icon: '📢',
+    title: 'Hỗ trợ marketing',
+    description: 'Tài liệu, vật phẩm marketing và quảng cáo',
+    features: [
+      'Tài liệu marketing miễn phí',
+      'Standee, poster, brochure',
+      'Hỗ trợ quảng cáo địa phương'
+    ]
+  },
+  {
+    icon: '🎓',
+    title: 'Đào tạo chuyên sâu',
+    description: 'Đào tạo kiến thức sản phẩm và kỹ năng bán hàng',
+    features: [
+      'Đào tạo sản phẩm định kỳ',
+      'Kỹ năng tư vấn khách hàng',
+      'Cập nhật xu hướng thị trường'
+    ]
+  },
+  {
+    icon: '🛠️',
+    title: 'Hỗ trợ kỹ thuật',
+    description: 'Đội ngũ kỹ thuật hỗ trợ 24/7 cho đại lý và khách hàng',
+    features: [
+      'Hotline kỹ thuật 24/7',
+      'Tư vấn giải pháp dinh dưỡng',
+      'Xử lý khiếu nại nhanh chóng'
+    ]
+  },
+  {
+    icon: '🏆',
+    title: 'Chương trình thưởng',
+    description: 'Khen thưởng và ưu đãi cho đại lý xuất sắc',
+    features: [
+      'Thưởng doanh số hàng tháng',
+      'Du lịch nghỉ dưỡng',
+      'Giải thưởng cuối năm'
+    ]
+  }
+]
+---
+
+<section class="py-32 px-4 relative overflow-hidden">
+  <!-- Background -->
+  <div class="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-green-50"></div>
+  
+  <!-- Animated gradient mesh -->
+  <div class="absolute inset-0 opacity-15">
+    <div class="absolute top-1/4 right-1/4 w-96 h-96 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl animate-blob"></div>
+    <div class="absolute bottom-1/4 left-1/4 w-96 h-96 bg-green-300 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000"></div>
+  </div>
+  
+  <div class="container mx-auto relative z-10">
+    <!-- Header -->
+    <div class="text-center mb-20 scroll-reveal">
+      <div class="inline-block mb-4">
+        <span class="text-sm font-semibold text-blue-600 tracking-wide uppercase bg-blue-50 px-4 py-2 rounded-full">
+          Trở thành đối tác
+        </span>
+      </div>
+      <h2 class="text-5xl md:text-6xl font-semibold text-gray-900 mb-6 tracking-tight">
+        Lợi ích cho đại lý
+      </h2>
+      <p class="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto font-light leading-relaxed">
+        Đồng hành cùng APPE - Nhà sản xuất thức ăn chăn nuôi<br class="hidden md:block" />
+        uy tín với chính sách hỗ trợ toàn diện
+      </p>
+      <p class="text-base text-gray-500 mt-4 max-w-2xl mx-auto">
+        Đại lý lấy hàng tại nhà máy Hà Nam, phân phối đến khách hàng trên toàn quốc
+      </p>
+    </div>
+
+    <!-- Benefits Grid -->
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+      {benefits.map((benefit, index) => (
+        <div 
+          class="group bg-white/90 backdrop-blur-sm rounded-3xl p-8 hover:shadow-2xl transition-all duration-500 scroll-reveal ring-1 ring-gray-900/5 hover:ring-gray-900/10"
+          style={`animation-delay: ${index * 0.1}s`}
+        >
+          <!-- Icon -->
+          <div class="text-6xl mb-6 transform group-hover:scale-110 transition-transform duration-500">
+            {benefit.icon}
+          </div>
+          
+          <!-- Title -->
+          <h3 class="text-2xl font-semibold text-gray-900 mb-3 tracking-tight">
+            {benefit.title}
+          </h3>
+          
+          <!-- Description -->
+          <p class="text-gray-600 mb-6 leading-relaxed">
+            {benefit.description}
+          </p>
+          
+          <!-- Features -->
+          <ul class="space-y-2">
+            {benefit.features.map(feature => (
+              <li class="flex items-start gap-2 text-sm text-gray-700">
+                <svg class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                <span>{feature}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+
+    <!-- Distribution Model -->
+    <div class="mt-20 scroll-reveal">
+      <div class="max-w-5xl mx-auto bg-gradient-to-br from-blue-50 to-green-50 rounded-3xl p-10">
+        <h3 class="text-3xl font-semibold text-gray-900 mb-8 text-center">
+          Mô hình phân phối
+        </h3>
+        <div class="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-8">
+          <!-- APPE -->
+          <div class="flex flex-col items-center">
+            <div class="w-32 h-32 bg-white rounded-2xl shadow-lg flex items-center justify-center mb-3">
+              <div class="text-center">
+                <div class="text-4xl mb-2">🏭</div>
+                <div class="text-sm font-semibold text-gray-900">APPE</div>
+                <div class="text-xs text-gray-600">Nhà máy</div>
+              </div>
+            </div>
+            <div class="text-xs text-gray-600 text-center">Hà Nam</div>
+          </div>
+
+          <!-- Arrow -->
+          <div class="flex items-center">
+            <svg class="w-12 h-12 text-blue-600 transform md:rotate-0 rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+            </svg>
+          </div>
+
+          <!-- Đại lý -->
+          <div class="flex flex-col items-center">
+            <div class="w-32 h-32 bg-white rounded-2xl shadow-lg flex items-center justify-center mb-3">
+              <div class="text-center">
+                <div class="text-4xl mb-2">🏪</div>
+                <div class="text-sm font-semibold text-gray-900">Đại lý</div>
+                <div class="text-xs text-gray-600">Phân phối</div>
+              </div>
+            </div>
+            <div class="text-xs text-gray-600 text-center">Toàn quốc</div>
+          </div>
+
+          <!-- Arrow -->
+          <div class="flex items-center">
+            <svg class="w-12 h-12 text-green-600 transform md:rotate-0 rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+            </svg>
+          </div>
+
+          <!-- Khách hàng -->
+          <div class="flex flex-col items-center">
+            <div class="w-32 h-32 bg-white rounded-2xl shadow-lg flex items-center justify-center mb-3">
+              <div class="text-center">
+                <div class="text-4xl mb-2">👨‍🌾</div>
+                <div class="text-sm font-semibold text-gray-900">Khách hàng</div>
+                <div class="text-xs text-gray-600">Người chăn nuôi</div>
+              </div>
+            </div>
+            <div class="text-xs text-gray-600 text-center">Cá nhân</div>
+          </div>
+        </div>
+        
+        <div class="mt-8 text-center">
+          <p class="text-gray-700 leading-relaxed">
+            <span class="font-semibold">Đại lý</span> lấy hàng tại nhà máy Hà Nam, 
+            sau đó phân phối và giao hàng đến <span class="font-semibold">khách hàng cá nhân</span> 
+            (người chăn nuôi) trên toàn quốc
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="text-center mt-16 scroll-reveal">
+      <a 
+        href="/lien-he"
+        class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-10 py-4 rounded-full font-semibold text-lg transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
+      >
+        Đăng ký trở thành đại lý
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+        </svg>
+      </a>
+      <p class="text-sm text-gray-500 mt-4">
+        Hoặc gọi ngay: <a href="tel:+84351359520" class="text-blue-600 font-semibold hover:underline">035 135 9520</a>
+      </p>
+    </div>
+  </div>
+</section>
+
