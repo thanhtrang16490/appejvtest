@@ -1,25 +1,32 @@
 import type { APIRoute } from 'astro'
 import { getProducts } from '../lib/supabase'
 
+interface SitemapPage {
+  url: string
+  priority: string
+  changefreq: string
+  image?: string
+}
+
 export const GET: APIRoute = async () => {
   const SITE_URL = 'https://appejv.app'
   const products = await getProducts()
   
-  const staticPages = [
+  const staticPages: SitemapPage[] = [
     { url: '', priority: '1.0', changefreq: 'daily' },
     { url: '/san-pham', priority: '0.9', changefreq: 'daily' },
     { url: '/gioi-thieu', priority: '0.8', changefreq: 'monthly' },
     { url: '/lien-he', priority: '0.7', changefreq: 'monthly' },
   ]
   
-  const productPages = products.map(product => ({
+  const productPages: SitemapPage[] = products.map(product => ({
     url: `/san-pham/${product.slug}`,
     priority: '0.8',
     changefreq: 'weekly',
     image: product.image_url
   }))
   
-  const allPages = [...staticPages, ...productPages]
+  const allPages: SitemapPage[] = [...staticPages, ...productPages]
   const lastmod = new Date().toISOString().split('T')[0]
   
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
