@@ -6,9 +6,9 @@ export const GET: APIRoute = async () => {
   const products = await getProducts()
   
   const staticPages = [
-    { url: '', priority: '1.0', changefreq: 'weekly' },
+    { url: '', priority: '1.0', changefreq: 'daily' },
+    { url: '/san-pham', priority: '0.9', changefreq: 'daily' },
     { url: '/gioi-thieu', priority: '0.8', changefreq: 'monthly' },
-    { url: '/san-pham', priority: '0.9', changefreq: 'weekly' },
     { url: '/lien-he', priority: '0.7', changefreq: 'monthly' },
   ]
   
