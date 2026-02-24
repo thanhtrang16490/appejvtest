@@ -1,18 +1,22 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro'
-import EcosystemOrbit3DWrapper from '../components/EcosystemOrbit3DWrapper'
-import Hero3DBackground from '../components/Hero3DBackground'
-import VideoHeroBackground from '../components/VideoHeroBackground'
-import DNA3DHelix from '../components/DNA3DHelix'
-import ParticleWave3D from '../components/ParticleWave3D'
-import AnimatedSphere3D from '../components/AnimatedSphere3D'
-import ScrollDrivenProduct from '../components/ScrollDrivenProduct.astro'
-import ExitIntentPopup from '../components/ExitIntentPopup'
-import QualityCertifications from '../components/QualityCertifications.astro'
-import EcosystemWithModal from '../components/EcosystemWithModal'
+const lang = 'en'
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import EcosystemOrbit3DWrapper from '../../components/EcosystemOrbit3DWrapper'
+import Hero3DBackground from '../../components/Hero3DBackground'
+import VideoHeroBackground from '../../components/VideoHeroBackground'
+import DNA3DHelix from '../../components/DNA3DHelix'
+import ParticleWave3D from '../../components/ParticleWave3D'
+import AnimatedSphere3D from '../../components/AnimatedSphere3D'
+import ScrollDrivenProduct from '../../components/ScrollDrivenProduct.astro'
+import ExitIntentPopup from '../../components/ExitIntentPopup'
+import QualityCertifications from '../../components/QualityCertifications.astro'
+import EcosystemWithModal from '../../components/EcosystemWithModal'
+import { translations } from '../../i18n/homepage-translations'
 
-const seoTitle = "APPE JV Việt Nam - Thức ăn chăn nuôi và thủy sản chất lượng cao"
-const seoDescription = "APPE JV chuyên sản xuất và cung cấp thức ăn chăn nuôi chất lượng cao cho heo, gia cầm và thủy sản. Thành lập từ 2008, ứng dụng công nghệ tiên tiến, xuất khẩu sang Đông Nam Á và Châu Âu."
+const t = translations[lang]
+
+const seoTitle = t.seo.title
+const seoDescription = t.seo.description
 const seoKeywords = [
   "thức ăn chăn nuôi",
   "thức ăn heo",
@@ -33,153 +37,153 @@ const ecosystem = [
   {
     name: "A Group",
     logo: "/appejv-logo.png",
-    description: "Tập đoàn hàng đầu trong lĩnh vực nông nghiệp và thực phẩm",
+    description: "Leading corporation in agriculture and food",
     isParent: true
   },
   {
     name: "APPE",
     logo: "/appe-logo.png",
-    description: "Thức ăn chăn nuôi chất lượng cao"
+    description: "High-quality livestock feed"
   },
   {
     name: "AFARM",
     logo: "/afarm-logo.png",
-    description: "Trang trại chăn nuôi công nghệ cao"
+    description: "High-tech livestock farm"
   },
   {
     name: "AFOOD",
     logo: "/afood-logo.png",
-    description: "Chế biến thực phẩm an toàn"
+    description: "Safe food processing"
   },
   {
     name: "AGRIL",
     logo: "/agril-logo.png",
-    description: "Chuỗi nhà hàng 5 sao"
+    description: "5-star restaurant chain"
   },
   {
     name: "APHAMA",
     logo: "/aphama-logo.png",
-    description: "Dược thú y và sinh học"
+    description: "Veterinary medicine and biology"
   },
   {
     name: "AVAC",
     logo: "/avac-logo.png",
-    description: "Vaccine và sinh phẩm"
+    description: "Vaccines and biologicals"
   }
 ]
 
 const stats = [
-  { number: "2008", label: "Năm thành lập", countUp: false },
-  { number: "1500", label: "Khách hàng tin dùng", countUp: true, suffix: "+" },
-  { number: "50000", label: "Tấn sản phẩm/năm", countUp: true, suffix: "+" },
-  { number: "98", label: "% Khách hàng hài lòng", countUp: true, suffix: "%" }
+  { number: "2008", label: "Year Established", countUp: false },
+  { number: "1500", label: "Trusted Customers", countUp: true, suffix: "+" },
+  { number: "50000", label: "Tons Production/Year", countUp: true, suffix: "+" },
+  { number: "98", label: "% Customer Satisfaction", countUp: true, suffix: "%" }
 ]
 
 const testimonials = [
   {
-    name: "Anh Nguyễn Văn Thành",
-    role: "Chủ trang trại, Hà Nam",
+    name: "Mr. Nguyen Van Thanh",
+    role: "Farm Owner, Ha Nam",
     avatar: "👨‍🌾",
     rating: 5,
-    quote: "Sử dụng thức ăn APPE được 2 năm, đàn heo phát triển rất tốt, tỷ lệ FCR giảm đáng kể. Đội ngũ kỹ thuật nhiệt tình hỗ trợ."
+    quote: "Using APPE feed for 2 years, pigs develop very well, FCR ratio significantly reduced. Technical team enthusiastically supports."
   },
   {
-    name: "Chị Trần Thị Mai",
-    role: "Trang trại gia cầm, Nam Định",
+    name: "Ms. Tran Thi Mai",
+    role: "Poultry Farm, Nam Dinh",
     avatar: "👩‍🌾",
     rating: 5,
-    quote: "Chất lượng sản phẩm ổn định, gà đẻ nhiều hơn, khỏe mạnh hơn. Giá cả hợp lý, giao hàng đúng hẹn."
+    quote: "Stable product quality, chickens lay more eggs, healthier. Reasonable price, on-time delivery."
   },
   {
-    name: "Anh Phạm Đức Long",
-    role: "Nuôi thủy sản, Thái Bình",
+    name: "Mr. Pham Duc Long",
+    role: "Aquaculture, Thai Binh",
     avatar: "🧑‍🌾",
     rating: 5,
-    quote: "Thức ăn cá chất lượng cao, cá phát triển đều, ít bệnh tật. Rất hài lòng với dịch vụ của APPE."
+    quote: "High quality fish feed, fish develop evenly, less disease. Very satisfied with APPE service."
   }
 ]
 
 const faqs = [
   {
-    question: "Sản phẩm của APPE có chứng nhận gì?",
-    answer: "Tất cả sản phẩm của chúng tôi đều được chứng nhận ISO 9001:2015, HACCP và các tiêu chuẩn chất lượng quốc tế. Chúng tôi cam kết về an toàn thực phẩm và chất lượng sản phẩm."
+    question: "What certifications do APPE products have?",
+    answer: "All our products are certified ISO 9001:2015, HACCP and international quality standards. We are committed to food safety and product quality."
   },
   {
-    question: "Làm thế nào để mua sản phẩm của APPE?",
-    answer: "APPE phân phối sản phẩm thông qua hệ thống 150+ đại lý trên toàn quốc. Bạn có thể tìm đại lý gần nhất trên website hoặc liên hệ hotline 035 135 9520 để được hỗ trợ."
+    question: "How to buy APPE products?",
+    answer: "APPE distributes products through a network of 150+ dealers nationwide. You can find the nearest dealer on the website or contact hotline 035 135 9520 for support."
   },
   {
-    question: "Làm thế nào để được tư vấn kỹ thuật?",
-    answer: "Bạn có thể liên hệ hotline 035 135 9520 hoặc gửi yêu cầu qua website. Đội ngũ kỹ thuật của chúng tôi sẵn sàng hỗ trợ 24/7."
+    question: "How to get technical consultation?",
+    answer: "You can contact hotline 035 135 9520 or send a request via website. Our technical team is ready to support 24/7."
   },
   {
-    question: "APPE có chương trình ưu đãi cho khách hàng lớn không?",
-    answer: "Có, chúng tôi có chính sách giá ưu đãi và hỗ trợ kỹ thuật đặc biệt cho khách hàng mua số lượng lớn. Vui lòng liên hệ để được tư vấn chi tiết."
+    question: "Does APPE have incentive programs for large customers?",
+    answer: "Yes, we have preferential pricing policies and special technical support for customers who buy in large quantities. Please contact for detailed advice."
   },
   {
-    question: "Thời gian bảo quản sản phẩm là bao lâu?",
-    answer: "Sản phẩm có thời gian bảo quản từ 3-6 tháng tùy loại, khi được bảo quản đúng cách ở nơi khô ráo, thoáng mát."
+    question: "How long is the product shelf life?",
+    answer: "Products have a shelf life of 3-6 months depending on the type, when properly stored in a dry, cool place."
   }
 ]
 
 const features = [
   {
-    title: "Chất lượng cao",
-    description: "Sản phẩm đạt tiêu chuẩn quốc tế, đảm bảo an toàn và hiệu quả"
+    title: "High Quality",
+    description: "Products meet international standards, ensuring safety and effectiveness"
   },
   {
-    title: "Công nghệ tiên tiến",
-    description: "Ứng dụng công nghệ và tiêu chuẩn sản xuất hiện đại"
+    title: "Advanced Technology",
+    description: "Application of modern technology and production standards"
   },
   {
-    title: "Đồng hành bền vững",
-    description: "Cam kết phát triển bền vững cùng khách hàng và đối tác"
+    title: "Sustainable Partnership",
+    description: "Commitment to sustainable development with customers and partners"
   },
   {
-    title: "Xuất khẩu quốc tế",
-    description: "Sản phẩm được xuất khẩu sang Đông Nam Á và Châu Âu"
+    title: "International Export",
+    description: "Products exported to Southeast Asia and Europe"
   }
 ]
 
 const products = [
   {
     name: "Pig Feed",
-    title: "Thức ăn cho heo",
-    subtitle: "THỨC ĂN HEO CAO CẤP",
-    description: "Công thức dinh dưỡng tối ưu cho từng giai đoạn phát triển, hỗ trợ tăng trưởng và sức đề kháng tối đa",
+    title: "Pig Feed",
+    subtitle: "PREMIUM PIG FEED",
+    description: "Optimal nutritional formula for each development stage, supporting maximum growth and resistance",
     features: [
-      "Protein 18-20% từ nguồn chất lượng cao",
-      "Vitamin và khoáng chất cân bằng",
-      "Hỗ trợ tiêu hóa và tăng trọng nhanh",
-      "An toàn tuyệt đối, không chất cấm"
+      "18-20% protein from high-quality sources",
+      "Balanced vitamins and minerals",
+      "Supports digestion and rapid weight gain",
+      "Absolutely safe, no banned substances"
     ],
     image: "/pig-feed.svg",
     color: "#e11d48"
   },
   {
     name: "Poultry Feed",
-    title: "Thức ăn cho gia cầm",
-    subtitle: "THỨC ĂN GIA CẦM CHUYÊN NGHIỆP",
-    description: "Dinh dưỡng cân bằng cho gà, vịt, giúp vật nuôi khỏe mạnh và phát triển đồng đều, năng suất cao",
+    title: "Poultry Feed",
+    subtitle: "PROFESSIONAL POULTRY FEED",
+    description: "Balanced nutrition for chickens and ducks, helping livestock stay healthy and develop uniformly with high productivity",
     features: [
-      "Năng lượng tối ưu cho từng giai đoạn",
-      "Tăng cường sức đề kháng tự nhiên",
-      "Cải thiện chất lượng trứng và thịt",
-      "Giảm tỷ lệ chết, tăng hiệu quả kinh tế"
+      "Optimal energy for each stage",
+      "Enhance natural resistance",
+      "Improve egg and meat quality",
+      "Reduce mortality, increase economic efficiency"
     ],
     image: "/poultry-feed.svg",
     color: "#f59e0b"
   },
   {
     name: "Fish Feed",
-    title: "Thức ăn cho thủy sản",
-    subtitle: "THỨC ĂN THỦY SẢN XUẤT KHẨU",
-    description: "Đáp ứng nhu cầu nuôi trồng thủy sản trong nước và xuất khẩu sang Đông Nam Á, Châu Âu với tiêu chuẩn quốc tế",
+    title: "Aquaculture Feed",
+    subtitle: "EXPORT AQUACULTURE FEED",
+    description: "Meeting domestic aquaculture needs and exports to Southeast Asia, Europe with international standards",
     features: [
-      "Công thức đặc biệt cho từng loại cá",
-      "Tỷ lệ chuyển đổi thức ăn (FCR) tối ưu",
-      "Không gây ô nhiễm môi trường nước",
-      "Xuất khẩu sang Đông Nam Á và Châu Âu"
+      "Special formula for each fish species",
+      "Optimal feed conversion ratio (FCR)",
+      "Does not pollute water environment",
+      "Exported to Southeast Asia and Europe"
     ],
     image: "/fish-feed.svg",
     color: "#175ead"
@@ -188,12 +192,12 @@ const products = [
 
 const values = [
   {
-    title: "Tầm nhìn",
-    description: "Trở thành doanh nghiệp uy tín trong lĩnh vực sản xuất thức ăn chăn nuôi và thủy sản tại Việt Nam và khu vực"
+    title: "Vision",
+    description: "To become a reputable enterprise in the field of livestock and aquaculture feed production in Vietnam and the region"
   },
   {
-    title: "Sứ mệnh",
-    description: "Cung cấp sản phẩm chất lượng cao, ổn định, ứng dụng công nghệ tiên tiến và đồng hành cùng khách hàng phát triển bền vững"
+    title: "Mission",
+    description: "Provide high-quality, stable products, apply advanced technology and accompany customers for sustainable development"
   }
 ]
 ---
@@ -242,19 +246,19 @@ const values = [
           <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
             <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
           </svg>
-          <span>Thương hiệu uy tín 16+ năm • ISO 9001:2015</span>
+          <span>Trusted Brand 16+ Years • ISO 9001:2015</span>
         </div>
       </div>
       
       <!-- Main Heading - Value Proposition with Numbers -->
       <h1 class="text-5xl md:text-7xl lg:text-8xl font-bold text-gray-900 mb-6 leading-[1.1] opacity-0 hero-fade-in tracking-tight parallax-text" style="animation-delay: 0.3s" data-speed="0.3">
-        Tăng <span class="bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">30%</span> Hiệu Quả<br />
-        Chăn Nuôi Của Bạn
+        Increase <span class="bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">30%</span> Efficiency<br />
+        In Your Livestock Farming
       </h1>
       
       <!-- Subheading - Clear Benefits -->
       <p class="text-xl md:text-2xl lg:text-3xl text-gray-700 mb-4 max-w-4xl mx-auto leading-relaxed opacity-0 hero-fade-in font-medium parallax-text" style="animation-delay: 0.5s" data-speed="0.2">
-        Với Thức Ăn Công Nghệ Cao Từ APPE JV
+        With High-Tech Feed from APPE JV
       </p>
       
       <div class="flex flex-col md:flex-row md:flex-wrap md:justify-center gap-3 md:gap-0 text-base md:text-lg lg:text-xl text-gray-600 mb-10 max-w-3xl mx-auto opacity-0 hero-fade-in font-light" style="animation-delay: 0.6s">
@@ -262,44 +266,44 @@ const values = [
           <svg class="w-5 h-5 flex-shrink-0 text-green-600" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
           </svg>
-          <span>Tăng trọng nhanh hơn</span>
+          <span>Faster weight gain</span>
         </span>
         <span class="flex items-center gap-2 md:mx-2">
           <svg class="w-5 h-5 flex-shrink-0 text-green-600" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
           </svg>
-          <span>Giảm chi phí thức ăn</span>
+          <span>Reduced feed costs</span>
         </span>
         <span class="flex items-center gap-2 md:mx-2">
           <svg class="w-5 h-5 flex-shrink-0 text-green-600" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
           </svg>
-          <span>Vật nuôi khỏe mạnh</span>
+          <span>Healthier livestock</span>
         </span>
       </div>
       
       <!-- Enhanced CTA Buttons -->
       <div class="flex flex-col sm:flex-row gap-4 justify-center opacity-0 hero-fade-in mb-16" style="animation-delay: 0.8s">
         <a 
-          href="/san-pham"
+          href="/en/products"
           class="group bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-10 py-5 rounded-full font-bold text-lg transition-all inline-flex items-center justify-center gap-3 shadow-xl hover:shadow-2xl hover:scale-105 transform"
         >
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
           </svg>
-          <span>Xem sản phẩm & giá ngay</span>
+          <span>View Products & Prices</span>
           <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
           </svg>
         </a>
         <a 
-          href="/lien-he"
+          href="/en/contact"
           class="group bg-white hover:bg-gray-50 text-gray-900 px-10 py-5 rounded-full font-bold text-lg border-2 border-gray-300 hover:border-gray-400 transition-all inline-flex items-center justify-center gap-3 shadow-lg hover:shadow-xl hover:scale-105 transform"
         >
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
           </svg>
-          <span>Tư vấn miễn phí 24/7</span>
+          <span>Free Consultation 24/7</span>
         </a>
       </div>
       
@@ -314,7 +318,7 @@ const values = [
             </div>
           </div>
           <div class="text-xl md:text-2xl font-bold text-gray-900 mb-1">ISO 9001</div>
-          <div class="text-xs md:text-sm text-gray-600 font-medium">Chứng nhận quốc tế</div>
+          <div class="text-xs md:text-sm text-gray-600 font-medium">International Certification</div>
         </div>
         
         <div class="bg-white/95 backdrop-blur-md rounded-xl md:rounded-2xl p-4 md:p-6 shadow-xl border border-gray-200 hover:shadow-2xl transition-all hover:-translate-y-1 hover:border-blue-300">
@@ -325,8 +329,8 @@ const values = [
               </svg>
             </div>
           </div>
-          <div class="text-xl md:text-2xl font-bold text-gray-900 mb-1">16+ năm</div>
-          <div class="text-xs md:text-sm text-gray-600 font-medium">Kinh nghiệm</div>
+          <div class="text-xl md:text-2xl font-bold text-gray-900 mb-1">16+ Years</div>
+          <div class="text-xs md:text-sm text-gray-600 font-medium">Years Experience</div>
         </div>
         
         <div class="bg-white/95 backdrop-blur-md rounded-xl md:rounded-2xl p-4 md:p-6 shadow-xl border border-gray-200 hover:shadow-2xl transition-all hover:-translate-y-1 hover:border-purple-300">
@@ -338,7 +342,7 @@ const values = [
             </div>
           </div>
           <div class="text-xl md:text-2xl font-bold text-gray-900 mb-1">1,500+</div>
-          <div class="text-xs md:text-sm text-gray-600 font-medium">Khách hàng</div>
+          <div class="text-xs md:text-sm text-gray-600 font-medium">Customers</div>
         </div>
         
         <div class="bg-white/95 backdrop-blur-md rounded-xl md:rounded-2xl p-4 md:p-6 shadow-xl border border-gray-200 hover:shadow-2xl transition-all hover:-translate-y-1 hover:border-orange-300">
@@ -349,8 +353,8 @@ const values = [
               </svg>
             </div>
           </div>
-          <div class="text-xl md:text-2xl font-bold text-gray-900 mb-1">Xuất khẩu</div>
-          <div class="text-xs md:text-sm text-gray-600 font-medium">Đông Nam Á & Châu Âu</div>
+          <div class="text-xl md:text-2xl font-bold text-gray-900 mb-1">Export</div>
+          <div class="text-xs md:text-sm text-gray-600 font-medium">Southeast Asia & Europe</div>
         </div>
       </div>
       
@@ -360,7 +364,7 @@ const values = [
           <div class="w-6 h-10 border-2 border-gray-400 rounded-full flex items-start justify-center p-2 hover:border-gray-600 transition-colors cursor-pointer">
             <div class="w-1.5 h-3 bg-gray-500 rounded-full animate-bounce"></div>
           </div>
-          <span class="text-xs text-gray-500 font-semibold tracking-wide uppercase">Khám phá thêm</span>
+          <span class="text-xs text-gray-500 font-semibold tracking-wide uppercase">Discover More</span>
         </div>
       </div>
     </div>
@@ -437,10 +441,10 @@ const values = [
     
     <div class="container mx-auto relative z-10">
       <div class="text-center mb-16 scroll-reveal">
-        <h2 class="text-5xl md:text-6xl font-semibold text-gray-900 mb-6 tracking-tight">Khám phá APPE JV</h2>
+        <h2 class="text-5xl md:text-6xl font-semibold text-gray-900 mb-6 tracking-tight">Discover APPE JV</h2>
         <p class="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto font-light leading-relaxed">
-          Hành trình và cam kết của chúng tôi trong việc<br class="hidden md:block" />
-          cung cấp thức ăn chăn nuôi chất lượng cao
+          Our journey and commitment to<br class="hidden md:block" />
+          providing high-quality livestock feed
         </p>
       </div>
       <div class="max-w-5xl mx-auto scroll-reveal">
@@ -474,10 +478,10 @@ const values = [
     
     <div class="container mx-auto relative z-10">
       <div class="text-center mb-20 scroll-reveal">
-        <h2 class="text-5xl md:text-6xl font-semibold text-gray-900 mb-6 tracking-tight">Hệ sinh thái A Group</h2>
+        <h2 class="text-5xl md:text-6xl font-semibold text-gray-900 mb-6 tracking-tight">A Group Ecosystem</h2>
         <p class="text-xl md:text-2xl text-gray-600 max-w-4xl mx-auto font-light leading-relaxed">
-          APPE là thành viên của hệ sinh thái A Group - tập đoàn hàng đầu<br class="hidden md:block" />
-          trong lĩnh vực nông nghiệp, chăn nuôi và thực phẩm tại Việt Nam
+          APPE is a member of the A Group ecosystem - a leading corporation<br class="hidden md:block" />
+          in agriculture, livestock and food in Vietnam
         </p>
       </div>
 
@@ -493,7 +497,7 @@ const values = [
 
       <div class="mt-16 text-center scroll-reveal">
         <p class="text-lg md:text-xl text-gray-600 mb-6 font-light">
-          Cùng nhau xây dựng chuỗi giá trị nông nghiệp bền vững từ trang trại đến bàn ăn
+          Together building a sustainable agricultural value chain from farm to fork
         </p>
         <div class="flex items-center justify-center gap-3">
           <span class="w-16 h-px bg-gradient-to-r from-transparent to-gray-300"></span>
@@ -508,9 +512,9 @@ const values = [
   <section class="py-20 px-4">
     <div class="container mx-auto">
       <div class="text-center mb-16">
-        <h2 class="text-4xl font-bold text-gray-900 mb-4">Tại sao chọn APPE?</h2>
+        <h2 class="text-4xl font-bold text-gray-900 mb-4">Why Choose APPE?</h2>
         <p class="text-xl text-gray-600 max-w-2xl mx-auto">
-          Chúng tôi mang đến giải pháp toàn diện cho ngành chăn nuôi với công nghệ hiện đại
+          We bring comprehensive solutions to the livestock industry with modern technology
         </p>
       </div>
       <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -546,10 +550,10 @@ const values = [
     
     <div class="container mx-auto relative z-10">
       <div class="text-center mb-16 scroll-reveal">
-        <h2 class="text-5xl md:text-6xl font-semibold text-gray-900 mb-6 tracking-tight">Danh mục sản phẩm</h2>
+        <h2 class="text-5xl md:text-6xl font-semibold text-gray-900 mb-6 tracking-tight">Product Categories</h2>
         <p class="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto font-light leading-relaxed">
-          Dòng sản phẩm thức ăn chăn nuôi và thủy sản chất lượng cao,<br class="hidden md:block" />
-          đảm bảo dinh dưỡng tối ưu cho từng giai đoạn phát triển
+          High-quality livestock and aquaculture feed products,<br class="hidden md:block" />
+          ensuring optimal nutrition for each development stage
         </p>
       </div>
 
@@ -557,7 +561,7 @@ const values = [
       <div class="grid md:grid-cols-3 gap-6 md:gap-8 mb-16 scroll-reveal">
         {products.map((product, index) => (
           <a 
-            href="/san-pham"
+            href="/en/products"
             class="group bg-white rounded-2xl md:rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2"
           >
             <!-- Product Image -->
@@ -600,7 +604,7 @@ const values = [
 
               <!-- View Details Link -->
               <div class="flex items-center gap-2 text-blue-600 font-semibold text-sm md:text-base group-hover:gap-3 transition-all">
-                <span>Xem chi tiết</span>
+                <span>View Details</span>
                 <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
@@ -614,45 +618,45 @@ const values = [
       <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12 scroll-reveal">
         <div class="text-center p-6 bg-white/80 backdrop-blur-sm rounded-2xl shadow-md">
           <div class="text-4xl font-bold text-blue-600 mb-2">50+</div>
-          <div class="text-sm text-gray-600 font-medium">Sản phẩm</div>
+          <div class="text-sm text-gray-600 font-medium">Products</div>
         </div>
         <div class="text-center p-6 bg-white/80 backdrop-blur-sm rounded-2xl shadow-md">
           <div class="text-4xl font-bold text-green-600 mb-2">3</div>
-          <div class="text-sm text-gray-600 font-medium">Danh mục chính</div>
+          <div class="text-sm text-gray-600 font-medium">Main Categories</div>
         </div>
         <div class="text-center p-6 bg-white/80 backdrop-blur-sm rounded-2xl shadow-md">
           <div class="text-4xl font-bold text-purple-600 mb-2">100%</div>
-          <div class="text-sm text-gray-600 font-medium">Chất lượng</div>
+          <div class="text-sm text-gray-600 font-medium">Quality</div>
         </div>
         <div class="text-center p-6 bg-white/80 backdrop-blur-sm rounded-2xl shadow-md">
           <div class="text-4xl font-bold text-orange-600 mb-2">ISO</div>
-          <div class="text-sm text-gray-600 font-medium">Chứng nhận</div>
+          <div class="text-sm text-gray-600 font-medium">Certified</div>
         </div>
       </div>
 
       <!-- CTA to Full Product Page -->
       <div class="text-center scroll-reveal">
         <a 
-          href="/san-pham"
+          href="/en/products"
           class="inline-flex items-center gap-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-10 py-5 rounded-full font-bold text-lg shadow-xl hover:shadow-2xl transition-all hover:scale-105 transform"
         >
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
           </svg>
-          <span>Xem tất cả sản phẩm & bảng giá</span>
+          <span>View All Products & Pricing</span>
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
           </svg>
         </a>
         <p class="mt-4 text-sm text-gray-500">
-          Giá công khai • Giao hàng qua đại lý • Hỗ trợ kỹ thuật 24/7
+          Public Pricing • Dealer Delivery • 24/7 Technical Support
         </p>
       </div>
     </div>
   </section>
 
   <!-- Quality Certifications Section -->
-  <QualityCertifications lang="vi" />
+  <QualityCertifications lang="en" />
 
   <!-- Testimonials Section - Apple Style Enhanced -->
   <section class="py-32 px-4 relative overflow-hidden">
@@ -675,7 +679,7 @@ const values = [
     
     <div class="container mx-auto relative z-10">
       <div class="text-center mb-20 scroll-reveal">
-        <h2 class="text-5xl md:text-6xl font-semibold text-gray-900 mb-6 tracking-tight">Khách hàng nói gì</h2>
+        <h2 class="text-5xl md:text-6xl font-semibold text-gray-900 mb-6 tracking-tight">Customers nói gì</h2>
         <p class="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto font-light leading-relaxed">
           Hàng nghìn khách hàng tin tưởng và đồng hành cùng APPE
         </p>
@@ -750,49 +754,49 @@ const values = [
         <div class="tab-content active" id="customer-tab">
           <div class="text-center text-white scroll-reveal">
             <h2 class="text-4xl md:text-5xl font-semibold mb-6 tracking-tight">
-              Sẵn sàng nâng cao<br />hiệu quả chăn nuôi?
+              Ready to improve<br />your farming efficiency?
             </h2>
             <p class="text-xl text-blue-100 mb-8 font-light leading-relaxed max-w-2xl mx-auto">
-              Xem giá sản phẩm và liên hệ đại lý gần bạn để được tư vấn và mua hàng
+              View product prices and contact your nearest dealer for consultation and purchase
             </p>
             
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
               <a 
-                href="/san-pham"
+                href="/en/products"
                 class="bg-white hover:bg-gray-50 text-blue-600 px-10 py-4 rounded-full font-semibold text-lg transition-all shadow-lg hover:shadow-xl inline-flex items-center justify-center gap-2"
               >
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                 </svg>
-                Xem sản phẩm & giá
+                View Products & Prices
               </a>
               <a 
-                href="/lien-he"
+                href="/en/contact"
                 class="bg-transparent border-2 border-white hover:bg-white/10 text-white px-10 py-4 rounded-full font-semibold text-lg transition-all inline-flex items-center justify-center gap-2"
               >
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                Tìm đại lý gần bạn
+                Find Nearest Dealer
               </a>
             </div>
 
             <div class="mt-12 grid md:grid-cols-3 gap-6 text-left">
               <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
                 <div class="text-3xl mb-3">💰</div>
-                <h3 class="font-semibold text-lg mb-2">Giá công khai</h3>
-                <p class="text-blue-100 text-sm">Xem giá tất cả sản phẩm trên website, minh bạch và cạnh tranh</p>
+                <h3 class="font-semibold text-lg mb-2">Public Pricing</h3>
+                <p class="text-blue-100 text-sm">View all product prices on website, transparent and competitive</p>
               </div>
               <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
                 <div class="text-3xl mb-3">🏪</div>
-                <h3 class="font-semibold text-lg mb-2">Mạng lưới đại lý</h3>
-                <p class="text-blue-100 text-sm">Hơn 150+ đại lý trên toàn quốc, dễ dàng tìm và mua hàng</p>
+                <h3 class="font-semibold text-lg mb-2">Dealer Network</h3>
+                <p class="text-blue-100 text-sm">Over 150+ dealers nationwide, easy to find and purchase</p>
               </div>
               <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
                 <div class="text-3xl mb-3">🛠️</div>
-                <h3 class="font-semibold text-lg mb-2">Hỗ trợ kỹ thuật</h3>
-                <p class="text-blue-100 text-sm">Đội ngũ chuyên gia tư vấn miễn phí 24/7</p>
+                <h3 class="font-semibold text-lg mb-2">Technical Support</h3>
+                <p class="text-blue-100 text-sm">Expert team provides free consultation 24/7</p>
               </div>
             </div>
           </div>
@@ -802,10 +806,10 @@ const values = [
         <div class="tab-content" id="dealer-tab">
           <div class="text-center text-white scroll-reveal">
             <h2 class="text-4xl md:text-5xl font-semibold mb-6 tracking-tight">
-              Trở thành đối tác<br />phân phối của APPE
+              Become an APPE<br />Distribution Partner
             </h2>
             <p class="text-xl text-blue-100 mb-8 font-light leading-relaxed max-w-2xl mx-auto">
-              Cơ hội kinh doanh hấp dẫn với sản phẩm chất lượng cao và hỗ trợ toàn diện
+              Attractive business opportunities with high-quality products and comprehensive support
             </p>
             
             <div class="flex flex-col sm:flex-row gap-4 justify-center mb-12">
@@ -816,7 +820,7 @@ const values = [
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
-                Đăng ký ngay
+                Register Now
               </a>
               <a 
                 href="tel:+84351359520"
@@ -825,30 +829,30 @@ const values = [
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                 </svg>
-                Gọi tư vấn: 035 135 9520
+                Call: 035 135 9520
               </a>
             </div>
 
             <div class="grid md:grid-cols-4 gap-6 text-left">
               <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
                 <div class="text-3xl mb-3">🎯</div>
-                <h3 class="font-semibold text-lg mb-2">Chính sách hấp dẫn</h3>
-                <p class="text-blue-100 text-sm">Chiết khấu cao, hỗ trợ marketing và bán hàng</p>
+                <h3 class="font-semibold text-lg mb-2">Attractive Policy</h3>
+                <p class="text-blue-100 text-sm">High commission, marketing and sales support</p>
               </div>
               <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
                 <div class="text-3xl mb-3">📦</div>
-                <h3 class="font-semibold text-lg mb-2">Sản phẩm đa dạng</h3>
-                <p class="text-blue-100 text-sm">Đầy đủ dòng sản phẩm cho heo, gia cầm, thủy sản</p>
+                <h3 class="font-semibold text-lg mb-2">Diverse Products</h3>
+                <p class="text-blue-100 text-sm">Complete product line for pigs, poultry, aquaculture</p>
               </div>
               <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
                 <div class="text-3xl mb-3">🎓</div>
-                <h3 class="font-semibold text-lg mb-2">Đào tạo miễn phí</h3>
-                <p class="text-blue-100 text-sm">Kiến thức sản phẩm và kỹ năng bán hàng</p>
+                <h3 class="font-semibold text-lg mb-2">Free Training</h3>
+                <p class="text-blue-100 text-sm">Product knowledge and sales skills</p>
               </div>
               <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
                 <div class="text-3xl mb-3">🤝</div>
-                <h3 class="font-semibold text-lg mb-2">Hỗ trợ toàn diện</h3>
-                <p class="text-blue-100 text-sm">Đội ngũ sale hỗ trợ 24/7, giao hàng nhanh</p>
+                <h3 class="font-semibold text-lg mb-2">Comprehensive Support</h3>
+                <p class="text-blue-100 text-sm">Sales team support 24/7, fast delivery</p>
               </div>
             </div>
           </div>
@@ -892,9 +896,9 @@ const values = [
     
     <div class="container mx-auto max-w-4xl relative z-10">
       <div class="text-center mb-20 scroll-reveal">
-        <h2 class="text-5xl md:text-6xl font-semibold text-gray-900 mb-6 tracking-tight">Câu hỏi thường gặp</h2>
+        <h2 class="text-5xl md:text-6xl font-semibold text-gray-900 mb-6 tracking-tight">Frequently Asked Questions</h2>
         <p class="text-xl md:text-2xl text-gray-600 font-light leading-relaxed">
-          Giải đáp những thắc mắc phổ biến về sản phẩm và dịch vụ
+          Answers to common questions about our products and services
         </p>
       </div>
       <div class="space-y-2">
@@ -932,7 +936,7 @@ const values = [
           </svg>
           Gọi ngay
         </a>
-        <a href="/lien-he" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-full font-medium transition-colors shadow-sm">
+        <a href="/en/contact" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-full font-medium transition-colors shadow-sm">
           Đăng ký tư vấn
         </a>
       </div>

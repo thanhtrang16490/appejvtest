@@ -1,0 +1,213 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import { legalTranslations } from '../../i18n/legal-translations'
+
+const lang = 'en'
+const t = legalTranslations[lang].cookie
+---
+
+<BaseLayout 
+  title={t.seoTitle}
+  description={t.seoDescription}
+  canonical="/en/cookie-policy"
+  lang="en"
+>
+  <section class="pt-24 md:pt-32 pb-16 md:pb-20 bg-white">
+    <div class="max-w-[692px] mx-auto px-4 sm:px-6">
+      <h1 class="text-4xl sm:text-5xl md:text-6xl font-semibold text-gray-900 mb-6 tracking-tight leading-tight">
+        {t.title}
+      </h1>
+      <p class="text-[17px] text-gray-600 mb-8">
+        {t.lastUpdated}
+      </p>
+
+      <div class="prose prose-gray max-w-none">
+        <div class="space-y-8">
+          <section>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">1. What are Cookies?</h2>
+            <p class="text-[15px] text-gray-600 leading-relaxed mb-4">
+              Cookies are small text files stored on your device (computer, phone, tablet) when you visit a website. Cookies help the website remember information about your visit, making your experience more convenient and personalized.
+            </p>
+          </section>
+
+          <section>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">2. How We Use Cookies</h2>
+            <p class="text-[15px] text-gray-600 leading-relaxed mb-4">
+              The website appejv.com uses cookies to improve user experience, analyze traffic, and provide relevant content. We use the following types of cookies:
+            </p>
+          </section>
+
+          <section>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">3. Types of Cookies</h2>
+            
+            <div class="space-y-6">
+              <div>
+                <h3 class="text-[17px] font-semibold text-gray-900 mb-2">3.1. Essential Cookies</h3>
+                <p class="text-[15px] text-gray-600 leading-relaxed mb-2">
+                  These cookies are necessary for the website to function and cannot be disabled in our systems.
+                </p>
+                <ul class="list-disc pl-6 space-y-1 text-[15px] text-gray-600">
+                  <li>Maintain login sessions</li>
+                  <li>Remember language preferences</li>
+                  <li>Security and authentication</li>
+                  <li>Shopping cart and checkout process</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 class="text-[17px] font-semibold text-gray-900 mb-2">3.2. Analytics Cookies</h3>
+                <p class="text-[15px] text-gray-600 leading-relaxed mb-2">
+                  Help us understand how users interact with the website to improve services.
+                </p>
+                <ul class="list-disc pl-6 space-y-1 text-[15px] text-gray-600">
+                  <li>Google Analytics: Traffic analysis</li>
+                  <li>Track user behavior</li>
+                  <li>Measure content effectiveness</li>
+                  <li>Statistics and reporting</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 class="text-[17px] font-semibold text-gray-900 mb-2">3.3. Functional Cookies</h3>
+                <p class="text-[15px] text-gray-600 leading-relaxed mb-2">
+                  Allow the website to provide enhanced functionality and personalization.
+                </p>
+                <ul class="list-disc pl-6 space-y-1 text-[15px] text-gray-600">
+                  <li>Remember display preferences</li>
+                  <li>Save viewed products</li>
+                  <li>Customize interface</li>
+                  <li>Social media integration</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 class="text-[17px] font-semibold text-gray-900 mb-2">3.4. Marketing Cookies</h3>
+                <p class="text-[15px] text-gray-600 leading-relaxed mb-2">
+                  Used to display ads relevant to your interests.
+                </p>
+                <ul class="list-disc pl-6 space-y-1 text-[15px] text-gray-600">
+                  <li>Facebook Pixel: Conversion tracking</li>
+                  <li>Google Ads: Targeted advertising</li>
+                  <li>Remarketing and retargeting</li>
+                  <li>Campaign effectiveness measurement</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <section>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">4. Third-Party Cookies</h2>
+            <p class="text-[15px] text-gray-600 leading-relaxed mb-3">
+              We use third-party services that may set cookies on your device:
+            </p>
+            <ul class="list-disc pl-6 space-y-2 text-[15px] text-gray-600">
+              <li><strong>Google Analytics:</strong> Website analysis</li>
+              <li><strong>Facebook:</strong> Social media integration and advertising</li>
+              <li><strong>Zalo:</strong> Chat and customer support</li>
+              <li><strong>Hotjar:</strong> User behavior analysis (if applicable)</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">5. Cookie Storage Duration</h2>
+            <div class="space-y-3">
+              <div>
+                <p class="text-[15px] text-gray-600 leading-relaxed">
+                  <strong>Session Cookies:</strong> Automatically deleted when you close the browser
+                </p>
+              </div>
+              <div>
+                <p class="text-[15px] text-gray-600 leading-relaxed">
+                  <strong>Persistent Cookies:</strong> Stored from a few days to several years depending on purpose
+                </p>
+              </div>
+            </div>
+          </section>
+
+          <section>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">6. How to Manage Cookies</h2>
+            <p class="text-[15px] text-gray-600 leading-relaxed mb-4">
+              You can control and manage cookies in several ways:
+            </p>
+            
+            <div class="space-y-4">
+              <div>
+                <h3 class="text-[17px] font-semibold text-gray-900 mb-2">6.1. Browser Settings</h3>
+                <p class="text-[15px] text-gray-600 leading-relaxed mb-2">
+                  Most browsers allow you to:
+                </p>
+                <ul class="list-disc pl-6 space-y-1 text-[15px] text-gray-600">
+                  <li>View saved cookies</li>
+                  <li>Delete all or some cookies</li>
+                  <li>Block cookies from specific websites</li>
+                  <li>Block all cookies</li>
+                  <li>Delete cookies when closing browser</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 class="text-[17px] font-semibold text-gray-900 mb-2">6.2. Browser-Specific Instructions</h3>
+                <ul class="list-disc pl-6 space-y-1 text-[15px] text-gray-600">
+                  <li><strong>Chrome:</strong> Settings → Privacy and security → Cookies</li>
+                  <li><strong>Firefox:</strong> Options → Privacy & Security → Cookies</li>
+                  <li><strong>Safari:</strong> Preferences → Privacy → Cookies</li>
+                  <li><strong>Edge:</strong> Settings → Cookies and site permissions</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 class="text-[17px] font-semibold text-gray-900 mb-2">6.3. Opt-Out of Analytics Cookies</h3>
+                <ul class="list-disc pl-6 space-y-1 text-[15px] text-gray-600">
+                  <li>Google Analytics: <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" class="text-blue-600 hover:underline">Opt-out Browser Add-on</a></li>
+                  <li>Facebook: Ad settings in your Facebook account</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <section>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">7. Impact of Disabling Cookies</h2>
+            <p class="text-[15px] text-gray-600 leading-relaxed mb-3">
+              If you choose to disable cookies, some website features may not work:
+            </p>
+            <ul class="list-disc pl-6 space-y-2 text-[15px] text-gray-600">
+              <li>Cannot maintain login</li>
+              <li>Loss of personalization preferences</li>
+              <li>Some features may be limited</li>
+              <li>Reduced user experience</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">8. Policy Updates</h2>
+            <p class="text-[15px] text-gray-600 leading-relaxed mb-4">
+              We may update this Cookie Policy to reflect changes in technology, law, or business operations. Please check this page periodically for the latest information.
+            </p>
+          </section>
+
+          <section>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">9. Contact</h2>
+            <p class="text-[15px] text-gray-600 leading-relaxed mb-3">
+              If you have questions about the Cookie Policy, please contact:
+            </p>
+            <div class="bg-[#f5f5f7] rounded-xl p-6 text-[15px] text-gray-900">
+              <p class="mb-2"><strong>APPE JV Vietnam Joint Stock Company</strong></p>
+              <p class="mb-2">Address: Km 50 National Highway 1A, Tien Tan Commune, Phu Ly, Ha Nam</p>
+              <p class="mb-2">Email: info@appejv.com</p>
+              <p>Phone: 0351 3595 202</p>
+            </div>
+          </section>
+
+          <section>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">10. References</h2>
+            <ul class="list-disc pl-6 space-y-1 text-[15px] text-gray-600">
+              <li><a href="/en/privacy-policy" class="text-blue-600 hover:underline">Privacy Policy</a></li>
+              <li><a href="/en/terms-of-service" class="text-blue-600 hover:underline">Terms of Service</a></li>
+              <li><a href="https://www.allaboutcookies.org" target="_blank" class="text-blue-600 hover:underline">All About Cookies</a></li>
+            </ul>
+          </section>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

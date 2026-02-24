@@ -1,0 +1,278 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import { allPosts } from '../../data/blog-posts'
+
+const seoTitle = "Tin tức & Blog - APPE JV Việt Nam"
+const seoDescription = "Cập nhật tin tức mới nhất về APPE JV, sản phẩm mới, hướng dẫn chăn nuôi, xu hướng ngành và kiến thức kỹ thuật. Blog chuyên sâu về thức ăn chăn nuôi và thủy sản."
+const seoKeywords = [
+  "tin tức APPE",
+  "blog chăn nuôi",
+  "tin tức thức ăn chăn nuôi",
+  "hướng dẫn chăn nuôi",
+  "xu hướng ngành",
+  "kiến thức kỹ thuật"
+]
+
+const categories = ["Tất cả", "Tin công ty", "Sản phẩm mới", "Hướng dẫn", "Xu hướng ngành"]
+const featuredPost = allPosts.find(p => p.featured)
+const regularPosts = allPosts.filter(p => !p.featured)
+---
+
+<BaseLayout 
+  title={seoTitle}
+  description={seoDescription}
+  keywords={seoKeywords}
+  canonical="/tin-tuc"
+>
+  <!-- Hero Section -->
+  <section class="pt-24 md:pt-32 pb-12 md:pb-16 bg-white">
+    <div class="max-w-[980px] mx-auto px-4 sm:px-6">
+      <div class="text-center mb-8">
+        <h1 class="text-4xl sm:text-5xl md:text-6xl font-semibold text-gray-900 mb-4 tracking-tight leading-tight">
+          Tin tức & Blog
+        </h1>
+        <p class="text-lg sm:text-xl text-gray-600 font-light leading-relaxed">
+          Cập nhật tin tức mới nhất và kiến thức chuyên sâu
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Featured Post -->
+  {featuredPost && (
+    <section class="pb-12 md:pb-16 bg-white">
+      <div class="max-w-[980px] mx-auto px-4 sm:px-6">
+        <a href={`/tin-tuc/${featuredPost.slug}`} class="block group">
+          <div class="bg-[#f5f5f7] rounded-3xl overflow-hidden hover:bg-gray-100 transition-all">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-0">
+              <!-- Image -->
+              <div class="aspect-[16/10] lg:aspect-auto bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center">
+                <svg class="w-24 h-24 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                </svg>
+              </div>
+
+              <!-- Content -->
+              <div class="p-8 md:p-10 flex flex-col justify-center">
+                <div class="flex items-center gap-3 mb-4">
+                  <span class="inline-block px-3 py-1 bg-blue-600 text-white rounded-full text-[11px] font-medium">
+                    Nổi bật
+                  </span>
+                  <span class="text-[13px] text-gray-600">{featuredPost.category}</span>
+                </div>
+
+                <h2 class="text-2xl md:text-3xl font-semibold text-gray-900 mb-3 tracking-tight group-hover:text-blue-600 transition-colors">
+                  {featuredPost.title}
+                </h2>
+
+                <p class="text-[15px] text-gray-600 mb-6 leading-relaxed">
+                  {featuredPost.excerpt}
+                </p>
+
+                <div class="flex items-center gap-4 text-[13px] text-gray-500">
+                  <span>{featuredPost.author}</span>
+                  <span>•</span>
+                  <span>{new Date(featuredPost.date).toLocaleDateString('vi-VN')}</span>
+                  <span>•</span>
+                  <span>{featuredPost.readTime}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+    </section>
+  )}
+
+  <!-- Filter Section -->
+  <section class="py-8 bg-[#f5f5f7] border-y border-gray-200">
+    <div class="max-w-[980px] mx-auto px-4 sm:px-6">
+      <div class="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
+        <span class="text-[13px] text-gray-600 whitespace-nowrap">Danh mục:</span>
+        {categories.map((category) => (
+          <button
+            class="category-filter px-4 py-2 text-[13px] font-medium rounded-full whitespace-nowrap transition-all hover:bg-white"
+            data-category={category}
+          >
+            {category}
+          </button>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Posts Grid -->
+  <section class="py-16 md:py-20 bg-white">
+    <div class="max-w-[980px] mx-auto px-4 sm:px-6">
+      <!-- Result Count -->
+      <div class="mb-6">
+        <p class="text-[15px] text-gray-600">
+          Hiển thị <span id="post-count" class="font-semibold text-gray-900">{regularPosts.length}</span> bài viết
+        </p>
+      </div>
+
+      <!-- Posts Grid -->
+      <div id="posts-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {regularPosts.map((post) => (
+          <a 
+            href={`/tin-tuc/${post.slug}`}
+            class="post-card block bg-[#f5f5f7] rounded-2xl overflow-hidden hover:bg-gray-100 transition-all group"
+            data-category={post.category}
+          >
+            <!-- Image -->
+            <div class="aspect-[16/10] bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center">
+              <svg class="w-12 h-12 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+              </svg>
+            </div>
+
+            <!-- Content -->
+            <div class="p-6">
+              <div class="flex items-center gap-2 mb-3">
+                <span class="inline-block px-2 py-1 bg-white rounded text-[11px] font-medium text-gray-600">
+                  {post.category}
+                </span>
+              </div>
+
+              <h3 class="text-[17px] font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                {post.title}
+              </h3>
+
+              <p class="text-[13px] text-gray-600 mb-4 line-clamp-2">
+                {post.excerpt}
+              </p>
+
+              <div class="flex items-center gap-3 text-[11px] text-gray-500">
+                <span>{post.author}</span>
+                <span>•</span>
+                <span>{new Date(post.date).toLocaleDateString('vi-VN')}</span>
+              </div>
+            </div>
+          </a>
+        ))}
+      </div>
+
+      <!-- No Results -->
+      <div id="no-results" class="hidden text-center py-12">
+        <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+        </svg>
+        <p class="text-[17px] text-gray-600">Không tìm thấy bài viết phù hợp</p>
+      </div>
+
+      <!-- Pagination (placeholder) -->
+      <div class="mt-12 flex justify-center gap-2">
+        <button class="px-4 py-2 bg-gray-900 text-white rounded-lg text-[13px] font-medium">
+          1
+        </button>
+        <button class="px-4 py-2 bg-[#f5f5f7] hover:bg-gray-100 text-gray-900 rounded-lg text-[13px] font-medium transition-colors">
+          2
+        </button>
+        <button class="px-4 py-2 bg-[#f5f5f7] hover:bg-gray-100 text-gray-900 rounded-lg text-[13px] font-medium transition-colors">
+          3
+        </button>
+        <button class="px-4 py-2 bg-[#f5f5f7] hover:bg-gray-100 text-gray-900 rounded-lg text-[13px] font-medium transition-colors">
+          →
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Newsletter CTA -->
+  <section class="py-16 md:py-20 bg-[#f5f5f7]">
+    <div class="max-w-[692px] mx-auto px-4 sm:px-6 text-center">
+      <h2 class="text-3xl sm:text-4xl font-semibold text-gray-900 mb-4 tracking-tight">
+        Đăng ký nhận tin
+      </h2>
+      <p class="text-[17px] text-gray-600 mb-8 font-light">
+        Nhận tin tức mới nhất và ưu đãi độc quyền qua email
+      </p>
+      <form class="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+        <input
+          type="email"
+          placeholder="Email của bạn"
+          class="flex-1 px-5 py-3 text-[15px] bg-white border-0 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all"
+        />
+        <button
+          type="submit"
+          class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[15px] font-medium transition-all whitespace-nowrap"
+        >
+          Đăng ký
+        </button>
+      </form>
+    </div>
+  </section>
+
+  <script>
+    // Category filter
+    const categoryFilters = document.querySelectorAll('.category-filter')
+    const postCards = document.querySelectorAll('.post-card')
+    const postCount = document.getElementById('post-count')
+    const noResults = document.getElementById('no-results')
+
+    let currentCategory = 'Tất cả'
+
+    function filterPosts() {
+      let visibleCount = 0
+
+      postCards.forEach((card) => {
+        const category = card.getAttribute('data-category') || ''
+        const matchesCategory = currentCategory === 'Tất cả' || category === currentCategory
+
+        if (matchesCategory) {
+          card.classList.remove('hidden')
+          visibleCount++
+        } else {
+          card.classList.add('hidden')
+        }
+      })
+
+      if (postCount) postCount.textContent = visibleCount.toString()
+      
+      if (noResults) {
+        if (visibleCount === 0) {
+          noResults.classList.remove('hidden')
+        } else {
+          noResults.classList.add('hidden')
+        }
+      }
+    }
+
+    categoryFilters.forEach((filter) => {
+      filter.addEventListener('click', () => {
+        categoryFilters.forEach((f) => {
+          f.classList.remove('bg-gray-900', 'text-white')
+          f.classList.add('bg-white', 'text-gray-900')
+        })
+        
+        filter.classList.remove('bg-white', 'text-gray-900')
+        filter.classList.add('bg-gray-900', 'text-white')
+        
+        currentCategory = filter.getAttribute('data-category') || 'Tất cả'
+        filterPosts()
+      })
+    })
+
+    // Set initial active filter
+    const firstFilter = categoryFilters[0]
+    if (firstFilter) {
+      firstFilter.classList.add('bg-gray-900', 'text-white')
+    }
+  </script>
+
+  <style>
+    .scrollbar-hide::-webkit-scrollbar {
+      display: none;
+    }
+    .scrollbar-hide {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    .line-clamp-2 {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+  </style>
+</BaseLayout>

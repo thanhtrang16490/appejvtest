@@ -1,0 +1,192 @@
+{
+  "vi": {
+    "site": {
+      "title": "APPE JV Việt Nam",
+      "description": "APPE JV chuyên sản xuất và cung cấp thức ăn chăn nuôi chất lượng cao cho heo, gia cầm và thủy sản. Thành lập từ 2008, ứng dụng công nghệ tiên tiến, xuất khẩu sang Đông Nam Á và Châu Âu."
+    },
+    "nav": {
+      "home": "Trang chủ",
+      "about": "Giới thiệu",
+      "products": "Sản phẩm",
+      "news": "Tin tức",
+      "contact": "Liên hệ",
+      "login": "Đăng nhập",
+      "faq": "FAQ",
+      "downloads": "Tải tài liệu"
+    },
+    "home": {
+      "hero": {
+        "title": "Giải pháp dinh dưỡng chuyên nghiệp",
+        "subtitle": "Thức ăn chăn nuôi chất lượng cao cho heo, gia cầm và thủy sản",
+        "cta": "Xem sản phẩm",
+        "contact": "Liên hệ ngay"
+      },
+      "stats": {
+        "established": "Năm thành lập",
+        "dealers": "Đại lý",
+        "experience": "Năm kinh nghiệm",
+        "markets": "Thị trường xuất khẩu"
+      },
+      "features": {
+        "title": "Tại sao chọn APPE JV?",
+        "quality": {
+          "title": "Chất lượng cao",
+          "desc": "Sản phẩm đạt chuẩn quốc tế ISO, HACCP, GMP"
+        },
+        "technology": {
+          "title": "Công nghệ tiên tiến",
+          "desc": "Dây chuyền sản xuất hiện đại từ Châu Âu"
+        },
+        "support": {
+          "title": "Hỗ trợ 24/7",
+          "desc": "Đội ngũ chuyên gia tư vấn kỹ thuật"
+        }
+      }
+    },
+    "about": {
+      "title": "Về APPE JV",
+      "subtitle": "Chuyên sản xuất và cung cấp thức ăn chăn nuôi chất lượng cao",
+      "mission": "Sứ mệnh",
+      "vision": "Tầm nhìn",
+      "values": "Giá trị cốt lõi"
+    },
+    "products": {
+      "title": "Sản phẩm",
+      "subtitle": "Thức ăn chăn nuôi chất lượng cao",
+      "search": "Tìm kiếm sản phẩm...",
+      "category": "Danh mục",
+      "all": "Tất cả",
+      "showing": "Hiển thị",
+      "results": "sản phẩm"
+    },
+    "contact": {
+      "title": "Liên hệ với chúng tôi",
+      "subtitle": "Chúng tôi luôn sẵn sàng lắng nghe và hỗ trợ bạn",
+      "phone": "Điện thoại",
+      "email": "Email",
+      "address": "Địa chỉ văn phòng",
+      "hours": "Giờ làm việc",
+      "form": {
+        "title": "Gửi tin nhắn",
+        "name": "Họ và tên",
+        "phone": "Số điện thoại",
+        "email": "Email",
+        "subject": "Chủ đề",
+        "message": "Nội dung",
+        "submit": "Gửi tin nhắn"
+      }
+    },
+    "faq": {
+      "title": "Câu hỏi thường gặp",
+      "subtitle": "Tìm câu trả lời nhanh chóng cho các thắc mắc của bạn",
+      "search": "Tìm kiếm câu hỏi...",
+      "notFound": "Không tìm thấy câu trả lời?",
+      "contactUs": "Liên hệ ngay"
+    },
+    "common": {
+      "readMore": "Xem thêm",
+      "learnMore": "Tìm hiểu thêm",
+      "viewAll": "Xem tất cả",
+      "download": "Tải xuống",
+      "share": "Chia sẻ",
+      "back": "Quay lại",
+      "next": "Tiếp theo",
+      "previous": "Trước"
+    }
+  },
+  "en": {
+    "site": {
+      "title": "APPE JV Vietnam",
+      "description": "APPE JV specializes in manufacturing and supplying high-quality animal feed for pigs, poultry, and aquaculture. Established in 2008, applying advanced technology, exporting to Southeast Asia and Europe."
+    },
+    "nav": {
+      "home": "Home",
+      "about": "About",
+      "products": "Products",
+      "news": "News",
+      "contact": "Contact",
+      "login": "Login",
+      "faq": "FAQ",
+      "downloads": "Downloads"
+    },
+    "home": {
+      "hero": {
+        "title": "Professional Nutrition Solutions",
+        "subtitle": "High-quality animal feed for pigs, poultry, and aquaculture",
+        "cta": "View Products",
+        "contact": "Contact Us"
+      },
+      "stats": {
+        "established": "Established",
+        "dealers": "Dealers",
+        "experience": "Years Experience",
+        "markets": "Export Markets"
+      },
+      "features": {
+        "title": "Why Choose APPE JV?",
+        "quality": {
+          "title": "High Quality",
+          "desc": "Products meet international standards ISO, HACCP, GMP"
+        },
+        "technology": {
+          "title": "Advanced Technology",
+          "desc": "Modern production line from Europe"
+        },
+        "support": {
+          "title": "24/7 Support",
+          "desc": "Expert technical consulting team"
+        }
+      }
+    },
+    "about": {
+      "title": "About APPE JV",
+      "subtitle": "Specializing in manufacturing and supplying high-quality animal feed",
+      "mission": "Mission",
+      "vision": "Vision",
+      "values": "Core Values"
+    },
+    "products": {
+      "title": "Products",
+      "subtitle": "High-quality animal feed",
+      "search": "Search products...",
+      "category": "Category",
+      "all": "All",
+      "showing": "Showing",
+      "results": "products"
+    },
+    "contact": {
+      "title": "Contact Us",
+      "subtitle": "We are always ready to listen and support you",
+      "phone": "Phone",
+      "email": "Email",
+      "address": "Office Address",
+      "hours": "Working Hours",
+      "form": {
+        "title": "Send Message",
+        "name": "Full Name",
+        "phone": "Phone Number",
+        "email": "Email",
+        "subject": "Subject",
+        "message": "Message",
+        "submit": "Send Message"
+      }
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "subtitle": "Find quick answers to your questions",
+      "search": "Search questions...",
+      "notFound": "Can't find an answer?",
+      "contactUs": "Contact Us"
+    },
+    "common": {
+      "readMore": "Read More",
+      "learnMore": "Learn More",
+      "viewAll": "View All",
+      "download": "Download",
+      "share": "Share",
+      "back": "Back",
+      "next": "Next",
+      "previous": "Previous"
+    }
+  }
+}

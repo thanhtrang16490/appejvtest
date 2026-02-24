@@ -1,0 +1,179 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import { legalTranslations } from '../../i18n/legal-translations'
+
+const lang = 'en'
+const t = legalTranslations[lang].terms
+---
+
+<BaseLayout 
+  title={t.seoTitle}
+  description={t.seoDescription}
+  canonical="/en/terms-of-service"
+  lang="en"
+>
+  <section class="pt-24 md:pt-32 pb-16 md:pb-20 bg-white">
+    <div class="max-w-[692px] mx-auto px-4 sm:px-6">
+      <h1 class="text-4xl sm:text-5xl md:text-6xl font-semibold text-gray-900 mb-6 tracking-tight leading-tight">
+        {t.title}
+      </h1>
+      <p class="text-[17px] text-gray-600 mb-8">
+        {t.lastUpdated}
+      </p>
+
+      <div class="prose prose-gray max-w-none">
+        <div class="space-y-8">
+          <section>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">1. Acceptance of Terms</h2>
+            <p class="text-[15px] text-gray-600 leading-relaxed mb-4">
+              By accessing and using the website appejv.com ("Website") and services of APPE JV Vietnam Joint Stock Company ("APPE JV", "we"), you agree to comply with the following terms and conditions. If you do not agree, please do not use our services.
+            </p>
+          </section>
+
+          <section>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">2. Definitions</h2>
+            <ul class="list-disc pl-6 space-y-2 text-[15px] text-gray-600">
+              <li><strong>User:</strong> Any individual or organization accessing and using the Website</li>
+              <li><strong>Customer:</strong> User who has purchase transactions with APPE JV</li>
+              <li><strong>Products:</strong> Animal and aquatic feed manufactured and distributed by APPE JV</li>
+              <li><strong>Services:</strong> Consulting, technical support, and other services provided by APPE JV</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">3. Website Usage</h2>
+            <p class="text-[15px] text-gray-600 leading-relaxed mb-3">
+              When using the Website, you commit to:
+            </p>
+            <ul class="list-disc pl-6 space-y-2 text-[15px] text-gray-600">
+              <li>Provide accurate, complete, and updated information</li>
+              <li>Not use the Website for illegal purposes</li>
+              <li>Not interfere with system operations</li>
+              <li>Not copy or distribute content without permission</li>
+              <li>Not send spam, viruses, or malicious code</li>
+              <li>Comply with current legal regulations</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">4. Ordering and Payment</h2>
+            <p class="text-[15px] text-gray-600 leading-relaxed mb-3">
+              <strong>4.1. Ordering Process:</strong>
+            </p>
+            <ul class="list-disc pl-6 space-y-2 text-[15px] text-gray-600 mb-4">
+              <li>Contact via hotline, email, or form on Website</li>
+              <li>Receive quotation and order confirmation</li>
+              <li>Sign contract (for large orders)</li>
+              <li>Payment as agreed</li>
+              <li>Receive goods and confirm</li>
+            </ul>
+            <p class="text-[15px] text-gray-600 leading-relaxed mb-3">
+              <strong>4.2. Pricing:</strong>
+            </p>
+            <ul class="list-disc pl-6 space-y-2 text-[15px] text-gray-600 mb-4">
+              <li>Product prices include VAT (unless otherwise noted)</li>
+              <li>Prices may change without prior notice</li>
+              <li>Prices apply at time of order confirmation</li>
+            </ul>
+            <p class="text-[15px] text-gray-600 leading-relaxed mb-3">
+              <strong>4.3. Payment:</strong>
+            </p>
+            <ul class="list-disc pl-6 space-y-2 text-[15px] text-gray-600">
+              <li>Bank transfer</li>
+              <li>Cash (COD)</li>
+              <li>Credit terms (by agreement)</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">5. Delivery</h2>
+            <ul class="list-disc pl-6 space-y-2 text-[15px] text-gray-600">
+              <li>Delivery through network of 150+ dealers nationwide</li>
+              <li>Delivery time depends on location and quantity</li>
+              <li>Customer is responsible for checking goods upon receipt</li>
+              <li>Report immediately to APPE JV if there are quality or quantity issues</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">6. Return Policy</h2>
+            <p class="text-[15px] text-gray-600 leading-relaxed mb-3">
+              <strong>6.1. Return Conditions:</strong>
+            </p>
+            <ul class="list-disc pl-6 space-y-2 text-[15px] text-gray-600 mb-4">
+              <li>Product defects from manufacturer</li>
+              <li>Wrong product delivered or quantity shortage</li>
+              <li>Product damaged during shipping</li>
+              <li>Notification within 24 hours of receipt</li>
+            </ul>
+            <p class="text-[15px] text-gray-600 leading-relaxed mb-3">
+              <strong>6.2. Returns Not Applicable:</strong>
+            </p>
+            <ul class="list-disc pl-6 space-y-2 text-[15px] text-gray-600">
+              <li>Used products</li>
+              <li>Damage due to improper storage</li>
+              <li>Missing original packaging or labels</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">7. Warranty and Support</h2>
+            <ul class="list-disc pl-6 space-y-2 text-[15px] text-gray-600">
+              <li>Product quality commitment according to published standards</li>
+              <li>Free livestock farming technical support</li>
+              <li>Nutrition and feed formula consultation</li>
+              <li>Support hotline: 0351 3595 202</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">8. Intellectual Property Rights</h2>
+            <p class="text-[15px] text-gray-600 leading-relaxed mb-4">
+              All content on the Website including text, images, logos, designs, videos, and other materials are owned by APPE JV or legally licensed for use. Copying, distributing, or using for commercial purposes without written permission is strictly prohibited.
+            </p>
+          </section>
+
+          <section>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">9. Limitation of Liability</h2>
+            <p class="text-[15px] text-gray-600 leading-relaxed mb-3">
+              APPE JV is not responsible for:
+            </p>
+            <ul class="list-disc pl-6 space-y-2 text-[15px] text-gray-600">
+              <li>Indirect, incidental, or consequential damages</li>
+              <li>Service interruptions due to technical issues or maintenance</li>
+              <li>Information from third-party linked websites</li>
+              <li>Errors in product use not following instructions</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">10. Changes to Terms</h2>
+            <p class="text-[15px] text-gray-600 leading-relaxed mb-4">
+              APPE JV reserves the right to change, add, or remove any part of the Terms of Service at any time. Changes take effect immediately upon posting on the Website. Your continued use of services after changes indicates acceptance of the new terms.
+            </p>
+          </section>
+
+          <section>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">11. Applicable Law and Dispute Resolution</h2>
+            <p class="text-[15px] text-gray-600 leading-relaxed mb-4">
+              These Terms are governed by Vietnamese law. Any disputes arising will be resolved through negotiation. If no agreement is reached, disputes will be resolved at competent courts in Vietnam.
+            </p>
+          </section>
+
+          <section>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">12. Contact</h2>
+            <p class="text-[15px] text-gray-600 leading-relaxed mb-3">
+              If you have questions about the Terms of Service, please contact:
+            </p>
+            <div class="bg-[#f5f5f7] rounded-xl p-6 text-[15px] text-gray-900">
+              <p class="mb-2"><strong>APPE JV Vietnam Joint Stock Company</strong></p>
+              <p class="mb-2">Address: Km 50 National Highway 1A, Tien Tan Commune, Phu Ly, Ha Nam</p>
+              <p class="mb-2">Email: info@appejv.com</p>
+              <p>Phone: 0351 3595 202</p>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

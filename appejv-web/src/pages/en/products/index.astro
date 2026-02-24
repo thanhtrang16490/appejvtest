@@ -1,0 +1,366 @@
+---
+const lang = 'en'
+import BaseLayout from '../../../layouts/BaseLayout.astro'
+import { getProducts, getCategories } from '../../../lib/supabase'
+
+const seoTitle = "Sản phẩm - APPE JV | Thức ăn heo, gia cầm, thủy sản"
+const seoDescription = "Danh mục sản phẩm thức ăn chăn nuôi APPE JV: Pig Feed (thức ăn heo), Poultry Feed (gia cầm), Fish Feed (thủy sản). Chất lượng cao, dinh dưỡng tối ưu, công nghệ tiên tiến."
+const seoKeywords = [
+  "sản phẩm APPE",
+  "thức ăn heo",
+  "thức ăn gia cầm",
+  "thức ăn thủy sản",
+  "pig feed",
+  "poultry feed",
+  "fish feed",
+  "danh mục sản phẩm",
+  "thức ăn chăn nuôi chất lượng"
+]
+
+// Get query parameters
+const url = new URL(Astro.request.url)
+const categoryFilter = url.searchParams.get('category') || 'all'
+const searchQuery = url.searchParams.get('search') || ''
+
+// Fetch data from Supabase
+const allProducts = await getProducts()
+const apiCategories = await getCategories()
+
+const categories = [
+  { id: 'all', name: 'Tất cả', icon: '🏭' },
+  ...apiCategories
+]
+
+// Count products per category
+const categoriesWithCount = categories.map(cat => {
+  const count = cat.id === 'all' 
+    ? allProducts.length 
+    : allProducts.filter(p => p.category_id === cat.id).length
+  return { ...cat, count }
+}).filter(cat => cat.count > 0)
+
+// Filter products
+let filteredProducts = allProducts
+
+if (categoryFilter !== 'all') {
+  filteredProducts = filteredProducts.filter(p => p.category_id === categoryFilter)
+}
+
+if (searchQuery) {
+  filteredProducts = filteredProducts.filter(p => 
+    p.name.toLowerCase().includes(searchQuery.toLowerCase())
+  )
+}
+
+function formatPrice(price: number): string {
+  return new Intl.NumberFormat('vi-VN').format(price)
+}
+---
+
+<BaseLayout 
+  title={seoTitle}
+  description={seoDescription}
+  keywords={seoKeywords}
+  canonical="/en/san-pham"
+>
+  <!-- Hero Section - Apple Style -->
+  <section class="pt-24 md:pt-32 pb-12 md:pb-16 bg-white">
+    <div class="max-w-[980px] mx-auto px-4 sm:px-6">
+      <div class="text-center mb-8 md:mb-12">
+        <h1 class="text-4xl sm:text-5xl md:text-6xl font-semibold text-gray-900 mb-4 tracking-tight leading-tight">
+          Sản phẩm
+        </h1>
+        <p class="text-lg sm:text-xl md:text-2xl text-gray-600 font-light max-w-2xl mx-auto">
+          Dinh dưỡng chuyên nghiệp cho mọi giai đoạn phát triển
+        </p>
+      </div>
+
+      <!-- Search Bar -->
+      <div class="max-w-[692px] mx-auto mb-8">
+        <form method="get" class="relative">
+          <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input
+            type="search"
+            name="search"
+            placeholder="Tìm kiếm sản phẩm..."
+            value={searchQuery}
+            class="w-full pl-12 pr-4 py-3 bg-[#f5f5f7] rounded-xl text-[15px] focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+          />
+          <input type="hidden" name="category" value={categoryFilter} />
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- Category Filter -->
+  <section class="py-6 bg-white border-b border-gray-200">
+    <div class="max-w-[980px] mx-auto px-4 sm:px-6">
+      <div class="flex gap-2 overflow-x-auto scrollbar-hide pb-2">
+        {categoriesWithCount.map((cat) => (
+          <a
+            href={`/san-pham?category=${cat.id}${searchQuery ? `&search=${searchQuery}` : ''}`}
+            class={`flex-shrink-0 px-4 py-2 rounded-full text-[13px] font-medium transition-all ${
+              categoryFilter === cat.id
+                ? 'bg-gray-900 text-white'
+                : 'bg-[#f5f5f7] text-gray-900 hover:bg-[#e8e8ed]'
+            }`}
+          >
+            <span class="mr-1.5">{cat.icon}</span>
+            {cat.name}
+            <span class="ml-1.5 opacity-60">({cat.count})</span>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Products Grid -->
+  <section class="py-12 md:py-16 bg-white">
+    <div class="max-w-[980px] mx-auto px-4 sm:px-6">
+      <!-- Result count -->
+      <div class="mb-6">
+        <p class="text-[13px] text-gray-600">
+          <span class="result-count">{filteredProducts.length} sản phẩm</span>
+        </p>
+      </div>
+
+      {filteredProducts.length === 0 ? (
+        <div class="text-center py-20">
+          <svg class="w-20 h-20 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+          </svg>
+          <h3 class="text-xl font-semibold text-gray-900 mb-2">Không tìm thấy sản phẩm</h3>
+          <p class="text-[15px] text-gray-600 mb-6">Thử tìm kiếm với từ khóa khác hoặc chọn danh mục khác</p>
+          <a href="/en/products" class="inline-block px-6 py-3 bg-blue-600 text-white rounded-xl text-[15px] font-medium hover:bg-blue-700 transition-all">
+            Xem tất cả sản phẩm
+          </a>
+        </div>
+      ) : (
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+          {filteredProducts.map((product) => (
+            <a 
+              href={`/san-pham/${product.slug}`}
+              class="group bg-white rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300"
+            >
+              <!-- Product Image -->
+              <div class="aspect-square bg-[#f5f5f7] overflow-hidden">
+                {product.image_url ? (
+                  <img 
+                    src={product.image_url} 
+                    alt={product.name}
+                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div class="w-full h-full flex items-center justify-center">
+                    <svg class="w-16 h-16 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                    </svg>
+                  </div>
+                )}
+              </div>
+
+              <!-- Product Info -->
+              <div class="p-4">
+                <h3 class="text-[15px] font-semibold text-gray-900 mb-1 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                  {product.name}
+                </h3>
+                
+                {product.description && (
+                  <p class="text-[13px] text-gray-600 mb-2 line-clamp-2">
+                    {product.description}
+                  </p>
+                )}
+
+                {product.price && (
+                  <div class="flex items-baseline gap-2">
+                    <span class="text-[17px] font-semibold text-gray-900">
+                      {formatPrice(product.price)}đ
+                    </span>
+                    {product.unit && (
+                      <span class="text-[13px] text-gray-500">
+                        /{product.unit}
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+            </a>
+          ))}
+        </div>
+      )}
+
+      <!-- Load More (if needed) -->
+      {filteredProducts.length > 12 && (
+        <div class="text-center mt-12">
+          <button 
+            id="load-more"
+            class="px-8 py-3 bg-[#f5f5f7] hover:bg-[#e8e8ed] text-gray-900 rounded-xl text-[15px] font-medium transition-all"
+          >
+            Xem thêm sản phẩm
+          </button>
+        </div>
+      )}
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="py-16 md:py-20 bg-[#f5f5f7]">
+    <div class="max-w-[692px] mx-auto px-4 sm:px-6 text-center">
+      <h2 class="text-3xl sm:text-4xl font-semibold text-gray-900 mb-4 tracking-tight">
+        Cần tư vấn?
+      </h2>
+      <p class="text-[17px] text-gray-600 mb-8 font-light">
+        Đội ngũ chuyên gia của chúng tôi sẵn sàng hỗ trợ bạn chọn sản phẩm phù hợp
+      </p>
+      <div class="flex flex-col sm:flex-row gap-3 justify-center">
+        <a 
+          href="tel:+84351359520"
+          class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[15px] font-medium transition-all"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+          </svg>
+          Gọi ngay: 0351 359 520
+        </a>
+        <a 
+          href="/en/contact"
+          class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white hover:bg-gray-50 text-gray-900 rounded-xl text-[15px] font-medium transition-all border border-gray-200"
+        >
+          Liên hệ tư vấn
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <style>
+    /* Hide scrollbar but keep functionality */
+    .scrollbar-hide {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    .scrollbar-hide::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* Line clamp */
+    .line-clamp-2 {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+  </style>
+
+  <script>
+    // Real-time search functionality
+    document.addEventListener('DOMContentLoaded', () => {
+      const searchInput = document.querySelector('input[name="search"]') as HTMLInputElement;
+      const productsGrid = document.querySelector('.grid.grid-cols-2') as HTMLElement;
+      const noResultsDiv = document.querySelector('.text-center.py-20') as HTMLElement;
+      const resultCount = document.querySelector('.result-count') as HTMLElement;
+      
+      if (!searchInput || !productsGrid) {
+        console.error('Search elements not found');
+        return;
+      }
+
+      // Get all product cards
+      const allProductCards = Array.from(productsGrid.children) as HTMLElement[];
+      
+      // Debounce function for performance
+      function debounce(func: Function, wait: number) {
+        let timeout: NodeJS.Timeout;
+        return function executedFunction(...args: any[]) {
+          const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+          };
+          clearTimeout(timeout);
+          timeout = setTimeout(later, wait);
+        };
+      }
+
+      // Filter and display products
+      function filterProducts(searchTerm: string) {
+        const term = searchTerm.toLowerCase().trim();
+        
+        let visibleCount = 0;
+        
+        allProductCards.forEach((card) => {
+          const productName = card.querySelector('h3')?.textContent?.toLowerCase() || '';
+          const productDesc = card.querySelector('p')?.textContent?.toLowerCase() || '';
+          
+          const matches = term === '' || 
+                         productName.includes(term) || 
+                         productDesc.includes(term);
+          
+          if (matches) {
+            card.style.display = '';
+            visibleCount++;
+          } else {
+            card.style.display = 'none';
+          }
+        });
+
+        // Update result count
+        if (resultCount) {
+          resultCount.textContent = `${visibleCount} sản phẩm`;
+        }
+
+        // Show/hide no results message
+        if (visibleCount === 0) {
+          productsGrid.style.display = 'none';
+          if (noResultsDiv) {
+            noResultsDiv.style.display = 'block';
+            const messageP = noResultsDiv.querySelector('p');
+            if (messageP && term) {
+              messageP.textContent = `Không tìm thấy sản phẩm với từ khóa "${searchTerm}"`;
+            }
+          }
+        } else {
+          productsGrid.style.display = 'grid';
+          if (noResultsDiv) {
+            noResultsDiv.style.display = 'none';
+          }
+        }
+      }
+
+      // Add real-time search with debounce
+      const debouncedFilter = debounce((value: string) => {
+        filterProducts(value);
+      }, 300);
+
+      searchInput.addEventListener('input', (e) => {
+        const target = e.target as HTMLInputElement;
+        debouncedFilter(target.value);
+      });
+
+      // Handle Enter key
+      searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          filterProducts(searchInput.value);
+        }
+      });
+
+      // Clear search on Escape
+      searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          searchInput.value = '';
+          filterProducts('');
+        }
+      });
+
+      // Load more functionality
+      const loadMoreBtn = document.getElementById('load-more');
+      if (loadMoreBtn) {
+        loadMoreBtn.addEventListener('click', () => {
+          console.log('Load more products');
+        });
+      }
+    });
+  </script>
+</BaseLayout>

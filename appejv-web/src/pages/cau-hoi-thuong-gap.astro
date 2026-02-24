@@ -1,0 +1,357 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro'
+
+const seoTitle = "Câu hỏi thường gặp - APPE JV Việt Nam"
+const seoDescription = "Tìm câu trả lời cho các câu hỏi thường gặp về sản phẩm, đặt hàng, thanh toán, vận chuyển, bảo hành và kỹ thuật của APPE JV. Hỗ trợ khách hàng 24/7."
+const seoKeywords = [
+  "FAQ APPE",
+  "câu hỏi thường gặp",
+  "hỗ trợ khách hàng",
+  "thức ăn chăn nuôi",
+  "bảo hành",
+  "vận chuyển",
+  "thanh toán"
+]
+
+const faqs = [
+  {
+    category: "Sản phẩm",
+    questions: [
+      {
+        q: "Sản phẩm của APPE có những loại nào?",
+        a: "APPE cung cấp 3 dòng sản phẩm chính: Pig Feed (thức ăn heo), Poultry Feed (thức ăn gia cầm), và Fish Feed (thức ăn thủy sản). Mỗi dòng có nhiều công thức phù hợp với từng giai đoạn phát triển."
+      },
+      {
+        q: "Sản phẩm có chứng nhận chất lượng không?",
+        a: "Tất cả sản phẩm của APPE đều đạt chứng nhận ISO 9001:2015, HACCP, GMP và các tiêu chuẩn xuất khẩu quốc tế. Chúng tôi cam kết chất lượng và an toàn tuyệt đối."
+      },
+      {
+        q: "Làm sao để chọn sản phẩm phù hợp?",
+        a: "Bạn có thể liên hệ với đại lý APPE gần nhất để được tư vấn trực tiếp. Chuyên gia của chúng tôi sẽ đánh giá nhu cầu và điều kiện cụ thể để đề xuất sản phẩm phù hợp nhất."
+      },
+      {
+        q: "Sản phẩm có hạn sử dụng bao lâu?",
+        a: "Hạn sử dụng của sản phẩm thường là 6 tháng kể từ ngày sản xuất khi bảo quản đúng cách. Thông tin chi tiết được in trên bao bì sản phẩm."
+      }
+    ]
+  },
+  {
+    category: "Đặt hàng",
+    questions: [
+      {
+        q: "Làm sao để đặt hàng?",
+        a: "Bạn có thể đặt hàng qua đại lý APPE gần nhất, gọi hotline 0351 359 520, hoặc liên hệ qua email info@appe.com.vn. Đội ngũ của chúng tôi sẽ hỗ trợ bạn ngay lập tức."
+      },
+      {
+        q: "Số lượng đặt hàng tối thiểu là bao nhiêu?",
+        a: "Số lượng đặt hàng tối thiểu phụ thuộc vào từng sản phẩm và khu vực. Vui lòng liên hệ với đại lý địa phương để biết thông tin chi tiết."
+      },
+      {
+        q: "Có thể đặt hàng trực tuyến không?",
+        a: "Hiện tại chúng tôi phân phối qua mạng lưới 150+ đại lý toàn quốc. Bạn có thể tìm đại lý gần nhất tại trang Đại lý hoặc liên hệ hotline để được hỗ trợ."
+      },
+      {
+        q: "Thời gian xử lý đơn hàng là bao lâu?",
+        a: "Đơn hàng thường được xử lý trong vòng 24-48 giờ làm việc. Thời gian giao hàng phụ thuộc vào khu vực và số lượng đặt hàng."
+      }
+    ]
+  },
+  {
+    category: "Thanh toán",
+    questions: [
+      {
+        q: "Có những hình thức thanh toán nào?",
+        a: "Chúng tôi chấp nhận thanh toán bằng tiền mặt, chuyển khoản ngân hàng, và các hình thức thanh toán khác tùy theo thỏa thuận với đại lý."
+      },
+      {
+        q: "Có chính sách thanh toán trả góp không?",
+        a: "Chính sách thanh toán linh hoạt tùy thuộc vào đại lý và quy mô đơn hàng. Vui lòng liên hệ trực tiếp với đại lý để biết thêm chi tiết."
+      },
+      {
+        q: "Có xuất hóa đơn VAT không?",
+        a: "Có, chúng tôi xuất hóa đơn VAT đầy đủ cho tất cả các đơn hàng theo quy định của pháp luật."
+      }
+    ]
+  },
+  {
+    category: "Vận chuyển",
+    questions: [
+      {
+        q: "APPE giao hàng đến đâu?",
+        a: "Chúng tôi có mạng lưới 150+ đại lý trên 63 tỉnh/thành phố. Sản phẩm được giao đến tận nơi thông qua đại lý địa phương."
+      },
+      {
+        q: "Phí vận chuyển như thế nào?",
+        a: "Phí vận chuyển phụ thuộc vào khoảng cách, số lượng và loại sản phẩm. Đại lý sẽ báo giá cụ thể khi bạn đặt hàng."
+      },
+      {
+        q: "Thời gian giao hàng là bao lâu?",
+        a: "Thời gian giao hàng thường từ 2-5 ngày làm việc tùy theo khu vực. Đơn hàng lớn có thể cần thời gian dài hơn."
+      },
+      {
+        q: "Có theo dõi đơn hàng được không?",
+        a: "Có, bạn có thể liên hệ với đại lý hoặc hotline để kiểm tra tình trạng đơn hàng bất cứ lúc nào."
+      }
+    ]
+  },
+  {
+    category: "Bảo hành",
+    questions: [
+      {
+        q: "Chính sách bảo hành như thế nào?",
+        a: "Chúng tôi cam kết đổi trả sản phẩm nếu có lỗi từ nhà sản xuất. Sản phẩm phải còn nguyên bao bì và trong thời hạn sử dụng."
+      },
+      {
+        q: "Làm sao để khiếu nại sản phẩm?",
+        a: "Vui lòng liên hệ ngay với đại lý nơi bạn mua hàng hoặc gọi hotline 0351 359 520. Chúng tôi sẽ xử lý khiếu nại trong vòng 24 giờ."
+      },
+      {
+        q: "Có đổi trả sản phẩm không?",
+        a: "Sản phẩm được đổi trả trong vòng 7 ngày nếu còn nguyên bao bì, chưa sử dụng và có lỗi từ nhà sản xuất."
+      }
+    ]
+  },
+  {
+    category: "Kỹ thuật",
+    questions: [
+      {
+        q: "Làm sao để bảo quản sản phẩm đúng cách?",
+        a: "Bảo quản nơi khô ráo, thoáng mát, tránh ánh nắng trực tiếp và độ ẩm cao. Đậy kín bao sau khi mở và sử dụng trong thời gian ngắn nhất."
+      },
+      {
+        q: "Liều lượng sử dụng như thế nào?",
+        a: "Liều lượng phụ thuộc vào loại vật nuôi, độ tuổi và mục đích chăn nuôi. Vui lòng tham khảo hướng dẫn trên bao bì hoặc liên hệ chuyên gia kỹ thuật."
+      },
+      {
+        q: "Có hỗ trợ kỹ thuật không?",
+        a: "Có, chúng tôi có đội ngũ chuyên gia kỹ thuật sẵn sàng tư vấn miễn phí. Liên hệ hotline hoặc đại lý địa phương để được hỗ trợ."
+      },
+      {
+        q: "Sản phẩm có thể kết hợp với thức ăn khác không?",
+        a: "Sản phẩm của APPE có thể kết hợp với các nguồn thức ăn khác. Tuy nhiên, nên tham khảo ý kiến chuyên gia để đảm bảo dinh dưỡng cân đối."
+      }
+    ]
+  }
+]
+---
+
+<BaseLayout 
+  title={seoTitle}
+  description={seoDescription}
+  keywords={seoKeywords}
+  canonical="/cau-hoi-thuong-gap"
+>
+  <!-- Hero Section -->
+  <section class="pt-24 md:pt-32 pb-12 md:pb-16 bg-white">
+    <div class="max-w-[692px] mx-auto px-4 sm:px-6">
+      <div class="text-center mb-8">
+        <h1 class="text-4xl sm:text-5xl md:text-6xl font-semibold text-gray-900 mb-4 tracking-tight leading-tight">
+          Câu hỏi thường gặp
+        </h1>
+        <p class="text-lg sm:text-xl text-gray-600 font-light leading-relaxed">
+          Tìm câu trả lời nhanh chóng cho các thắc mắc của bạn
+        </p>
+      </div>
+
+      <!-- Search Bar -->
+      <div class="relative mb-8">
+        <input
+          type="text"
+          id="faq-search"
+          placeholder="Tìm kiếm câu hỏi..."
+          class="w-full px-5 py-4 pr-12 text-[15px] bg-[#f5f5f7] border-0 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all"
+        />
+        <svg class="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+      </div>
+
+      <!-- Category Pills -->
+      <div class="flex flex-wrap gap-2 justify-center mb-8">
+        <button class="category-filter px-4 py-2 text-[13px] font-medium rounded-full bg-gray-900 text-white transition-all" data-category="all">
+          Tất cả
+        </button>
+        {faqs.map((section) => (
+          <button class="category-filter px-4 py-2 text-[13px] font-medium rounded-full bg-white text-gray-900 hover:bg-gray-100 transition-all" data-category={section.category}>
+            {section.category}
+          </button>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ Sections -->
+  <section class="pb-16 md:pb-20 bg-white">
+    <div class="max-w-[692px] mx-auto px-4 sm:px-6">
+      {faqs.map((section) => (
+        <div class="faq-section mb-12" data-category={section.category}>
+          <h2 class="text-2xl font-semibold text-gray-900 mb-6 tracking-tight">
+            {section.category}
+          </h2>
+          <div class="space-y-3">
+            {section.questions.map((item, index) => (
+              <div class="faq-item bg-[#f5f5f7] rounded-xl overflow-hidden" data-question={item.q.toLowerCase()} data-answer={item.a.toLowerCase()}>
+                <button 
+                  class="faq-question w-full px-6 py-4 text-left flex items-center justify-between gap-4 hover:bg-gray-100 transition-colors"
+                  aria-expanded="false"
+                >
+                  <span class="text-[15px] font-medium text-gray-900 pr-4">
+                    {item.q}
+                  </span>
+                  <svg class="faq-icon w-5 h-5 text-gray-600 flex-shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                <div class="faq-answer hidden px-6 pb-4">
+                  <p class="text-[15px] text-gray-600 leading-relaxed">
+                    {item.a}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+
+      <!-- No Results -->
+      <div id="no-results" class="hidden text-center py-12">
+        <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        <p class="text-[17px] text-gray-600">Không tìm thấy câu hỏi phù hợp</p>
+        <p class="text-[13px] text-gray-500 mt-2">Thử tìm kiếm với từ khóa khác</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="py-16 md:py-20 bg-[#f5f5f7]">
+    <div class="max-w-[692px] mx-auto px-4 sm:px-6 text-center">
+      <h2 class="text-3xl sm:text-4xl font-semibold text-gray-900 mb-4 tracking-tight">
+        Không tìm thấy câu trả lời?
+      </h2>
+      <p class="text-[17px] text-gray-600 mb-8 font-light">
+        Đội ngũ của chúng tôi sẵn sàng hỗ trợ bạn
+      </p>
+      <div class="flex flex-col sm:flex-row gap-3 justify-center">
+        <a 
+          href="/lien-he"
+          class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[15px] font-medium transition-all"
+        >
+          Liên hệ ngay
+        </a>
+        <a 
+          href="tel:+84351359520"
+          class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white hover:bg-gray-50 text-gray-900 rounded-xl text-[15px] font-medium transition-all border border-gray-200"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+          </svg>
+          Gọi hotline
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    // Accordion functionality
+    const faqQuestions = document.querySelectorAll('.faq-question')
+    
+    faqQuestions.forEach((question) => {
+      question.addEventListener('click', () => {
+        const item = question.parentElement
+        const answer = item?.querySelector('.faq-answer')
+        const icon = question.querySelector('.faq-icon')
+        const isExpanded = question.getAttribute('aria-expanded') === 'true'
+
+        // Close all other items
+        faqQuestions.forEach((q) => {
+          if (q !== question) {
+            q.setAttribute('aria-expanded', 'false')
+            q.parentElement?.querySelector('.faq-answer')?.classList.add('hidden')
+            q.querySelector('.faq-icon')?.classList.remove('rotate-180')
+          }
+        })
+
+        // Toggle current item
+        if (isExpanded) {
+          question.setAttribute('aria-expanded', 'false')
+          answer?.classList.add('hidden')
+          icon?.classList.remove('rotate-180')
+        } else {
+          question.setAttribute('aria-expanded', 'true')
+          answer?.classList.remove('hidden')
+          icon?.classList.add('rotate-180')
+        }
+      })
+    })
+
+    // Search functionality
+    const searchInput = document.getElementById('faq-search') as HTMLInputElement
+    const faqItems = document.querySelectorAll('.faq-item')
+    const faqSections = document.querySelectorAll('.faq-section')
+    const noResults = document.getElementById('no-results')
+    const categoryFilters = document.querySelectorAll('.category-filter')
+
+    let currentCategory = 'all'
+
+    function filterFAQs() {
+      const searchTerm = searchInput?.value.toLowerCase() || ''
+      let visibleCount = 0
+
+      faqSections.forEach((section) => {
+        const sectionCategory = section.getAttribute('data-category') || ''
+        const items = section.querySelectorAll('.faq-item')
+        let sectionHasVisible = false
+
+        items.forEach((item) => {
+          const question = item.getAttribute('data-question') || ''
+          const answer = item.getAttribute('data-answer') || ''
+
+          const matchesSearch = question.includes(searchTerm) || answer.includes(searchTerm)
+          const matchesCategory = currentCategory === 'all' || sectionCategory === currentCategory
+
+          if (matchesSearch && matchesCategory) {
+            item.classList.remove('hidden')
+            sectionHasVisible = true
+            visibleCount++
+          } else {
+            item.classList.add('hidden')
+          }
+        })
+
+        if (sectionHasVisible && (currentCategory === 'all' || sectionCategory === currentCategory)) {
+          section.classList.remove('hidden')
+        } else {
+          section.classList.add('hidden')
+        }
+      })
+
+      if (noResults) {
+        if (visibleCount === 0) {
+          noResults.classList.remove('hidden')
+        } else {
+          noResults.classList.add('hidden')
+        }
+      }
+    }
+
+    searchInput?.addEventListener('input', filterFAQs)
+
+    // Category filter
+    categoryFilters.forEach((filter) => {
+      filter.addEventListener('click', () => {
+        categoryFilters.forEach((f) => {
+          f.classList.remove('bg-gray-900', 'text-white')
+          f.classList.add('bg-white', 'text-gray-900')
+        })
+        
+        filter.classList.remove('bg-white', 'text-gray-900')
+        filter.classList.add('bg-gray-900', 'text-white')
+        
+        currentCategory = filter.getAttribute('data-category') || 'all'
+        filterFAQs()
+      })
+    })
+  </script>
+</BaseLayout>

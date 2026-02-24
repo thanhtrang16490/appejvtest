@@ -1,0 +1,184 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import { allPosts } from '../../data/blog-posts-cn'
+
+const seoTitle = "新闻与博客 - APPE JV 越南"
+const seoDescription = "获取APPE JV最新新闻、新产品、养殖指南、行业趋势和技术知识。关于畜牧和水产饲料的深度博客。"
+const seoKeywords = ["APPE新闻", "畜牧博客", "畜牧饲料新闻", "养殖指南", "行业趋势", "技术知识"]
+
+const categories = ["全部", "公司新闻", "新产品", "指南", "行业趋势"]
+const featuredPost = allPosts.find(p => p.slug === 'pig-feed-premium-launch')
+const regularPosts = allPosts.filter(p => p.slug !== 'pig-feed-premium-launch')
+---
+
+<BaseLayout 
+  title={seoTitle}
+  description={seoDescription}
+  keywords={seoKeywords}
+  canonical="/cn/news"
+  lang="cn"
+>
+  <section class="pt-24 md:pt-32 pb-12 md:pb-16 bg-white">
+    <div class="max-w-[980px] mx-auto px-4 sm:px-6">
+      <div class="text-center mb-8">
+        <h1 class="text-4xl sm:text-5xl md:text-6xl font-semibold text-gray-900 mb-4 tracking-tight leading-tight">
+          新闻与博客
+        </h1>
+        <p class="text-lg sm:text-xl text-gray-600 font-light leading-relaxed">
+          最新动态和深度知识
+        </p>
+      </div>
+    </div>
+  </section>
+
+  {featuredPost && (
+    <section class="pb-12 md:pb-16 bg-white">
+      <div class="max-w-[980px] mx-auto px-4 sm:px-6">
+        <a href={`/cn/news/${featuredPost.slug}`} class="block group">
+          <div class="bg-[#f5f5f7] rounded-3xl overflow-hidden hover:bg-gray-100 transition-all">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-0">
+              <div class="aspect-[16/10] lg:aspect-auto bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center">
+                <svg class="w-24 h-24 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                </svg>
+              </div>
+              <div class="p-8 md:p-10 flex flex-col justify-center">
+                <div class="flex items-center gap-3 mb-4">
+                  <span class="inline-block px-3 py-1 bg-blue-600 text-white rounded-full text-[11px] font-medium">精选</span>
+                  <span class="text-[13px] text-gray-600">{featuredPost.category}</span>
+                </div>
+                <h2 class="text-2xl md:text-3xl font-semibold text-gray-900 mb-3 tracking-tight group-hover:text-blue-600 transition-colors">
+                  {featuredPost.title}
+                </h2>
+                <p class="text-[15px] text-gray-600 mb-6 leading-relaxed">{featuredPost.excerpt}</p>
+                <div class="flex items-center gap-4 text-[13px] text-gray-500">
+                  <span>{featuredPost.author}</span><span>•</span>
+                  <span>{new Date(featuredPost.date).toLocaleDateString('zh-CN')}</span><span>•</span>
+                  <span>{featuredPost.readTime}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+    </section>
+  )}
+
+  <section class="py-8 bg-[#f5f5f7] border-y border-gray-200">
+    <div class="max-w-[980px] mx-auto px-4 sm:px-6">
+      <div class="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
+        <span class="text-[13px] text-gray-600 whitespace-nowrap">分类：</span>
+        {categories.map((category) => (
+          <button class="category-filter px-4 py-2 text-[13px] font-medium rounded-full whitespace-nowrap transition-all hover:bg-white" data-category={category}>
+            {category}
+          </button>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="py-16 md:py-20 bg-white">
+    <div class="max-w-[980px] mx-auto px-4 sm:px-6">
+      <div class="mb-6">
+        <p class="text-[15px] text-gray-600">
+          显示 <span id="post-count" class="font-semibold text-gray-900">{regularPosts.length}</span> 篇文章
+        </p>
+      </div>
+
+      <div id="posts-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {regularPosts.map((post) => (
+          <a href={`/cn/news/${post.slug}`} class="post-card block bg-[#f5f5f7] rounded-2xl overflow-hidden hover:bg-gray-100 transition-all group" data-category={post.category}>
+            <div class="aspect-[16/10] bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center">
+              <svg class="w-12 h-12 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+              </svg>
+            </div>
+            <div class="p-6">
+              <div class="flex items-center gap-2 mb-3">
+                <span class="inline-block px-2 py-1 bg-white rounded text-[11px] font-medium text-gray-600">{post.category}</span>
+              </div>
+              <h3 class="text-[17px] font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">{post.title}</h3>
+              <p class="text-[13px] text-gray-600 mb-4 line-clamp-2">{post.excerpt}</p>
+              <div class="flex items-center gap-3 text-[11px] text-gray-500">
+                <span>{post.author}</span><span>•</span>
+                <span>{new Date(post.date).toLocaleDateString('zh-CN')}</span>
+              </div>
+            </div>
+          </a>
+        ))}
+      </div>
+
+      <div id="no-results" class="hidden text-center py-12">
+        <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+        </svg>
+        <p class="text-[17px] text-gray-600">未找到匹配的文章</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="py-16 md:py-20 bg-[#f5f5f7]">
+    <div class="max-w-[692px] mx-auto px-4 sm:px-6 text-center">
+      <h2 class="text-3xl sm:text-4xl font-semibold text-gray-900 mb-4 tracking-tight">订阅新闻</h2>
+      <p class="text-[17px] text-gray-600 mb-8 font-light">通过电子邮件获取最新新闻和独家优惠</p>
+      <form class="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+        <input type="email" placeholder="您的电子邮件" class="flex-1 px-5 py-3 text-[15px] bg-white border-0 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all" />
+        <button type="submit" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[15px] font-medium transition-all whitespace-nowrap">订阅</button>
+      </form>
+    </div>
+  </section>
+
+  <script>
+    const categoryFilters = document.querySelectorAll('.category-filter')
+    const postCards = document.querySelectorAll('.post-card')
+    const postCount = document.getElementById('post-count')
+    const noResults = document.getElementById('no-results')
+    let currentCategory = '全部'
+
+    function filterPosts() {
+      let visibleCount = 0
+      postCards.forEach((card) => {
+        const category = card.getAttribute('data-category') || ''
+        const matchesCategory = currentCategory === '全部' || category === currentCategory
+        if (matchesCategory) {
+          card.classList.remove('hidden')
+          visibleCount++
+        } else {
+          card.classList.add('hidden')
+        }
+      })
+      if (postCount) postCount.textContent = visibleCount.toString()
+      if (noResults) {
+        if (visibleCount === 0) {
+          noResults.classList.remove('hidden')
+        } else {
+          noResults.classList.add('hidden')
+        }
+      }
+    }
+
+    categoryFilters.forEach((filter) => {
+      filter.addEventListener('click', () => {
+        categoryFilters.forEach((f) => {
+          f.classList.remove('bg-gray-900', 'text-white')
+          f.classList.add('bg-white', 'text-gray-900')
+        })
+        filter.classList.remove('bg-white', 'text-gray-900')
+        filter.classList.add('bg-gray-900', 'text-white')
+        currentCategory = filter.getAttribute('data-category') || '全部'
+        filterPosts()
+      })
+    })
+
+    const firstFilter = categoryFilters[0]
+    if (firstFilter) {
+      firstFilter.classList.add('bg-gray-900', 'text-white')
+    }
+  </script>
+
+  <style>
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  </style>
+</BaseLayout>

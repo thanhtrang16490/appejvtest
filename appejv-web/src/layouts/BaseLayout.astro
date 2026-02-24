@@ -1,5 +1,8 @@
 ---
 import '../styles/global.css'
+import LanguageSwitcher from '../components/LanguageSwitcher.astro'
+import { getLangFromUrl, type Language } from '../i18n/languages'
+import { getLocalizedPath } from '../i18n/url-utils'
 
 interface Props {
   title: string
@@ -7,11 +10,18 @@ interface Props {
   keywords?: string[]
   ogImage?: string
   canonical?: string
+  lang?: Language
 }
+
+const currentLang = Astro.props.lang || getLangFromUrl(Astro.url)
 
 const { 
   title, 
-  description = 'APPE JV chuyên sản xuất và cung cấp thức ăn chăn nuôi chất lượng cao cho heo, gia cầm và thủy sản. Thành lập từ 2008, ứng dụng công nghệ tiên tiến, xuất khẩu sang Đông Nam Á và Châu Âu.',
+  description = currentLang === 'en' 
+    ? 'APPE JV specializes in manufacturing and supplying high-quality animal feed for pigs, poultry, and aquaculture. Established in 2008, applying advanced technology, exporting to Southeast Asia and Europe.'
+    : currentLang === 'cn'
+    ? 'APPE JV专业生产和供应高质量的猪、家禽和水产饲料。成立于2008年，应用先进技术，出口到东南亚和欧洲。'
+    : 'APPE JV chuyên sản xuất và cung cấp thức ăn chăn nuôi chất lượng cao cho heo, gia cầm và thủy sản. Thành lập từ 2008, ứng dụng công nghệ tiên tiến, xuất khẩu sang Đông Nam Á và Châu Âu.',
   keywords = [
     'thức ăn chăn nuôi',
     'thức ăn heo',
@@ -86,7 +96,7 @@ const websiteSchema = {
 ---
 
 <!DOCTYPE html>
-<html lang="vi">
+<html lang={currentLang}>
   <head>
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-RGN1EGREY6"></script>
@@ -120,7 +130,28 @@ const websiteSchema = {
     <meta property="og:image:height" content="630" />
     <meta property="og:image:type" content="image/png" />
     <meta property="og:site_name" content="APPE JV Việt Nam" />
-    <meta property="og:locale" content="vi_VN" />
+    <meta property="og:locale" content={currentLang === 'en' ? 'en_US' : currentLang === 'cn' ? 'zh_CN' : 'vi_VN'} />
+    
+    <!-- Alternate Language Links -->
+    {currentLang === 'vi' && canonical && (
+      <>
+        <link rel="alternate" hreflang="en" href={`${SITE_URL}/en${canonical}`} />
+        <link rel="alternate" hreflang="zh" href={`${SITE_URL}/cn${canonical}`} />
+      </>
+    )}
+    {currentLang === 'en' && canonical && (
+      <>
+        <link rel="alternate" hreflang="vi" href={`${SITE_URL}${canonical.replace('/en', '')}`} />
+        <link rel="alternate" hreflang="zh" href={`${SITE_URL}/cn${canonical.replace('/en', '')}`} />
+      </>
+    )}
+    {currentLang === 'cn' && canonical && (
+      <>
+        <link rel="alternate" hreflang="vi" href={`${SITE_URL}${canonical.replace('/cn', '')}`} />
+        <link rel="alternate" hreflang="en" href={`${SITE_URL}/en${canonical.replace('/cn', '')}`} />
+      </>
+    )}
+    <link rel="alternate" hreflang="x-default" href={`${SITE_URL}${canonical?.replace('/en', '').replace('/cn', '') || '/'}`} />
     
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
@@ -289,20 +320,24 @@ const websiteSchema = {
 
           <!-- Desktop Navigation -->
           <nav class="hidden md:flex items-center gap-8">
-            <a href="/" class="text-[12px] font-normal text-gray-800 hover:text-gray-900 transition-colors duration-200 tracking-tight">
-              Trang chủ
+            <a href={currentLang === 'en' ? '/en' : currentLang === 'cn' ? '/cn' : '/'} class="text-[12px] font-normal text-gray-800 hover:text-gray-900 transition-colors duration-200 tracking-tight">
+              {currentLang === 'en' ? 'Home' : currentLang === 'cn' ? '首页' : 'Trang chủ'}
             </a>
-            <a href="/gioi-thieu" class="text-[12px] font-normal text-gray-800 hover:text-gray-900 transition-colors duration-200 tracking-tight">
-              Giới thiệu
+            <a href={currentLang === 'en' ? '/en/about' : currentLang === 'cn' ? '/cn/about' : '/gioi-thieu'} class="text-[12px] font-normal text-gray-800 hover:text-gray-900 transition-colors duration-200 tracking-tight">
+              {currentLang === 'en' ? 'About' : currentLang === 'cn' ? '关于我们' : 'Giới thiệu'}
             </a>
-            <a href="/san-pham" class="text-[12px] font-normal text-gray-800 hover:text-gray-900 transition-colors duration-200 tracking-tight">
-              Sản phẩm
+            <a href={currentLang === 'en' ? '/en/products' : currentLang === 'cn' ? '/cn/products' : '/san-pham'} class="text-[12px] font-normal text-gray-800 hover:text-gray-900 transition-colors duration-200 tracking-tight">
+              {currentLang === 'en' ? 'Products' : currentLang === 'cn' ? '产品' : 'Sản phẩm'}
             </a>
-            <a href="/lien-he" class="text-[12px] font-normal text-gray-800 hover:text-gray-900 transition-colors duration-200 tracking-tight">
-              Liên hệ
+            <a href={currentLang === 'en' ? '/en/news' : currentLang === 'cn' ? '/cn/news' : '/tin-tuc'} class="text-[12px] font-normal text-gray-800 hover:text-gray-900 transition-colors duration-200 tracking-tight">
+              {currentLang === 'en' ? 'News' : currentLang === 'cn' ? '新闻' : 'Tin tức'}
             </a>
+            <a href={currentLang === 'en' ? '/en/contact' : currentLang === 'cn' ? '/cn/contact' : '/lien-he'} class="text-[12px] font-normal text-gray-800 hover:text-gray-900 transition-colors duration-200 tracking-tight">
+              {currentLang === 'en' ? 'Contact' : currentLang === 'cn' ? '联系我们' : 'Liên hệ'}
+            </a>
+            <LanguageSwitcher />
             <a href={`${APP_URL}/auth/login`} class="text-[12px] font-normal text-blue-600 hover:text-blue-700 transition-colors duration-200 tracking-tight">
-              Đăng nhập
+              {currentLang === 'en' ? 'Login' : currentLang === 'cn' ? '登录' : 'Đăng nhập'}
             </a>
           </nav>
 
@@ -356,20 +391,45 @@ const websiteSchema = {
         <!-- Mobile Menu Content -->
         <nav class="py-4">
           <div class="space-y-0.5">
-            <a href="/" class="mobile-menu-link block px-3 py-2.5 text-[14px] text-gray-900 hover:bg-gray-100/60 rounded-lg transition-colors font-normal">
-              Trang chủ
+            <a href={currentLang === 'en' ? '/en' : currentLang === 'cn' ? '/cn' : '/'} class="mobile-menu-link block px-3 py-2.5 text-[14px] text-gray-900 hover:bg-gray-100/60 rounded-lg transition-colors font-normal">
+              {currentLang === 'en' ? 'Home' : currentLang === 'cn' ? '首页' : 'Trang chủ'}
             </a>
-            <a href="/gioi-thieu" class="mobile-menu-link block px-3 py-2.5 text-[14px] text-gray-900 hover:bg-gray-100/60 rounded-lg transition-colors font-normal">
-              Giới thiệu
+            <a href={currentLang === 'en' ? '/en/about' : currentLang === 'cn' ? '/cn/about' : '/gioi-thieu'} class="mobile-menu-link block px-3 py-2.5 text-[14px] text-gray-900 hover:bg-gray-100/60 rounded-lg transition-colors font-normal">
+              {currentLang === 'en' ? 'About' : currentLang === 'cn' ? '关于我们' : 'Giới thiệu'}
             </a>
-            <a href="/san-pham" class="mobile-menu-link block px-3 py-2.5 text-[14px] text-gray-900 hover:bg-gray-100/60 rounded-lg transition-colors font-normal">
-              Sản phẩm
+            <a href={currentLang === 'en' ? '/en/products' : currentLang === 'cn' ? '/cn/products' : '/san-pham'} class="mobile-menu-link block px-3 py-2.5 text-[14px] text-gray-900 hover:bg-gray-100/60 rounded-lg transition-colors font-normal">
+              {currentLang === 'en' ? 'Products' : currentLang === 'cn' ? '产品' : 'Sản phẩm'}
             </a>
-            <a href="/lien-he" class="mobile-menu-link block px-3 py-2.5 text-[14px] text-gray-900 hover:bg-gray-100/60 rounded-lg transition-colors font-normal">
-              Liên hệ
+            <a href={currentLang === 'en' ? '/en/news' : currentLang === 'cn' ? '/cn/news' : '/tin-tuc'} class="mobile-menu-link block px-3 py-2.5 text-[14px] text-gray-900 hover:bg-gray-100/60 rounded-lg transition-colors font-normal">
+              {currentLang === 'en' ? 'News' : currentLang === 'cn' ? '新闻' : 'Tin tức'}
             </a>
+            <a href={currentLang === 'en' ? '/en/contact' : currentLang === 'cn' ? '/cn/contact' : '/lien-he'} class="mobile-menu-link block px-3 py-2.5 text-[14px] text-gray-900 hover:bg-gray-100/60 rounded-lg transition-colors font-normal">
+              {currentLang === 'en' ? 'Contact' : currentLang === 'cn' ? '联系我们' : 'Liên hệ'}
+            </a>
+            
+            <!-- Language Switcher in Mobile -->
+            <div class="px-3 py-2.5">
+              <div class="flex items-center gap-2 text-[14px] text-gray-600">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+                </svg>
+                <span class="font-medium">{currentLang === 'en' ? 'Language' : currentLang === 'cn' ? '语言' : 'Ngôn ngữ'}</span>
+              </div>
+              <div class="mt-2 space-y-1">
+                <a href={getLocalizedPath(Astro.url.pathname, 'vi')} class="block px-3 py-2 text-[13px] rounded-lg transition-colors" class:list={[currentLang === 'vi' ? 'bg-gray-100 text-gray-900 font-semibold' : 'text-gray-600 hover:bg-gray-50']}>
+                  🇻🇳 Tiếng Việt
+                </a>
+                <a href={getLocalizedPath(Astro.url.pathname, 'en')} class="block px-3 py-2 text-[13px] rounded-lg transition-colors" class:list={[currentLang === 'en' ? 'bg-gray-100 text-gray-900 font-semibold' : 'text-gray-600 hover:bg-gray-50']}>
+                  🇬🇧 English
+                </a>
+                <a href={getLocalizedPath(Astro.url.pathname, 'cn')} class="block px-3 py-2 text-[13px] rounded-lg transition-colors" class:list={[currentLang === 'cn' ? 'bg-gray-100 text-gray-900 font-semibold' : 'text-gray-600 hover:bg-gray-50']}>
+                  🇨🇳 中文
+                </a>
+              </div>
+            </div>
+            
             <a href={`${APP_URL}/auth/login`} class="mobile-menu-link block px-3 py-2.5 text-[14px] text-blue-600 hover:bg-gray-100/60 rounded-lg transition-colors font-normal">
-              Đăng nhập
+              {currentLang === 'en' ? 'Login' : currentLang === 'cn' ? '登录' : 'Đăng nhập'}
             </a>
           </div>
         </nav>
@@ -436,9 +496,16 @@ const websiteSchema = {
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-12 pb-12 border-b border-gray-300">
             <!-- Left: Mobile Apps -->
             <div>
-              <h3 class="text-2xl md:text-3xl font-semibold mb-4 tracking-tight">Tải ứng dụng APPE</h3>
+              <h3 class="text-2xl md:text-3xl font-semibold mb-4 tracking-tight">
+                {currentLang === 'en' ? 'Download APPE App' : currentLang === 'cn' ? '下载APPE应用' : 'Tải ứng dụng APPE'}
+              </h3>
               <p class="text-gray-600 mb-6 text-sm md:text-base font-light leading-relaxed max-w-md">
-                Quản lý đơn hàng, theo dõi giao hàng và nhận ưu đãi độc quyền ngay trên điện thoại
+                {currentLang === 'en' 
+                  ? 'Manage orders, track deliveries and receive exclusive offers right on your phone'
+                  : currentLang === 'cn'
+                  ? '管理订单、跟踪配送并在手机上获得独家优惠'
+                  : 'Quản lý đơn hàng, theo dõi giao hàng và nhận ưu đãi độc quyền ngay trên điện thoại'
+                }
               </p>
               <div class="flex flex-col sm:flex-row gap-3">
                 <!-- App Store Badge -->
@@ -451,7 +518,7 @@ const websiteSchema = {
                     <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
                   </svg>
                   <div class="text-left">
-                    <div class="text-[10px] opacity-90">Tải trên</div>
+                    <div class="text-[10px] opacity-90">{currentLang === 'en' ? 'Download on' : currentLang === 'cn' ? '下载于' : 'Tải trên'}</div>
                     <div class="text-base font-semibold -mt-0.5">App Store</div>
                   </div>
                 </a>
@@ -466,7 +533,7 @@ const websiteSchema = {
                     <path d="M3,20.5V3.5C3,2.91 3.34,2.39 3.84,2.15L13.69,12L3.84,21.85C3.34,21.6 3,21.09 3,20.5M16.81,15.12L6.05,21.34L14.54,12.85L16.81,15.12M20.16,10.81C20.5,11.08 20.75,11.5 20.75,12C20.75,12.5 20.53,12.9 20.18,13.18L17.89,14.5L15.39,12L17.89,9.5L20.16,10.81M6.05,2.66L16.81,8.88L14.54,11.15L6.05,2.66Z"/>
                   </svg>
                   <div class="text-left">
-                    <div class="text-[10px] opacity-90">Tải trên</div>
+                    <div class="text-[10px] opacity-90">{currentLang === 'en' ? 'Get it on' : currentLang === 'cn' ? '获取于' : 'Tải trên'}</div>
                     <div class="text-base font-semibold -mt-0.5">Google Play</div>
                   </div>
                 </a>
@@ -487,8 +554,18 @@ const websiteSchema = {
                 </div>
               </div>
               <p class="text-gray-600 text-sm leading-relaxed mb-4 font-light">
-                Công ty Cổ phần APPE JV Việt Nam<br />
-                Giải pháp dinh dưỡng chuyên nghiệp cho chăn nuôi và thủy sản
+                {currentLang === 'en' 
+                  ? 'APPE JV Vietnam Joint Stock Company'
+                  : currentLang === 'cn'
+                  ? 'APPE JV越南股份公司'
+                  : 'Công ty Cổ phần APPE JV Việt Nam'
+                }<br />
+                {currentLang === 'en'
+                  ? 'Professional nutrition solutions for livestock and aquaculture'
+                  : currentLang === 'cn'
+                  ? '畜牧和水产养殖的专业营养解决方案'
+                  : 'Giải pháp dinh dưỡng chuyên nghiệp cho chăn nuôi và thủy sản'
+                }
               </p>
               <div class="flex gap-2">
                 <a href="https://www.facebook.com/appevn" target="_blank" rel="noopener noreferrer" class="w-9 h-9 bg-gray-200 hover:bg-gray-300 rounded-full flex items-center justify-center transition-colors" aria-label="Facebook">
@@ -514,44 +591,80 @@ const websiteSchema = {
           <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
             <!-- Products -->
             <div>
-              <h4 class="text-xs font-semibold mb-4 tracking-wide uppercase text-gray-500">Sản phẩm</h4>
+              <h4 class="text-xs font-semibold mb-4 tracking-wide uppercase text-gray-500">
+                {currentLang === 'en' ? 'Products' : currentLang === 'cn' ? '产品' : 'Sản phẩm'}
+              </h4>
               <ul class="space-y-2.5">
-                <li><a href="/san-pham" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Pig Feed</a></li>
-                <li><a href="/san-pham" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Poultry Feed</a></li>
-                <li><a href="/san-pham" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Fish Feed</a></li>
-                <li><a href="/san-pham" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Xem tất cả</a></li>
+                <li><a href={currentLang === 'en' ? '/en/products' : currentLang === 'cn' ? '/cn/products' : '/san-pham'} class="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                  {currentLang === 'en' ? 'Pig Feed' : currentLang === 'cn' ? '猪饲料' : 'Thức ăn heo'}
+                </a></li>
+                <li><a href={currentLang === 'en' ? '/en/products' : currentLang === 'cn' ? '/cn/products' : '/san-pham'} class="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                  {currentLang === 'en' ? 'Poultry Feed' : currentLang === 'cn' ? '家禽饲料' : 'Thức ăn gia cầm'}
+                </a></li>
+                <li><a href={currentLang === 'en' ? '/en/products' : currentLang === 'cn' ? '/cn/products' : '/san-pham'} class="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                  {currentLang === 'en' ? 'Fish Feed' : currentLang === 'cn' ? '水产饲料' : 'Thức ăn thủy sản'}
+                </a></li>
+                <li><a href={currentLang === 'en' ? '/en/products' : currentLang === 'cn' ? '/cn/products' : '/san-pham'} class="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                  {currentLang === 'en' ? 'View all' : currentLang === 'cn' ? '查看全部' : 'Xem tất cả'}
+                </a></li>
               </ul>
             </div>
 
             <!-- Company -->
             <div>
-              <h4 class="text-xs font-semibold mb-4 tracking-wide uppercase text-gray-500">Công ty</h4>
+              <h4 class="text-xs font-semibold mb-4 tracking-wide uppercase text-gray-500">
+                {currentLang === 'en' ? 'Company' : currentLang === 'cn' ? '公司' : 'Công ty'}
+              </h4>
               <ul class="space-y-2.5">
-                <li><a href="/gioi-thieu" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Giới thiệu</a></li>
-                <li><a href="/gioi-thieu" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Tầm nhìn</a></li>
-                <li><a href="/lien-he" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Liên hệ</a></li>
-                <li><a href={`${APP_URL}/auth/login`} class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Đăng nhập</a></li>
+                <li><a href={currentLang === 'en' ? '/en/about' : currentLang === 'cn' ? '/cn/about' : '/gioi-thieu'} class="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                  {currentLang === 'en' ? 'About' : currentLang === 'cn' ? '关于我们' : 'Giới thiệu'}
+                </a></li>
+                <li><a href={currentLang === 'en' ? '/en/about' : currentLang === 'cn' ? '/cn/about' : '/gioi-thieu'} class="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                  {currentLang === 'en' ? 'Vision' : currentLang === 'cn' ? '愿景' : 'Tầm nhìn'}
+                </a></li>
+                <li><a href={currentLang === 'en' ? '/en/contact' : currentLang === 'cn' ? '/cn/contact' : '/lien-he'} class="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                  {currentLang === 'en' ? 'Contact' : currentLang === 'cn' ? '联系我们' : 'Liên hệ'}
+                </a></li>
+                <li><a href={`${APP_URL}/auth/login`} class="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                  {currentLang === 'en' ? 'Login' : currentLang === 'cn' ? '登录' : 'Đăng nhập'}
+                </a></li>
               </ul>
             </div>
 
             <!-- Support -->
             <div>
-              <h4 class="text-xs font-semibold mb-4 tracking-wide uppercase text-gray-500">Hỗ trợ</h4>
+              <h4 class="text-xs font-semibold mb-4 tracking-wide uppercase text-gray-500">
+                {currentLang === 'en' ? 'Support' : currentLang === 'cn' ? '支持' : 'Hỗ trợ'}
+              </h4>
               <ul class="space-y-2.5">
-                <li><a href="tel:+84351359520" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Hotline</a></li>
-                <li><a href="mailto:info@appe.com.vn" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Email</a></li>
-                <li><a href="/lien-he" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Tư vấn kỹ thuật</a></li>
-                <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">FAQ</a></li>
+                <li><a href={currentLang === 'en' ? '/en/faq' : currentLang === 'cn' ? '/cn/faq' : '/cau-hoi-thuong-gap'} class="text-sm text-gray-600 hover:text-gray-900 transition-colors">FAQ</a></li>
+                <li><a href={currentLang === 'en' ? '/en/downloads' : currentLang === 'cn' ? '/cn/downloads' : '/tai-lieu'} class="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                  {currentLang === 'en' ? 'Downloads' : currentLang === 'cn' ? '下载资料' : 'Tải tài liệu'}
+                </a></li>
+                <li><a href={currentLang === 'en' ? '/en/news' : currentLang === 'cn' ? '/cn/news' : '/tin-tuc'} class="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                  {currentLang === 'en' ? 'News' : currentLang === 'cn' ? '新闻' : 'Tin tức'}
+                </a></li>
+                <li><a href={currentLang === 'en' ? '/en/contact' : currentLang === 'cn' ? '/cn/contact' : '/lien-he'} class="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                  {currentLang === 'en' ? 'Contact' : currentLang === 'cn' ? '联系我们' : 'Liên hệ'}
+                </a></li>
               </ul>
             </div>
 
             <!-- Legal -->
             <div>
-              <h4 class="text-xs font-semibold mb-4 tracking-wide uppercase text-gray-500">Pháp lý</h4>
+              <h4 class="text-xs font-semibold mb-4 tracking-wide uppercase text-gray-500">
+                {currentLang === 'en' ? 'Legal' : currentLang === 'cn' ? '法律' : 'Pháp lý'}
+              </h4>
               <ul class="space-y-2.5">
-                <li><a href="/chinh-sach-bao-mat" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Chính sách bảo mật</a></li>
-                <li><a href="/dieu-khoan-su-dung" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Điều khoản sử dụng</a></li>
-                <li><a href="/chinh-sach-cookie" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Chính sách cookie</a></li>
+                <li><a href={currentLang === 'en' ? '/en/privacy-policy' : currentLang === 'cn' ? '/cn/privacy-policy' : '/chinh-sach-bao-mat'} class="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                  {currentLang === 'en' ? 'Privacy Policy' : currentLang === 'cn' ? '隐私政策' : 'Chính sách bảo mật'}
+                </a></li>
+                <li><a href={currentLang === 'en' ? '/en/terms-of-service' : currentLang === 'cn' ? '/cn/terms-of-service' : '/dieu-khoan-su-dung'} class="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                  {currentLang === 'en' ? 'Terms of Service' : currentLang === 'cn' ? '服务条款' : 'Điều khoản sử dụng'}
+                </a></li>
+                <li><a href={currentLang === 'en' ? '/en/cookie-policy' : currentLang === 'cn' ? '/cn/cookie-policy' : '/chinh-sach-cookie'} class="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                  {currentLang === 'en' ? 'Cookie Policy' : currentLang === 'cn' ? 'Cookie政策' : 'Chính sách cookie'}
+                </a></li>
                 <li><a href="/sitemap.xml" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Sitemap</a></li>
               </ul>
             </div>
@@ -562,10 +675,10 @@ const websiteSchema = {
         <div class="border-t border-gray-300 py-6">
           <div class="flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-500">
             <p>
-              © 2026 APPE JV Việt Nam. Thành lập năm 2008. Tất cả quyền được bảo lưu.
+              © 2026 APPE JV {currentLang === 'en' ? 'Vietnam' : currentLang === 'cn' ? '越南' : 'Việt Nam'}. {currentLang === 'en' ? 'Established 2008' : currentLang === 'cn' ? '成立于2008年' : 'Thành lập năm 2008'}. {currentLang === 'en' ? 'All rights reserved' : currentLang === 'cn' ? '版权所有' : 'Tất cả quyền được bảo lưu'}.
             </p>
             <div class="flex items-center gap-4">
-              <span>Việt Nam</span>
+              <span>{currentLang === 'en' ? 'Vietnam' : currentLang === 'cn' ? '越南' : 'Việt Nam'}</span>
               <span>|</span>
               <a href="tel:+84351359520" class="hover:text-gray-900 transition-colors">+84 351 359 520</a>
             </div>

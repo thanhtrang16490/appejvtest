@@ -1,0 +1,182 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import { faqTranslations } from '../../i18n/faq-translations'
+
+const lang = 'cn'
+const t = faqTranslations[lang]
+---
+
+<BaseLayout 
+  title={t.seoTitle}
+  description={t.seoDescription}
+  keywords={t.seoKeywords}
+  canonical="/cn/faq"
+  lang="zh"
+>
+  <section class="pt-24 md:pt-32 pb-12 md:pb-16 bg-white">
+    <div class="max-w-[692px] mx-auto px-4 sm:px-6">
+      <div class="text-center mb-8">
+        <h1 class="text-4xl sm:text-5xl md:text-6xl font-semibold text-gray-900 mb-4 tracking-tight leading-tight">
+          {t.hero.title}
+        </h1>
+        <p class="text-lg sm:text-xl text-gray-600 font-light leading-relaxed">
+          {t.hero.subtitle}
+        </p>
+      </div>
+
+      <div class="relative mb-8">
+        <input type="text" id="faq-search" placeholder={t.searchPlaceholder}
+          class="w-full px-5 py-4 pr-12 text-[15px] bg-[#f5f5f7] border-0 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all" />
+        <svg class="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+      </div>
+
+      <div class="flex flex-wrap gap-2 justify-center mb-8">
+        <button class="category-filter px-4 py-2 text-[13px] font-medium rounded-full bg-gray-900 text-white transition-all" data-category="all">
+          {t.allCategories}
+        </button>
+        {t.faqs.map((section) => (
+          <button class="category-filter px-4 py-2 text-[13px] font-medium rounded-full bg-white text-gray-900 hover:bg-gray-100 transition-all" data-category={section.category}>
+            {section.category}
+          </button>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="pb-16 md:pb-20 bg-white">
+    <div class="max-w-[692px] mx-auto px-4 sm:px-6">
+      {t.faqs.map((section) => (
+        <div class="faq-section mb-12" data-category={section.category}>
+          <h2 class="text-2xl font-semibold text-gray-900 mb-6 tracking-tight">{section.category}</h2>
+          <div class="space-y-3">
+            {section.questions.map((item) => (
+              <div class="faq-item bg-[#f5f5f7] rounded-xl overflow-hidden" data-question={item.q.toLowerCase()} data-answer={item.a.toLowerCase()}>
+                <button class="faq-question w-full px-6 py-4 text-left flex items-center justify-between gap-4 hover:bg-gray-100 transition-colors" aria-expanded="false">
+                  <span class="text-[15px] font-medium text-gray-900 pr-4">{item.q}</span>
+                  <svg class="faq-icon w-5 h-5 text-gray-600 flex-shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                <div class="faq-answer hidden px-6 pb-4">
+                  <p class="text-[15px] text-gray-600 leading-relaxed">{item.a}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+
+      <div id="no-results" class="hidden text-center py-12">
+        <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        <p class="text-[17px] text-gray-600">{t.noResults}</p>
+        <p class="text-[13px] text-gray-500 mt-2">{t.tryDifferentKeywords}</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="py-16 md:py-20 bg-[#f5f5f7]">
+    <div class="max-w-[692px] mx-auto px-4 sm:px-6 text-center">
+      <h2 class="text-3xl sm:text-4xl font-semibold text-gray-900 mb-4 tracking-tight">{t.cta.title}</h2>
+      <p class="text-[17px] text-gray-600 mb-8 font-light">{t.cta.subtitle}</p>
+      <div class="flex flex-col sm:flex-row gap-3 justify-center">
+        <a href="/cn/contact" class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[15px] font-medium transition-all">
+          {t.cta.contactButton}
+        </a>
+        <a href="tel:+84351359520" class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white hover:bg-gray-50 text-gray-900 rounded-xl text-[15px] font-medium transition-all border border-gray-200">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+          </svg>
+          {t.cta.callButton}
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    const faqQuestions = document.querySelectorAll('.faq-question')
+    faqQuestions.forEach((question) => {
+      question.addEventListener('click', () => {
+        const item = question.parentElement
+        const answer = item?.querySelector('.faq-answer')
+        const icon = question.querySelector('.faq-icon')
+        const isExpanded = question.getAttribute('aria-expanded') === 'true'
+        faqQuestions.forEach((q) => {
+          if (q !== question) {
+            q.setAttribute('aria-expanded', 'false')
+            q.parentElement?.querySelector('.faq-answer')?.classList.add('hidden')
+            q.querySelector('.faq-icon')?.classList.remove('rotate-180')
+          }
+        })
+        if (isExpanded) {
+          question.setAttribute('aria-expanded', 'false')
+          answer?.classList.add('hidden')
+          icon?.classList.remove('rotate-180')
+        } else {
+          question.setAttribute('aria-expanded', 'true')
+          answer?.classList.remove('hidden')
+          icon?.classList.add('rotate-180')
+        }
+      })
+    })
+
+    const searchInput = document.getElementById('faq-search') as HTMLInputElement
+    const faqItems = document.querySelectorAll('.faq-item')
+    const faqSections = document.querySelectorAll('.faq-section')
+    const noResults = document.getElementById('no-results')
+    const categoryFilters = document.querySelectorAll('.category-filter')
+    let currentCategory = 'all'
+
+    function filterFAQs() {
+      const searchTerm = searchInput?.value.toLowerCase() || ''
+      let visibleCount = 0
+      faqSections.forEach((section) => {
+        const sectionCategory = section.getAttribute('data-category') || ''
+        const items = section.querySelectorAll('.faq-item')
+        let sectionHasVisible = false
+        items.forEach((item) => {
+          const question = item.getAttribute('data-question') || ''
+          const answer = item.getAttribute('data-answer') || ''
+          const matchesSearch = question.includes(searchTerm) || answer.includes(searchTerm)
+          const matchesCategory = currentCategory === 'all' || sectionCategory === currentCategory
+          if (matchesSearch && matchesCategory) {
+            item.classList.remove('hidden')
+            sectionHasVisible = true
+            visibleCount++
+          } else {
+            item.classList.add('hidden')
+          }
+        })
+        if (sectionHasVisible && (currentCategory === 'all' || sectionCategory === currentCategory)) {
+          section.classList.remove('hidden')
+        } else {
+          section.classList.add('hidden')
+        }
+      })
+      if (noResults) {
+        if (visibleCount === 0) {
+          noResults.classList.remove('hidden')
+        } else {
+          noResults.classList.add('hidden')
+        }
+      }
+    }
+
+    searchInput?.addEventListener('input', filterFAQs)
+    categoryFilters.forEach((filter) => {
+      filter.addEventListener('click', () => {
+        categoryFilters.forEach((f) => {
+          f.classList.remove('bg-gray-900', 'text-white')
+          f.classList.add('bg-white', 'text-gray-900')
+        })
+        filter.classList.remove('bg-white', 'text-gray-900')
+        filter.classList.add('bg-gray-900', 'text-white')
+        currentCategory = filter.getAttribute('data-category') || 'all'
+        filterFAQs()
+      })
+    })
+  </script>
+</BaseLayout>

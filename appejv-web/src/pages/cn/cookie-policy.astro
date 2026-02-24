@@ -1,0 +1,213 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import { legalTranslations } from '../../i18n/legal-translations'
+
+const lang = 'cn'
+const t = legalTranslations[lang].cookie
+---
+
+<BaseLayout 
+  title={t.seoTitle}
+  description={t.seoDescription}
+  canonical="/cn/cookie-policy"
+  lang="zh"
+>
+  <section class="pt-24 md:pt-32 pb-16 md:pb-20 bg-white">
+    <div class="max-w-[692px] mx-auto px-4 sm:px-6">
+      <h1 class="text-4xl sm:text-5xl md:text-6xl font-semibold text-gray-900 mb-6 tracking-tight leading-tight">
+        {t.title}
+      </h1>
+      <p class="text-[17px] text-gray-600 mb-8">
+        {t.lastUpdated}
+      </p>
+
+      <div class="prose prose-gray max-w-none">
+        <div class="space-y-8">
+          <section>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">1. 什么是 Cookie？</h2>
+            <p class="text-[15px] text-gray-600 leading-relaxed mb-4">
+              Cookie 是在您访问网站时存储在您的设备（计算机、手机、平板电脑）上的小文本文件。Cookie 帮助网站记住您访问的信息，使您的体验更加便捷和个性化。
+            </p>
+          </section>
+
+          <section>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">2. 我们如何使用 Cookie</h2>
+            <p class="text-[15px] text-gray-600 leading-relaxed mb-4">
+              网站 appejv.com 使用 Cookie 来改善用户体验、分析流量并提供相关内容。我们使用以下类型的 Cookie：
+            </p>
+          </section>
+
+          <section>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">3. Cookie 类型</h2>
+            
+            <div class="space-y-6">
+              <div>
+                <h3 class="text-[17px] font-semibold text-gray-900 mb-2">3.1. 必要 Cookie</h3>
+                <p class="text-[15px] text-gray-600 leading-relaxed mb-2">
+                  这些 Cookie 是网站运行所必需的，无法在我们的系统中禁用。
+                </p>
+                <ul class="list-disc pl-6 space-y-1 text-[15px] text-gray-600">
+                  <li>维护登录会话</li>
+                  <li>记住语言偏好</li>
+                  <li>安全和身份验证</li>
+                  <li>购物车和结账流程</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 class="text-[17px] font-semibold text-gray-900 mb-2">3.2. 分析 Cookie</h3>
+                <p class="text-[15px] text-gray-600 leading-relaxed mb-2">
+                  帮助我们了解用户如何与网站互动以改善服务。
+                </p>
+                <ul class="list-disc pl-6 space-y-1 text-[15px] text-gray-600">
+                  <li>Google Analytics：流量分析</li>
+                  <li>跟踪用户行为</li>
+                  <li>衡量内容效果</li>
+                  <li>统计和报告</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 class="text-[17px] font-semibold text-gray-900 mb-2">3.3. 功能 Cookie</h3>
+                <p class="text-[15px] text-gray-600 leading-relaxed mb-2">
+                  允许网站提供增强功能和个性化。
+                </p>
+                <ul class="list-disc pl-6 space-y-1 text-[15px] text-gray-600">
+                  <li>记住显示偏好</li>
+                  <li>保存已查看的产品</li>
+                  <li>自定义界面</li>
+                  <li>社交媒体集成</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 class="text-[17px] font-semibold text-gray-900 mb-2">3.4. 营销 Cookie</h3>
+                <p class="text-[15px] text-gray-600 leading-relaxed mb-2">
+                  用于显示与您兴趣相关的广告。
+                </p>
+                <ul class="list-disc pl-6 space-y-1 text-[15px] text-gray-600">
+                  <li>Facebook Pixel：转化跟踪</li>
+                  <li>Google Ads：定向广告</li>
+                  <li>再营销和重定向</li>
+                  <li>活动效果衡量</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <section>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">4. 第三方 Cookie</h2>
+            <p class="text-[15px] text-gray-600 leading-relaxed mb-3">
+              我们使用可能在您的设备上设置 Cookie 的第三方服务：
+            </p>
+            <ul class="list-disc pl-6 space-y-2 text-[15px] text-gray-600">
+              <li><strong>Google Analytics：</strong>网站分析</li>
+              <li><strong>Facebook：</strong>社交媒体集成和广告</li>
+              <li><strong>Zalo：</strong>聊天和客户支持</li>
+              <li><strong>Hotjar：</strong>用户行为分析（如适用）</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">5. Cookie 存储时长</h2>
+            <div class="space-y-3">
+              <div>
+                <p class="text-[15px] text-gray-600 leading-relaxed">
+                  <strong>会话 Cookie：</strong>关闭浏览器时自动删除
+                </p>
+              </div>
+              <div>
+                <p class="text-[15px] text-gray-600 leading-relaxed">
+                  <strong>持久 Cookie：</strong>根据用途存储几天到几年
+                </p>
+              </div>
+            </div>
+          </section>
+
+          <section>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">6. 如何管理 Cookie</h2>
+            <p class="text-[15px] text-gray-600 leading-relaxed mb-4">
+              您可以通过多种方式控制和管理 Cookie：
+            </p>
+            
+            <div class="space-y-4">
+              <div>
+                <h3 class="text-[17px] font-semibold text-gray-900 mb-2">6.1. 浏览器设置</h3>
+                <p class="text-[15px] text-gray-600 leading-relaxed mb-2">
+                  大多数浏览器允许您：
+                </p>
+                <ul class="list-disc pl-6 space-y-1 text-[15px] text-gray-600">
+                  <li>查看已保存的 Cookie</li>
+                  <li>删除全部或部分 Cookie</li>
+                  <li>阻止来自特定网站的 Cookie</li>
+                  <li>阻止所有 Cookie</li>
+                  <li>关闭浏览器时删除 Cookie</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 class="text-[17px] font-semibold text-gray-900 mb-2">6.2. 浏览器特定说明</h3>
+                <ul class="list-disc pl-6 space-y-1 text-[15px] text-gray-600">
+                  <li><strong>Chrome：</strong>设置 → 隐私和安全 → Cookie</li>
+                  <li><strong>Firefox：</strong>选项 → 隐私与安全 → Cookie</li>
+                  <li><strong>Safari：</strong>偏好设置 → 隐私 → Cookie</li>
+                  <li><strong>Edge：</strong>设置 → Cookie 和网站权限</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 class="text-[17px] font-semibold text-gray-900 mb-2">6.3. 选择退出分析 Cookie</h3>
+                <ul class="list-disc pl-6 space-y-1 text-[15px] text-gray-600">
+                  <li>Google Analytics：<a href="https://tools.google.com/dlpage/gaoptout" target="_blank" class="text-blue-600 hover:underline">选择退出浏览器插件</a></li>
+                  <li>Facebook：在您的 Facebook 帐户中的广告设置</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <section>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">7. 禁用 Cookie 的影响</h2>
+            <p class="text-[15px] text-gray-600 leading-relaxed mb-3">
+              如果您选择禁用 Cookie，某些网站功能可能无法正常工作：
+            </p>
+            <ul class="list-disc pl-6 space-y-2 text-[15px] text-gray-600">
+              <li>无法维持登录</li>
+              <li>失去个性化偏好</li>
+              <li>某些功能可能受限</li>
+              <li>用户体验降低</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">8. 政策更新</h2>
+            <p class="text-[15px] text-gray-600 leading-relaxed mb-4">
+              我们可能会更新本 Cookie 政策以反映技术、法律或业务运营的变化。请定期查看此页面以获取最新信息。
+            </p>
+          </section>
+
+          <section>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">9. 联系方式</h2>
+            <p class="text-[15px] text-gray-600 leading-relaxed mb-3">
+              如果您对 Cookie 政策有疑问，请联系：
+            </p>
+            <div class="bg-[#f5f5f7] rounded-xl p-6 text-[15px] text-gray-900">
+              <p class="mb-2"><strong>APPE JV 越南股份公司</strong></p>
+              <p class="mb-2">地址：越南河南省富利市田坦社1A国道50公里处</p>
+              <p class="mb-2">电子邮件：info@appejv.com</p>
+              <p>电话：0351 3595 202</p>
+            </div>
+          </section>
+
+          <section>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">10. 参考资料</h2>
+            <ul class="list-disc pl-6 space-y-1 text-[15px] text-gray-600">
+              <li><a href="/cn/privacy-policy" class="text-blue-600 hover:underline">隐私政策</a></li>
+              <li><a href="/cn/terms-of-service" class="text-blue-600 hover:underline">服务条款</a></li>
+              <li><a href="https://www.allaboutcookies.org" target="_blank" class="text-blue-600 hover:underline">All About Cookies</a></li>
+            </ul>
+          </section>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

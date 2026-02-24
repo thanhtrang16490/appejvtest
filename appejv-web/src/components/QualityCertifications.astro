@@ -1,44 +1,103 @@
 ---
+interface Props {
+  lang?: string;
+}
+
+const { lang = 'vi' } = Astro.props;
+
+const translations = {
+  vi: {
+    badge: 'Chất lượng đảm bảo',
+    title: 'Chứng nhận & Giấy phép',
+    subtitle: 'Đạt tiêu chuẩn quốc tế, cam kết chất lượng\nvà an toàn thực phẩm tuyệt đối',
+    verified: 'Đã xác minh',
+    commitmentTitle: 'Cam kết chất lượng 100%',
+    commitmentText: 'Tất cả sản phẩm của APPE đều được kiểm tra nghiêm ngặt theo tiêu chuẩn quốc tế. Chúng tôi cam kết hoàn tiền 100% nếu sản phẩm không đạt chất lượng cam kết.',
+    certifications: [
+      { name: 'ISO 9001:2015', description: 'Hệ thống quản lý chất lượng quốc tế' },
+      { name: 'HACCP', description: 'An toàn vệ sinh thực phẩm' },
+      { name: 'GMP', description: 'Thực hành sản xuất tốt' },
+      { name: 'Xuất khẩu quốc tế', description: 'Xuất khẩu sang Đông Nam Á và Châu Âu' },
+      { name: 'VietGAP', description: 'Thực hành nông nghiệp tốt Việt Nam' },
+      { name: 'Bộ NN & PTNT', description: 'Chứng nhận Bộ Nông nghiệp' }
+    ]
+  },
+  en: {
+    badge: 'Quality Assured',
+    title: 'Certifications & Licenses',
+    subtitle: 'Meeting international standards, committed to quality\nand absolute food safety',
+    verified: 'Verified',
+    commitmentTitle: '100% Quality Commitment',
+    commitmentText: 'All APPE products are rigorously tested according to international standards. We commit to a 100% refund if the product does not meet the committed quality.',
+    certifications: [
+      { name: 'ISO 9001:2015', description: 'International Quality Management System' },
+      { name: 'HACCP', description: 'Food Safety and Hygiene' },
+      { name: 'GMP', description: 'Good Manufacturing Practice' },
+      { name: 'International Export', description: 'Exported to Southeast Asia and Europe' },
+      { name: 'VietGAP', description: 'Vietnam Good Agricultural Practice' },
+      { name: 'MARD', description: 'Ministry of Agriculture Certification' }
+    ]
+  },
+  cn: {
+    badge: '质量保证',
+    title: '认证和许可证',
+    subtitle: '符合国际标准，致力于质量\n和绝对食品安全',
+    verified: '已验证',
+    commitmentTitle: '100%质量承诺',
+    commitmentText: '所有APPE产品均按照国际标准进行严格测试。如果产品不符合承诺的质量，我们承诺100%退款。',
+    certifications: [
+      { name: 'ISO 9001:2015', description: '国际质量管理体系' },
+      { name: 'HACCP', description: '食品安全和卫生' },
+      { name: 'GMP', description: '良好生产规范' },
+      { name: '国际出口', description: '出口到东南亚和欧洲' },
+      { name: 'VietGAP', description: '越南良好农业规范' },
+      { name: '农业部', description: '农业部认证' }
+    ]
+  }
+};
+
+const t = translations[lang as keyof typeof translations] || translations.vi;
+
 const certifications = [
   {
-    name: 'ISO 9001:2015',
+    name: t.certifications[0].name,
     icon: '🏆',
-    description: 'Hệ thống quản lý chất lượng quốc tế',
+    description: t.certifications[0].description,
     year: '2015',
     color: 'from-blue-500 to-blue-600'
   },
   {
-    name: 'HACCP',
+    name: t.certifications[1].name,
     icon: '✓',
-    description: 'An toàn vệ sinh thực phẩm',
+    description: t.certifications[1].description,
     year: '2016',
     color: 'from-green-500 to-green-600'
   },
   {
-    name: 'GMP',
+    name: t.certifications[2].name,
     icon: '⚙️',
-    description: 'Thực hành sản xuất tốt',
+    description: t.certifications[2].description,
     year: '2017',
     color: 'from-purple-500 to-purple-600'
   },
   {
-    name: 'Xuất khẩu quốc tế',
+    name: t.certifications[3].name,
     icon: '🌏',
-    description: 'Xuất khẩu sang Đông Nam Á và Châu Âu',
+    description: t.certifications[3].description,
     year: '2018',
     color: 'from-orange-500 to-orange-600'
   },
   {
-    name: 'VietGAP',
+    name: t.certifications[4].name,
     icon: '🌱',
-    description: 'Thực hành nông nghiệp tốt Việt Nam',
+    description: t.certifications[4].description,
     year: '2019',
     color: 'from-teal-500 to-teal-600'
   },
   {
-    name: 'Bộ NN & PTNT',
+    name: t.certifications[5].name,
     icon: '📋',
-    description: 'Chứng nhận Bộ Nông nghiệp',
+    description: t.certifications[5].description,
     year: '2020',
     color: 'from-red-500 to-red-600'
   }
@@ -60,15 +119,16 @@ const certifications = [
     <div class="text-center mb-12 md:mb-20 scroll-reveal">
       <div class="inline-block mb-3 md:mb-4">
         <span class="text-xs md:text-sm font-semibold text-blue-600 tracking-wide uppercase bg-blue-50 px-3 py-1.5 md:px-4 md:py-2 rounded-full">
-          Chất lượng đảm bảo
+          {t.badge}
         </span>
       </div>
       <h2 class="text-3xl md:text-5xl lg:text-6xl font-semibold text-gray-900 mb-4 md:mb-6 tracking-tight px-4">
-        Chứng nhận & Giấy phép
+        {t.title}
       </h2>
       <p class="text-base md:text-xl lg:text-2xl text-gray-600 max-w-3xl mx-auto font-light leading-relaxed px-4">
-        Đạt tiêu chuẩn quốc tế, cam kết chất lượng<br class="hidden md:block" />
-        và an toàn thực phẩm tuyệt đối
+        {t.subtitle.split('\n').map((line, i) => (
+          <>{i > 0 && <br class="hidden md:block" />}{line}</>
+        ))}
       </p>
     </div>
 
@@ -109,7 +169,7 @@ const certifications = [
               <svg class="w-4 h-4 md:w-5 md:h-5 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
               </svg>
-              <span>Đã xác minh</span>
+              <span>{t.verified}</span>
             </div>
           </div>
         </div>
@@ -123,11 +183,10 @@ const certifications = [
           <svg class="w-6 h-6 md:w-8 md:h-8 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
           </svg>
-          <h3 class="text-lg md:text-2xl font-semibold text-gray-900">Cam kết chất lượng 100%</h3>
+          <h3 class="text-lg md:text-2xl font-semibold text-gray-900">{t.commitmentTitle}</h3>
         </div>
         <p class="text-sm md:text-lg text-gray-600 leading-relaxed">
-          Tất cả sản phẩm của APPE đều được kiểm tra nghiêm ngặt theo tiêu chuẩn quốc tế. 
-          Chúng tôi cam kết hoàn tiền 100% nếu sản phẩm không đạt chất lượng cam kết.
+          {t.commitmentText}
         </p>
       </div>
     </div>

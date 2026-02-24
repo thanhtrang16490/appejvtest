@@ -1,0 +1,179 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import { legalTranslations } from '../../i18n/legal-translations'
+
+const lang = 'cn'
+const t = legalTranslations[lang].terms
+---
+
+<BaseLayout 
+  title={t.seoTitle}
+  description={t.seoDescription}
+  canonical="/cn/terms-of-service"
+  lang="zh"
+>
+  <section class="pt-24 md:pt-32 pb-16 md:pb-20 bg-white">
+    <div class="max-w-[692px] mx-auto px-4 sm:px-6">
+      <h1 class="text-4xl sm:text-5xl md:text-6xl font-semibold text-gray-900 mb-6 tracking-tight leading-tight">
+        {t.title}
+      </h1>
+      <p class="text-[17px] text-gray-600 mb-8">
+        {t.lastUpdated}
+      </p>
+
+      <div class="prose prose-gray max-w-none">
+        <div class="space-y-8">
+          <section>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">1. 接受条款</h2>
+            <p class="text-[15px] text-gray-600 leading-relaxed mb-4">
+              通过访问和使用网站 appejv.com（"网站"）以及 APPE JV 越南股份公司（"APPE JV"、"我们"）的服务，您同意遵守以下条款和条件。如果您不同意，请不要使用我们的服务。
+            </p>
+          </section>
+
+          <section>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">2. 定义</h2>
+            <ul class="list-disc pl-6 space-y-2 text-[15px] text-gray-600">
+              <li><strong>用户：</strong>访问和使用网站的任何个人或组织</li>
+              <li><strong>客户：</strong>与 APPE JV 有购买交易的用户</li>
+              <li><strong>产品：</strong>APPE JV 生产和分销的动物和水产饲料</li>
+              <li><strong>服务：</strong>APPE JV 提供的咨询、技术支持和其他服务</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">3. 网站使用</h2>
+            <p class="text-[15px] text-gray-600 leading-relaxed mb-3">
+              使用网站时，您承诺：
+            </p>
+            <ul class="list-disc pl-6 space-y-2 text-[15px] text-gray-600">
+              <li>提供准确、完整和最新的信息</li>
+              <li>不将网站用于非法目的</li>
+              <li>不干扰系统运行</li>
+              <li>未经许可不复制或分发内容</li>
+              <li>不发送垃圾邮件、病毒或恶意代码</li>
+              <li>遵守现行法律法规</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">4. 订购和付款</h2>
+            <p class="text-[15px] text-gray-600 leading-relaxed mb-3">
+              <strong>4.1. 订购流程：</strong>
+            </p>
+            <ul class="list-disc pl-6 space-y-2 text-[15px] text-gray-600 mb-4">
+              <li>通过热线、电子邮件或网站表单联系</li>
+              <li>接收报价和订单确认</li>
+              <li>签订合同（大订单）</li>
+              <li>按约定付款</li>
+              <li>收货并确认</li>
+            </ul>
+            <p class="text-[15px] text-gray-600 leading-relaxed mb-3">
+              <strong>4.2. 定价：</strong>
+            </p>
+            <ul class="list-disc pl-6 space-y-2 text-[15px] text-gray-600 mb-4">
+              <li>产品价格含增值税（除非另有说明）</li>
+              <li>价格可能会在不事先通知的情况下变更</li>
+              <li>价格以订单确认时为准</li>
+            </ul>
+            <p class="text-[15px] text-gray-600 leading-relaxed mb-3">
+              <strong>4.3. 付款：</strong>
+            </p>
+            <ul class="list-disc pl-6 space-y-2 text-[15px] text-gray-600">
+              <li>银行转账</li>
+              <li>现金（货到付款）</li>
+              <li>信用条款（按协议）</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">5. 配送</h2>
+            <ul class="list-disc pl-6 space-y-2 text-[15px] text-gray-600">
+              <li>通过全国 150+ 经销商网络配送</li>
+              <li>配送时间取决于地点和数量</li>
+              <li>客户有责任在收货时检查货物</li>
+              <li>如有质量或数量问题，请立即向 APPE JV 报告</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">6. 退货政策</h2>
+            <p class="text-[15px] text-gray-600 leading-relaxed mb-3">
+              <strong>6.1. 退货条件：</strong>
+            </p>
+            <ul class="list-disc pl-6 space-y-2 text-[15px] text-gray-600 mb-4">
+              <li>制造商产品缺陷</li>
+              <li>交付错误产品或数量短缺</li>
+              <li>运输过程中产品损坏</li>
+              <li>收货后 24 小时内通知</li>
+            </ul>
+            <p class="text-[15px] text-gray-600 leading-relaxed mb-3">
+              <strong>6.2. 不适用退货：</strong>
+            </p>
+            <ul class="list-disc pl-6 space-y-2 text-[15px] text-gray-600">
+              <li>已使用的产品</li>
+              <li>因储存不当造成的损坏</li>
+              <li>缺少原包装或标签</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">7. 保修和支持</h2>
+            <ul class="list-disc pl-6 space-y-2 text-[15px] text-gray-600">
+              <li>按公布标准承诺产品质量</li>
+              <li>免费畜牧养殖技术支持</li>
+              <li>营养和饲料配方咨询</li>
+              <li>支持热线：0351 3595 202</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">8. 知识产权</h2>
+            <p class="text-[15px] text-gray-600 leading-relaxed mb-4">
+              网站上的所有内容，包括文本、图像、徽标、设计、视频和其他材料，均由 APPE JV 拥有或合法授权使用。严禁未经书面许可复制、分发或用于商业目的。
+            </p>
+          </section>
+
+          <section>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">9. 责任限制</h2>
+            <p class="text-[15px] text-gray-600 leading-relaxed mb-3">
+              APPE JV 不对以下情况负责：
+            </p>
+            <ul class="list-disc pl-6 space-y-2 text-[15px] text-gray-600">
+              <li>间接、偶然或后果性损害</li>
+              <li>因技术问题或维护导致的服务中断</li>
+              <li>来自第三方链接网站的信息</li>
+              <li>未按说明使用产品的错误</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">10. 条款变更</h2>
+            <p class="text-[15px] text-gray-600 leading-relaxed mb-4">
+              APPE JV 保留随时更改、添加或删除服务条款任何部分的权利。变更在网站上发布后立即生效。变更后继续使用服务表示接受新条款。
+            </p>
+          </section>
+
+          <section>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">11. 适用法律和争议解决</h2>
+            <p class="text-[15px] text-gray-600 leading-relaxed mb-4">
+              本条款受越南法律管辖。任何争议将通过协商解决。如果无法达成协议，争议将在越南有管辖权的法院解决。
+            </p>
+          </section>
+
+          <section>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">12. 联系方式</h2>
+            <p class="text-[15px] text-gray-600 leading-relaxed mb-3">
+              如果您对服务条款有疑问，请联系：
+            </p>
+            <div class="bg-[#f5f5f7] rounded-xl p-6 text-[15px] text-gray-900">
+              <p class="mb-2"><strong>APPE JV 越南股份公司</strong></p>
+              <p class="mb-2">地址：越南河南省富利市田坦社1A国道50公里处</p>
+              <p class="mb-2">电子邮件：info@appejv.com</p>
+              <p>电话：0351 3595 202</p>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
