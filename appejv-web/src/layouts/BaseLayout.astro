@@ -31,7 +31,7 @@ const {
   canonical
 } = Astro.props
 
-const APP_URL = import.meta.env.PUBLIC_APP_URL || 'http://localhost:3000'
+const APP_URL = 'https://app.appejv.app'
 const SITE_URL = Astro.url.origin
 const currentUrl = canonical || Astro.url.pathname
 const fullUrl = `${SITE_URL}${currentUrl}`
@@ -62,6 +62,7 @@ const organizationSchema = {
     "availableLanguage": ["vi", "en"]
   },
   "sameAs": [
+    "https://www.facebook.com/appevn",
     "https://appe.com.vn"
   ]
 }
@@ -192,14 +193,14 @@ const websiteSchema = {
     <title>{title}</title>
     
     <!-- Favicons -->
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="alternate icon" href="/favicon-32x32.png" type="image/png" sizes="32x32" />
-    <link rel="alternate icon" type="image/x-icon" href="/favicon.ico" />
-    <link rel="apple-touch-icon" href="/apple-icon-180.png" sizes="180x180" />
-    <link rel="apple-touch-icon-precomposed" href="/apple-icon-180.png" />
-    <link rel="mask-icon" href="/appejv-logo.svg" color="#175ead" />
-    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
-    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
+    <link rel="icon" type="image/png" href="/appejv-logo.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/appejv-logo.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/appejv-logo.png" />
+    <link rel="apple-touch-icon" href="/appejv-logo.png" sizes="180x180" />
+    <link rel="apple-touch-icon-precomposed" href="/appejv-logo.png" />
+    <link rel="mask-icon" href="/appejv-logo.png" color="#175ead" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/appejv-logo.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/appejv-logo.png" />
     
     <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest.json" />
@@ -271,36 +272,36 @@ const websiteSchema = {
   </head>
   <body class="bg-white min-h-screen">
     <!-- Header - Apple Style -->
-    <header class="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-200/50 transition-all duration-300">
-      <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between h-16">
+    <header class="fixed top-0 left-0 right-0 z-50 bg-white/70 backdrop-blur-2xl border-b border-gray-200/80 transition-all duration-300">
+      <div class="max-w-[980px] mx-auto px-4 sm:px-6">
+        <div class="flex items-center justify-between h-11">
           <!-- Logo -->
-          <a href="/" class="flex items-center gap-2 group">
+          <a href="/" class="flex items-center gap-2 group -ml-2">
             <img 
               src="/appejv-logo.png" 
               alt="APPE JV Logo" 
-              class="w-8 h-8 object-contain group-hover:scale-110 transition-transform duration-300"
+              class="w-7 h-7 object-contain opacity-90 group-hover:opacity-100 transition-opacity duration-200"
             />
-            <span class="text-xl font-semibold text-gray-900 tracking-tight">
+            <span class="text-[17px] font-semibold text-[#175ead] tracking-tight leading-none">
               APPE JV
             </span>
           </a>
 
           <!-- Desktop Navigation -->
-          <nav class="hidden md:flex items-center gap-1">
-            <a href="/" class="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 rounded-lg hover:bg-gray-100/50 transition-all duration-200">
+          <nav class="hidden md:flex items-center gap-8">
+            <a href="/" class="text-[12px] font-normal text-gray-800 hover:text-gray-900 transition-colors duration-200 tracking-tight">
               Trang chủ
             </a>
-            <a href="/gioi-thieu" class="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 rounded-lg hover:bg-gray-100/50 transition-all duration-200">
+            <a href="/gioi-thieu" class="text-[12px] font-normal text-gray-800 hover:text-gray-900 transition-colors duration-200 tracking-tight">
               Giới thiệu
             </a>
-            <a href="/san-pham" class="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 rounded-lg hover:bg-gray-100/50 transition-all duration-200">
+            <a href="/san-pham" class="text-[12px] font-normal text-gray-800 hover:text-gray-900 transition-colors duration-200 tracking-tight">
               Sản phẩm
             </a>
-            <a href="/lien-he" class="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 rounded-lg hover:bg-gray-100/50 transition-all duration-200">
+            <a href="/lien-he" class="text-[12px] font-normal text-gray-800 hover:text-gray-900 transition-colors duration-200 tracking-tight">
               Liên hệ
             </a>
-            <a href={`${APP_URL}/auth/login`} class="ml-2 px-5 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-full transition-all duration-200 shadow-sm hover:shadow-md">
+            <a href={`${APP_URL}/auth/login`} class="text-[12px] font-normal text-blue-600 hover:text-blue-700 transition-colors duration-200 tracking-tight">
               Đăng nhập
             </a>
           </nav>
@@ -308,11 +309,11 @@ const websiteSchema = {
           <!-- Mobile Menu Button -->
           <button 
             id="mobile-menu-button"
-            class="md:hidden p-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+            class="md:hidden p-1.5 text-gray-700 hover:text-gray-900 transition-colors -mr-1.5"
             aria-label="Toggle menu"
           >
-            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
         </div>
@@ -322,74 +323,56 @@ const websiteSchema = {
     <!-- Mobile Menu Overlay -->
     <div 
       id="mobile-menu-overlay"
-      class="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 md:hidden hidden transition-opacity duration-300"
+      class="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 md:hidden opacity-0 pointer-events-none transition-opacity duration-300"
     ></div>
 
-    <!-- Mobile Menu -->
+    <!-- Mobile Menu - Dropdown from top -->
     <div 
       id="mobile-menu"
-      class="fixed top-0 right-0 bottom-0 w-80 max-w-[85vw] bg-white z-50 transform translate-x-full transition-transform duration-300 ease-out md:hidden shadow-2xl"
+      class="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-2xl z-50 transform -translate-y-full transition-transform duration-400 ease-out md:hidden border-b border-gray-200"
     >
-      <div class="flex flex-col h-full">
+      <div class="max-w-[980px] mx-auto px-4 sm:px-6">
         <!-- Mobile Menu Header -->
-        <div class="flex items-center justify-between p-4 border-b border-gray-100">
+        <div class="flex items-center justify-between h-11 border-b border-gray-200/50">
           <div class="flex items-center gap-2">
             <img 
               src="/appejv-logo.png" 
               alt="APPE JV Logo" 
-              class="w-8 h-8 object-contain"
+              class="w-7 h-7 object-contain opacity-90"
             />
-            <span class="text-lg font-semibold text-gray-900">APPE JV</span>
+            <span class="text-[17px] font-semibold text-[#175ead] tracking-tight">APPE JV</span>
           </div>
           <button
             id="mobile-menu-close"
-            class="p-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
+            class="p-1.5 text-gray-700 hover:text-gray-900 transition-colors -mr-1.5"
             aria-label="Close menu"
           >
-            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
         <!-- Mobile Menu Content -->
-        <nav class="flex-1 px-4 py-6 overflow-y-auto">
-          <div class="space-y-1">
-            <a href="/" class="mobile-menu-link flex items-center gap-3 px-4 py-3 text-gray-900 hover:bg-gray-50 rounded-xl transition-colors font-medium">
-              <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-              </svg>
+        <nav class="py-4">
+          <div class="space-y-0.5">
+            <a href="/" class="mobile-menu-link block px-3 py-2.5 text-[14px] text-gray-900 hover:bg-gray-100/60 rounded-lg transition-colors font-normal">
               Trang chủ
             </a>
-            <a href="/gioi-thieu" class="mobile-menu-link flex items-center gap-3 px-4 py-3 text-gray-900 hover:bg-gray-50 rounded-xl transition-colors font-medium">
-              <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+            <a href="/gioi-thieu" class="mobile-menu-link block px-3 py-2.5 text-[14px] text-gray-900 hover:bg-gray-100/60 rounded-lg transition-colors font-normal">
               Giới thiệu
             </a>
-            <a href="/san-pham" class="mobile-menu-link flex items-center gap-3 px-4 py-3 text-gray-900 hover:bg-gray-50 rounded-xl transition-colors font-medium">
-              <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-              </svg>
+            <a href="/san-pham" class="mobile-menu-link block px-3 py-2.5 text-[14px] text-gray-900 hover:bg-gray-100/60 rounded-lg transition-colors font-normal">
               Sản phẩm
             </a>
-            <a href="/lien-he" class="mobile-menu-link flex items-center gap-3 px-4 py-3 text-gray-900 hover:bg-gray-50 rounded-xl transition-colors font-medium">
-              <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-              </svg>
+            <a href="/lien-he" class="mobile-menu-link block px-3 py-2.5 text-[14px] text-gray-900 hover:bg-gray-100/60 rounded-lg transition-colors font-normal">
               Liên hệ
+            </a>
+            <a href={`${APP_URL}/auth/login`} class="mobile-menu-link block px-3 py-2.5 text-[14px] text-blue-600 hover:bg-gray-100/60 rounded-lg transition-colors font-normal">
+              Đăng nhập
             </a>
           </div>
         </nav>
-
-        <!-- Mobile Menu Footer -->
-        <div class="p-4 border-t border-gray-100">
-          <a href={`${APP_URL}/auth/login`} class="mobile-menu-link block">
-            <button class="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-full font-medium px-6 py-3 transition-all shadow-sm hover:shadow-md">
-              Đăng nhập
-            </button>
-          </a>
-        </div>
       </div>
     </div>
 
@@ -402,14 +385,14 @@ const websiteSchema = {
       const menuLinks = document.querySelectorAll('.mobile-menu-link');
 
       function openMenu() {
-        menu?.classList.remove('translate-x-full');
-        overlay?.classList.remove('hidden');
+        menu?.classList.remove('-translate-y-full');
+        overlay?.classList.remove('opacity-0', 'pointer-events-none');
         document.body.style.overflow = 'hidden';
       }
 
       function closeMenu() {
-        menu?.classList.add('translate-x-full');
-        overlay?.classList.add('hidden');
+        menu?.classList.add('-translate-y-full');
+        overlay?.classList.add('opacity-0', 'pointer-events-none');
         document.body.style.overflow = '';
       }
 
@@ -418,17 +401,21 @@ const websiteSchema = {
       overlay?.addEventListener('click', closeMenu);
       menuLinks.forEach(link => link.addEventListener('click', closeMenu));
 
-      // Header scroll effect
+      // Header scroll effect - more subtle
       let lastScroll = 0;
       const header = document.querySelector('header');
       
       window.addEventListener('scroll', () => {
         const currentScroll = window.pageYOffset;
         
-        if (currentScroll > 100) {
+        if (currentScroll > 50) {
           header?.classList.add('shadow-sm');
+          header?.classList.remove('bg-white/70');
+          header?.classList.add('bg-white/90');
         } else {
           header?.classList.remove('shadow-sm');
+          header?.classList.remove('bg-white/90');
+          header?.classList.add('bg-white/70');
         }
         
         lastScroll = currentScroll;
@@ -504,7 +491,7 @@ const websiteSchema = {
                 Giải pháp dinh dưỡng chuyên nghiệp cho chăn nuôi và thủy sản
               </p>
               <div class="flex gap-2">
-                <a href="#" class="w-9 h-9 bg-gray-200 hover:bg-gray-300 rounded-full flex items-center justify-center transition-colors" aria-label="Facebook">
+                <a href="https://www.facebook.com/appevn" target="_blank" rel="noopener noreferrer" class="w-9 h-9 bg-gray-200 hover:bg-gray-300 rounded-full flex items-center justify-center transition-colors" aria-label="Facebook">
                   <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
                   </svg>
@@ -562,9 +549,9 @@ const websiteSchema = {
             <div>
               <h4 class="text-xs font-semibold mb-4 tracking-wide uppercase text-gray-500">Pháp lý</h4>
               <ul class="space-y-2.5">
-                <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Chính sách bảo mật</a></li>
-                <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Điều khoản sử dụng</a></li>
-                <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Chính sách cookie</a></li>
+                <li><a href="/chinh-sach-bao-mat" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Chính sách bảo mật</a></li>
+                <li><a href="/dieu-khoan-su-dung" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Điều khoản sử dụng</a></li>
+                <li><a href="/chinh-sach-cookie" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Chính sách cookie</a></li>
                 <li><a href="/sitemap.xml" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">Sitemap</a></li>
               </ul>
             </div>

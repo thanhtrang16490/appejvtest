@@ -1,7 +1,5 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro'
-import FloatingContactButtons from '../components/FloatingContactButtons.astro'
-import DNA3DHelix from '../components/DNA3DHelix'
 
 const seoTitle = "Giới thiệu - APPE JV Việt Nam | Thức ăn chăn nuôi chất lượng cao"
 const seoDescription = "APPE JV thành lập từ 2008, chuyên sản xuất thức ăn chăn nuôi và thủy sản chất lượng cao. Ứng dụng công nghệ tiên tiến, xuất khẩu sang Đông Nam Á và Châu Âu. Tầm nhìn trở thành doanh nghiệp uy tín hàng đầu."
@@ -15,21 +13,6 @@ const seoKeywords = [
   "A Group",
   "thành lập 2008"
 ]
-
-const timeline = [
-  { year: "2008", title: "Thành lập", description: "Khởi đầu hành trình với tầm nhìn phát triển ngành chăn nuôi Việt Nam" },
-  { year: "2012", title: "Mở rộng sản xuất", description: "Đầu tư dây chuyền công nghệ hiện đại, tăng công suất" },
-  { year: "2016", title: "Xuất khẩu quốc tế", description: "Mở rộng thị trường Đông Nam Á và Châu Âu, khẳng định chất lượng" },
-  { year: "2020", title: "ISO 9001:2015", description: "Đạt chứng nhận quốc tế về quản lý chất lượng" },
-  { year: "2024", title: "1500+ Khách hàng", description: "Được tin dùng bởi hàng nghìn trang trại trên toàn quốc" }
-]
-
-const certifications = [
-  { name: "ISO 9001:2015", icon: "🏆", description: "Hệ thống quản lý chất lượng" },
-  { name: "HACCP", icon: "✓", description: "An toàn thực phẩm" },
-  { name: "GMP", icon: "⚡", description: "Thực hành sản xuất tốt" },
-  { name: "Xuất khẩu", icon: "🌏", description: "Đạt chuẩn xuất khẩu quốc tế" }
-]
 ---
 
 <BaseLayout 
@@ -39,75 +22,66 @@ const certifications = [
   canonical="/gioi-thieu"
 >
   <!-- Hero Section -->
-  <section class="min-h-[70vh] flex items-center relative overflow-hidden">
-    <!-- Multi-layer background -->
-    <div class="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-purple-50"></div>
-    
-    <!-- Animated gradient mesh -->
-    <div class="absolute inset-0 opacity-30">
-      <div class="absolute top-0 -left-4 w-96 h-96 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl animate-blob"></div>
-      <div class="absolute top-0 -right-4 w-96 h-96 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000"></div>
-      <div class="absolute -bottom-8 left-20 w-96 h-96 bg-pink-300 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-4000"></div>
-    </div>
-
-    <!-- 3D Background -->
-    <div class="absolute inset-0 opacity-20">
-      <DNA3DHelix client:only="react" />
-    </div>
-    
-    <div class="container mx-auto px-4 relative z-10">
-      <div class="max-w-4xl mx-auto text-center">
-        <h1 class="text-6xl md:text-7xl font-semibold tracking-tight text-gray-900 mb-6">
-          Về <span class="text-gray-400">APPE JV</span>
+  <section class="pt-24 md:pt-32 pb-16 md:pb-20 bg-white">
+    <div class="max-w-[980px] mx-auto px-4 sm:px-6">
+      <div class="text-center mb-12 md:mb-16">
+        <h1 class="text-4xl sm:text-5xl md:text-6xl font-semibold text-gray-900 mb-4 tracking-tight leading-tight">
+          Về APPE JV
         </h1>
-        <p class="text-xl md:text-2xl text-gray-600 mb-8 font-light">
-          Chuyên sản xuất và cung cấp thức ăn chăn nuôi chất lượng cao cho heo, gia cầm và thủy sản. Thành lập từ 2008, ứng dụng công nghệ tiên tiến, xuất khẩu sang Đông Nam Á và Châu Âu.
+        <p class="text-lg sm:text-xl md:text-2xl text-gray-600 font-light max-w-3xl mx-auto leading-relaxed">
+          Chuyên sản xuất và cung cấp thức ăn chăn nuôi chất lượng cao cho heo, gia cầm và thủy sản
         </p>
-        
-        <!-- Trust badges -->
-        <div class="flex flex-wrap gap-4 justify-center mt-8">
-          <div class="bg-white/80 backdrop-blur-sm px-6 py-3 rounded-full shadow-lg border border-gray-200">
-            <span class="text-sm font-semibold text-blue-600">🏆 ISO 9001:2015</span>
-          </div>
-          <div class="bg-white/80 backdrop-blur-sm px-6 py-3 rounded-full shadow-lg border border-gray-200">
-            <span class="text-sm font-semibold text-green-600">✓ HACCP</span>
-          </div>
-          <div class="bg-white/80 backdrop-blur-sm px-6 py-3 rounded-full shadow-lg border border-gray-200">
-            <span class="text-sm font-semibold text-purple-600">📅 16+ Năm Kinh nghiệm</span>
-          </div>
-          <div class="bg-white/80 backdrop-blur-sm px-6 py-3 rounded-full shadow-lg border border-gray-200">
-            <span class="text-sm font-semibold text-amber-600">🌏 Xuất khẩu Quốc tế</span>
-          </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+        <div class="text-center">
+          <div class="text-4xl md:text-5xl font-semibold text-gray-900 mb-2">2008</div>
+          <div class="text-[13px] md:text-[15px] text-gray-600">Năm thành lập</div>
+        </div>
+        <div class="text-center">
+          <div class="text-4xl md:text-5xl font-semibold text-gray-900 mb-2">150+</div>
+          <div class="text-[13px] md:text-[15px] text-gray-600">Đại lý</div>
+        </div>
+        <div class="text-center">
+          <div class="text-4xl md:text-5xl font-semibold text-gray-900 mb-2">16+</div>
+          <div class="text-[13px] md:text-[15px] text-gray-600">Năm kinh nghiệm</div>
+        </div>
+        <div class="text-center">
+          <div class="text-4xl md:text-5xl font-semibold text-gray-900 mb-2">3</div>
+          <div class="text-[13px] md:text-[15px] text-gray-600">Thị trường xuất khẩu</div>
         </div>
       </div>
     </div>
   </section>
 
   <!-- Mission & Vision -->
-  <section class="py-32 relative">
-    <div class="container mx-auto px-4">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
-        <div class="bg-white/80 backdrop-blur-sm p-12 rounded-3xl shadow-xl ring-1 ring-gray-900/5 hover:shadow-2xl transition-all">
-          <div class="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
-            <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <section class="py-16 md:py-20 bg-[#f5f5f7]">
+    <div class="max-w-[980px] mx-auto px-4 sm:px-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+        <!-- Mission -->
+        <div class="bg-white rounded-2xl p-8 md:p-10">
+          <div class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center mb-6">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           </div>
-          <h2 class="text-3xl font-semibold text-gray-900 mb-4 tracking-tight">Sứ mệnh</h2>
-          <p class="text-lg text-gray-600 leading-relaxed font-light">
+          <h2 class="text-2xl md:text-3xl font-semibold text-gray-900 mb-4 tracking-tight">Sứ mệnh</h2>
+          <p class="text-[15px] md:text-[17px] text-gray-600 leading-relaxed">
             Cung cấp thức ăn chăn nuôi chất lượng cao, an toàn và hiệu quả, góp phần phát triển ngành chăn nuôi Việt Nam bền vững.
           </p>
         </div>
 
-        <div class="bg-white/80 backdrop-blur-sm p-12 rounded-3xl shadow-xl ring-1 ring-gray-900/5 hover:shadow-2xl transition-all">
-          <div class="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
-            <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <!-- Vision -->
+        <div class="bg-white rounded-2xl p-8 md:p-10">
+          <div class="w-12 h-12 bg-gray-900 rounded-full flex items-center justify-center mb-6">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
             </svg>
           </div>
-          <h2 class="text-3xl font-semibold text-gray-900 mb-4 tracking-tight">Tầm nhìn</h2>
-          <p class="text-lg text-gray-600 leading-relaxed font-light">
+          <h2 class="text-2xl md:text-3xl font-semibold text-gray-900 mb-4 tracking-tight">Tầm nhìn</h2>
+          <p class="text-[15px] md:text-[17px] text-gray-600 leading-relaxed">
             Trở thành nhà sản xuất thức ăn chăn nuôi hàng đầu tại Việt Nam và khu vực, được tin dùng bởi hàng nghìn trang trại.
           </p>
         </div>
@@ -115,84 +89,54 @@ const certifications = [
     </div>
   </section>
 
-  <!-- Timeline Section -->
-  <section class="py-32 bg-gradient-to-br from-blue-50 via-white to-purple-50 relative overflow-hidden">
-    <div class="container mx-auto px-4">
-      <div class="text-center mb-20">
-        <h2 class="text-5xl md:text-6xl font-semibold tracking-tight text-gray-900 mb-6">
-          Hành trình Phát triển
+  <!-- Core Values -->
+  <section class="py-16 md:py-20 bg-white">
+    <div class="max-w-[980px] mx-auto px-4 sm:px-6">
+      <div class="text-center mb-12 md:mb-16">
+        <h2 class="text-3xl sm:text-4xl md:text-5xl font-semibold text-gray-900 mb-3 tracking-tight">
+          Giá trị cốt lõi
         </h2>
-        <p class="text-xl text-gray-600 font-light max-w-2xl mx-auto">
-          16 năm không ngừng đổi mới và phát triển
+        <p class="text-[17px] text-gray-600 font-light">
+          Những giá trị định hướng mọi hoạt động của chúng tôi
         </p>
       </div>
-
-      <div class="max-w-5xl mx-auto relative">
-        <!-- Timeline line -->
-        <div class="absolute left-1/2 transform -translate-x-1/2 h-full w-1 bg-gradient-to-b from-blue-500 to-purple-500 hidden md:block"></div>
-
-        <div class="space-y-12">
-          {timeline.map((item, index) => (
-            <div class={`flex items-center gap-8 ${index % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'}`}>
-              <div class={`flex-1 ${index % 2 === 0 ? 'md:text-right' : 'md:text-left'}`}>
-                <div class="bg-white/80 backdrop-blur-sm p-8 rounded-3xl shadow-lg ring-1 ring-gray-900/5 hover:shadow-xl transition-all">
-                  <div class="text-4xl font-bold text-blue-600 mb-2">{item.year}</div>
-                  <h3 class="text-2xl font-semibold text-gray-900 mb-3">{item.title}</h3>
-                  <p class="text-gray-600 font-light">{item.description}</p>
-                </div>
-              </div>
-              
-              <div class="hidden md:block w-6 h-6 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full ring-4 ring-white shadow-lg z-10"></div>
-              
-              <div class="flex-1"></div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Core Values -->
-  <section class="py-32 relative">
-    <div class="container mx-auto px-4">
-      <div class="text-center mb-20">
-        <h2 class="text-5xl md:text-6xl font-semibold tracking-tight text-gray-900 mb-6">Giá trị cốt lõi</h2>
-        <p class="text-xl text-gray-600 font-light">Những giá trị định hướng mọi hoạt động của chúng tôi</p>
-      </div>
       
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-        <div class="text-center group">
-          <div class="w-24 h-24 bg-gradient-to-br from-blue-500 to-blue-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-xl group-hover:scale-110 transition-transform">
-            <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+        <!-- Quality -->
+        <div class="text-center">
+          <div class="w-16 h-16 bg-[#f5f5f7] rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <h3 class="text-2xl font-semibold text-gray-900 mb-3">Chất lượng</h3>
-          <p class="text-lg text-gray-600 font-light leading-relaxed">
+          <h3 class="text-xl font-semibold text-gray-900 mb-2">Chất lượng</h3>
+          <p class="text-[15px] text-gray-600 leading-relaxed">
             Cam kết sản phẩm chất lượng cao, an toàn cho vật nuôi và người tiêu dùng
           </p>
         </div>
 
-        <div class="text-center group">
-          <div class="w-24 h-24 bg-gradient-to-br from-green-500 to-green-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-xl group-hover:scale-110 transition-transform">
-            <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <!-- Technology -->
+        <div class="text-center">
+          <div class="w-16 h-16 bg-[#f5f5f7] rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           </div>
-          <h3 class="text-2xl font-semibold text-gray-900 mb-3">Công nghệ</h3>
-          <p class="text-lg text-gray-600 font-light leading-relaxed">
+          <h3 class="text-xl font-semibold text-gray-900 mb-2">Công nghệ</h3>
+          <p class="text-[15px] text-gray-600 leading-relaxed">
             Ứng dụng công nghệ tiên tiến trong sản xuất và quản lý chất lượng
           </p>
         </div>
 
-        <div class="text-center group">
-          <div class="w-24 h-24 bg-gradient-to-br from-purple-500 to-purple-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-xl group-hover:scale-110 transition-transform">
-            <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <!-- Customer -->
+        <div class="text-center">
+          <div class="w-16 h-16 bg-[#f5f5f7] rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
           </div>
-          <h3 class="text-2xl font-semibold text-gray-900 mb-3">Khách hàng</h3>
-          <p class="text-lg text-gray-600 font-light leading-relaxed">
+          <h3 class="text-xl font-semibold text-gray-900 mb-2">Khách hàng</h3>
+          <p class="text-[15px] text-gray-600 leading-relaxed">
             Đặt lợi ích và sự hài lòng của khách hàng lên hàng đầu
           </p>
         </div>
@@ -201,122 +145,186 @@ const certifications = [
   </section>
 
   <!-- Certifications -->
-  <section class="py-32 relative">
-    <div class="container mx-auto px-4">
-      <div class="text-center mb-20">
-        <h2 class="text-5xl md:text-6xl font-semibold tracking-tight text-gray-900 mb-6">
+  <section class="py-16 md:py-20 bg-[#f5f5f7]">
+    <div class="max-w-[980px] mx-auto px-4 sm:px-6">
+      <div class="text-center mb-12 md:mb-16">
+        <h2 class="text-3xl sm:text-4xl md:text-5xl font-semibold text-gray-900 mb-3 tracking-tight">
           Chứng nhận & Tiêu chuẩn
         </h2>
-        <p class="text-xl text-gray-600 font-light max-w-2xl mx-auto">
+        <p class="text-[17px] text-gray-600 font-light">
           Cam kết chất lượng được công nhận quốc tế
         </p>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-8 max-w-6xl mx-auto">
-        {certifications.map((cert) => (
-          <div class="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-lg ring-1 ring-gray-900/5 hover:shadow-xl hover:scale-105 transition-all text-center">
-            <div class="text-6xl mb-4">{cert.icon}</div>
-            <h3 class="text-xl font-semibold text-gray-900 mb-2">{cert.name}</h3>
-            <p class="text-gray-600 font-light">{cert.description}</p>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+        <!-- ISO -->
+        <div class="bg-white rounded-2xl p-6 text-center">
+          <div class="text-4xl mb-3">🏆</div>
+          <h3 class="text-[15px] font-semibold text-gray-900 mb-1">ISO 9001:2015</h3>
+          <p class="text-[13px] text-gray-600">Quản lý chất lượng</p>
+        </div>
+
+        <!-- HACCP -->
+        <div class="bg-white rounded-2xl p-6 text-center">
+          <div class="text-4xl mb-3">✓</div>
+          <h3 class="text-[15px] font-semibold text-gray-900 mb-1">HACCP</h3>
+          <p class="text-[13px] text-gray-600">An toàn thực phẩm</p>
+        </div>
+
+        <!-- GMP -->
+        <div class="bg-white rounded-2xl p-6 text-center">
+          <div class="text-4xl mb-3">⚡</div>
+          <h3 class="text-[15px] font-semibold text-gray-900 mb-1">GMP</h3>
+          <p class="text-[13px] text-gray-600">Thực hành sản xuất tốt</p>
+        </div>
+
+        <!-- Export -->
+        <div class="bg-white rounded-2xl p-6 text-center">
+          <div class="text-4xl mb-3">🌏</div>
+          <h3 class="text-[15px] font-semibold text-gray-900 mb-1">Xuất khẩu</h3>
+          <p class="text-[13px] text-gray-600">Chuẩn quốc tế</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Timeline -->
+  <section class="py-16 md:py-20 bg-white">
+    <div class="max-w-[692px] mx-auto px-4 sm:px-6">
+      <div class="text-center mb-12 md:mb-16">
+        <h2 class="text-3xl sm:text-4xl md:text-5xl font-semibold text-gray-900 mb-3 tracking-tight">
+          Hành trình phát triển
+        </h2>
+        <p class="text-[17px] text-gray-600 font-light">
+          16 năm không ngừng đổi mới
+        </p>
+      </div>
+
+      <div class="space-y-8">
+        <!-- 2008 -->
+        <div class="flex gap-6">
+          <div class="flex-shrink-0 w-20 text-right">
+            <div class="text-2xl font-semibold text-gray-900">2008</div>
           </div>
-        ))}
+          <div class="flex-1 pb-8 border-b border-gray-200">
+            <h3 class="text-[17px] font-semibold text-gray-900 mb-2">Thành lập</h3>
+            <p class="text-[15px] text-gray-600">
+              Khởi đầu hành trình với tầm nhìn phát triển ngành chăn nuôi Việt Nam
+            </p>
+          </div>
+        </div>
+
+        <!-- 2012 -->
+        <div class="flex gap-6">
+          <div class="flex-shrink-0 w-20 text-right">
+            <div class="text-2xl font-semibold text-gray-900">2012</div>
+          </div>
+          <div class="flex-1 pb-8 border-b border-gray-200">
+            <h3 class="text-[17px] font-semibold text-gray-900 mb-2">Mở rộng sản xuất</h3>
+            <p class="text-[15px] text-gray-600">
+              Đầu tư dây chuyền công nghệ hiện đại, tăng công suất
+            </p>
+          </div>
+        </div>
+
+        <!-- 2016 -->
+        <div class="flex gap-6">
+          <div class="flex-shrink-0 w-20 text-right">
+            <div class="text-2xl font-semibold text-gray-900">2016</div>
+          </div>
+          <div class="flex-1 pb-8 border-b border-gray-200">
+            <h3 class="text-[17px] font-semibold text-gray-900 mb-2">Xuất khẩu quốc tế</h3>
+            <p class="text-[15px] text-gray-600">
+              Mở rộng thị trường Đông Nam Á và Châu Âu
+            </p>
+          </div>
+        </div>
+
+        <!-- 2020 -->
+        <div class="flex gap-6">
+          <div class="flex-shrink-0 w-20 text-right">
+            <div class="text-2xl font-semibold text-gray-900">2020</div>
+          </div>
+          <div class="flex-1 pb-8 border-b border-gray-200">
+            <h3 class="text-[17px] font-semibold text-gray-900 mb-2">ISO 9001:2015</h3>
+            <p class="text-[15px] text-gray-600">
+              Đạt chứng nhận quốc tế về quản lý chất lượng
+            </p>
+          </div>
+        </div>
+
+        <!-- 2024 -->
+        <div class="flex gap-6">
+          <div class="flex-shrink-0 w-20 text-right">
+            <div class="text-2xl font-semibold text-gray-900">2024</div>
+          </div>
+          <div class="flex-1">
+            <h3 class="text-[17px] font-semibold text-gray-900 mb-2">150+ Đại lý</h3>
+            <p class="text-[15px] text-gray-600">
+              Được tin dùng bởi hàng nghìn trang trại trên toàn quốc
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   </section>
 
   <!-- Company Info -->
-  <section class="py-32 bg-gradient-to-br from-blue-50 via-white to-purple-50">
-    <div class="container mx-auto px-4">
-      <div class="max-w-5xl mx-auto bg-white/80 backdrop-blur-sm rounded-3xl shadow-2xl ring-1 ring-gray-900/5 p-12">
-        <h2 class="text-4xl font-semibold text-gray-900 mb-12 text-center tracking-tight">Thông tin công ty</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div class="p-6 rounded-2xl bg-gradient-to-br from-blue-50 to-white">
-            <h3 class="text-lg font-semibold text-gray-900 mb-2">Năm thành lập</h3>
-            <p class="text-3xl font-bold text-blue-600">2008</p>
+  <section class="py-16 md:py-20 bg-[#f5f5f7]">
+    <div class="max-w-[692px] mx-auto px-4 sm:px-6">
+      <h2 class="text-2xl md:text-3xl font-semibold text-gray-900 mb-8 text-center tracking-tight">
+        Thông tin công ty
+      </h2>
+      <div class="bg-white rounded-2xl p-8 md:p-10">
+        <div class="space-y-6">
+          <div class="flex justify-between items-center pb-6 border-b border-gray-200">
+            <span class="text-[15px] text-gray-600">Tên công ty</span>
+            <span class="text-[15px] font-medium text-gray-900">Công ty Cổ phần APPE JV Việt Nam</span>
           </div>
-          <div class="p-6 rounded-2xl bg-gradient-to-br from-green-50 to-white">
-            <h3 class="text-lg font-semibold text-gray-900 mb-2">Lĩnh vực</h3>
-            <p class="text-gray-600 font-light">Sản xuất thức ăn chăn nuôi và thủy sản</p>
+          <div class="flex justify-between items-center pb-6 border-b border-gray-200">
+            <span class="text-[15px] text-gray-600">Năm thành lập</span>
+            <span class="text-[15px] font-medium text-gray-900">2008</span>
           </div>
-          <div class="p-6 rounded-2xl bg-gradient-to-br from-purple-50 to-white">
-            <h3 class="text-lg font-semibold text-gray-900 mb-2">Địa điểm</h3>
-            <p class="text-gray-600 font-light">Hà Nam, Việt Nam</p>
+          <div class="flex justify-between items-center pb-6 border-b border-gray-200">
+            <span class="text-[15px] text-gray-600">Lĩnh vực</span>
+            <span class="text-[15px] font-medium text-gray-900">Thức ăn chăn nuôi & thủy sản</span>
           </div>
-          <div class="p-6 rounded-2xl bg-gradient-to-br from-amber-50 to-white">
-            <h3 class="text-lg font-semibold text-gray-900 mb-2">Thị trường</h3>
-            <p class="text-gray-600 font-light">Việt Nam, Đông Nam Á và Châu Âu</p>
+          <div class="flex justify-between items-center pb-6 border-b border-gray-200">
+            <span class="text-[15px] text-gray-600">Địa điểm</span>
+            <span class="text-[15px] font-medium text-gray-900">Hà Nam, Việt Nam</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-[15px] text-gray-600">Thị trường</span>
+            <span class="text-[15px] font-medium text-gray-900">Việt Nam, Đông Nam Á, Châu Âu</span>
           </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- CTA Section -->
-  <section class="py-32 bg-gradient-to-br from-blue-600 to-blue-700 relative overflow-hidden">
-    <!-- Animated background -->
-    <div class="absolute inset-0 opacity-20">
-      <div class="absolute top-0 left-0 w-96 h-96 bg-white rounded-full mix-blend-overlay filter blur-3xl animate-blob"></div>
-      <div class="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full mix-blend-overlay filter blur-3xl animate-blob animation-delay-2000"></div>
-    </div>
-
-    <div class="container mx-auto px-4 relative z-10">
-      <div class="max-w-4xl mx-auto text-center text-white">
-        <h2 class="text-5xl md:text-6xl font-semibold mb-6 tracking-tight">
-          Sẵn sàng hợp tác?
-        </h2>
-        <p class="text-xl md:text-2xl mb-12 font-light opacity-90">
-          Hãy để chúng tôi đồng hành cùng bạn trên con đường phát triển chăn nuôi bền vững
-        </p>
-        <div class="flex flex-col sm:flex-row gap-4 justify-center">
-          <a 
-            href="/lien-he"
-            class="inline-flex items-center justify-center gap-2 bg-white text-blue-600 px-8 py-4 rounded-full font-semibold text-lg hover:shadow-2xl hover:scale-105 transition-all"
-          >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-            </svg>
-            Liên hệ ngay
-          </a>
-          <a 
-            href="/san-pham"
-            class="inline-flex items-center justify-center gap-2 bg-white/10 backdrop-blur-sm text-white px-8 py-4 rounded-full font-semibold text-lg border-2 border-white/30 hover:bg-white/20 hover:scale-105 transition-all"
-          >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-            </svg>
-            Xem sản phẩm
-          </a>
-        </div>
+  <!-- CTA -->
+  <section class="py-16 md:py-20 bg-white">
+    <div class="max-w-[692px] mx-auto px-4 sm:px-6 text-center">
+      <h2 class="text-3xl sm:text-4xl font-semibold text-gray-900 mb-4 tracking-tight">
+        Sẵn sàng hợp tác?
+      </h2>
+      <p class="text-[17px] text-gray-600 mb-8 font-light">
+        Hãy để chúng tôi đồng hành cùng bạn
+      </p>
+      <div class="flex flex-col sm:flex-row gap-3 justify-center">
+        <a 
+          href="/lien-he"
+          class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[15px] font-medium transition-all"
+        >
+          Liên hệ ngay
+        </a>
+        <a 
+          href="/san-pham"
+          class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white hover:bg-gray-50 text-gray-900 rounded-xl text-[15px] font-medium transition-all border border-gray-200"
+        >
+          Xem sản phẩm
+        </a>
       </div>
     </div>
   </section>
-
-  <!-- Floating Contact Buttons -->
-  <FloatingContactButtons />
-
-  <style>
-    @keyframes blob {
-      0%, 100% {
-        transform: translate(0, 0) scale(1);
-      }
-      33% {
-        transform: translate(30px, -50px) scale(1.1);
-      }
-      66% {
-        transform: translate(-20px, 20px) scale(0.9);
-      }
-    }
-
-    .animate-blob {
-      animation: blob 20s infinite;
-    }
-
-    .animation-delay-2000 {
-      animation-delay: 2s;
-    }
-
-    .animation-delay-4000 {
-      animation-delay: 4s;
-    }
-  </style>
 </BaseLayout>
