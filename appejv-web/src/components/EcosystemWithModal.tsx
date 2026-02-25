@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 
 interface Brand {
   name: string
@@ -113,6 +114,11 @@ const brandDetails: Record<string, {
 export default function EcosystemWithModal({ brands }: Props) {
   const [selectedBrand, setSelectedBrand] = useState<Brand | null>(null)
   const [isClosing, setIsClosing] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const handleCardClick = (brand: Brand) => {
     if (brand.isParent) return
@@ -125,7 +131,7 @@ export default function EcosystemWithModal({ brands }: Props) {
     setTimeout(() => {
       setSelectedBrand(null)
       setIsClosing(false)
-    }, 300) // Match animation duration
+    }, 300)
   }
 
   // Prevent body scroll when modal is open
@@ -148,11 +154,10 @@ export default function EcosystemWithModal({ brands }: Props) {
     const scrollHeight = element.scrollHeight
     const clientHeight = element.clientHeight
     
-    // Check if scrolled to bottom (within 50px threshold)
     const isAtBottom = scrollTop + clientHeight >= scrollHeight - 50
     
     if (isAtBottom) {
-      setTimeout(() => closeModal(), 300) // Small delay for smooth UX
+      setTimeout(() => closeModal(), 300)
     }
   }
 
@@ -180,124 +185,125 @@ export default function EcosystemWithModal({ brands }: Props) {
         ))}
       </div>
 
-      {/* Modal - Full Screen Backdrop */}
-      {selectedBrand && details && (
+      {/* Modal - Rendered via Portal */}
+      {mounted && selectedBrand && details && createPortal(
         <>
-          {/* Backdrop - Full Screen Blur */}
+          {/* Backdrop */}
           <div 
             className={`fixed inset-0 z-[99998] bg-black/60 backdrop-blur-sm ${isClosing ? 'animate-fadeOut' : 'animate-fadeIn'}`}
             onClick={closeModal}
           />
           
           {/* Modal Container */}
-          <div className={`fixed inset-0 z-[99999] flex items-start md:items-center justify-center p-4 pt-20 md:pt-4 pointer-events-none ${isClosing ? 'animate-fadeOut' : 'animate-fadeIn'}`}>
+          <div className={`fixed inset-0 z-[99999] flex items-center justify-center p-4 pointer-events-none ${isClosing ? 'animate-fadeOut' : 'animate-fadeIn'}`}>
             <div 
-              className={`relative bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[85vh] md:max-h-[90vh] overflow-y-auto pointer-events-auto ${isClosing ? 'animate-scaleOut' : 'animate-scaleIn'}`}
+              className={`relative bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-y-auto pointer-events-auto ${isClosing ? 'animate-scaleOut' : 'animate-scaleIn'}`}
               onScroll={handleModalScroll}
             >
-            {/* Close Button */}
-            <button
-              onClick={closeModal}
-              className="sticky top-4 right-4 ml-auto w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors z-10 mb-[-40px]"
-              aria-label="Đóng"
-            >
-              <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+              {/* Close Button */}
+              <button
+                onClick={closeModal}
+                className="sticky top-4 right-4 ml-auto w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors z-10 mb-[-40px]"
+                aria-label="Đóng"
+              >
+                <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
 
-            {/* Header */}
-            <div className="bg-gradient-to-br from-blue-600 to-blue-700 p-8 text-white">
-              <div className="flex items-center gap-6">
-                <div className="w-24 h-24 bg-white rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg">
-                  <img 
-                    src={selectedBrand.logo} 
-                    alt={`${selectedBrand.name} Logo`}
-                    className="w-20 h-20 object-contain"
-                  />
-                </div>
-                <div>
-                  <h3 className="text-3xl font-bold mb-2">{selectedBrand.name}</h3>
-                  <p className="text-blue-100 text-lg">{selectedBrand.description}</p>
+              {/* Header */}
+              <div className="bg-gradient-to-br from-blue-600 to-blue-700 p-8 text-white">
+                <div className="flex items-center gap-6">
+                  <div className="w-24 h-24 bg-white rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg">
+                    <img 
+                      src={selectedBrand.logo} 
+                      alt={`${selectedBrand.name} Logo`}
+                      className="w-20 h-20 object-contain"
+                    />
+                  </div>
+                  <div>
+                    <h3 className="text-3xl font-bold mb-2">{selectedBrand.name}</h3>
+                    <p className="text-blue-100 text-lg">{selectedBrand.description}</p>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Content */}
-            <div className="p-8">
-              {/* Full Description */}
-              <div className="mb-8">
-                <h4 className="text-xl font-semibold text-gray-900 mb-3">Giới thiệu</h4>
-                <p className="text-gray-700 leading-relaxed">{details.fullDescription}</p>
-              </div>
+              {/* Content */}
+              <div className="p-8">
+                {/* Full Description */}
+                <div className="mb-8">
+                  <h4 className="text-xl font-semibold text-gray-900 mb-3">Giới thiệu</h4>
+                  <p className="text-gray-700 leading-relaxed">{details.fullDescription}</p>
+                </div>
 
-              {/* Services */}
-              <div className="mb-8">
-                <h4 className="text-xl font-semibold text-gray-900 mb-4">Dịch vụ & Sản phẩm</h4>
-                <div className="grid gap-3">
-                  {details.services.map((service, index) => (
-                    <div key={index} className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
-                      <svg className="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                {/* Services */}
+                <div className="mb-8">
+                  <h4 className="text-xl font-semibold text-gray-900 mb-4">Dịch vụ & Sản phẩm</h4>
+                  <div className="grid gap-3">
+                    {details.services.map((service, index) => (
+                      <div key={index} className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
+                        <svg className="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span className="text-gray-700">{service}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Highlights */}
+                <div className="mb-8">
+                  <h4 className="text-xl font-semibold text-gray-900 mb-4">Điểm nổi bật</h4>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {details.highlights.map((highlight, index) => (
+                      <div key={index} className="flex items-center gap-3 p-4 bg-blue-50 rounded-xl border border-blue-100">
+                        <svg className="w-5 h-5 text-blue-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                        <span className="text-gray-700 font-medium">{highlight}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Website */}
+                {details.website && (
+                  <div className="pt-6 border-t border-gray-200">
+                    <a 
+                      href={details.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full font-semibold transition-all shadow-md hover:shadow-lg"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
                       </svg>
-                      <span className="text-gray-700">{service}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+                      Truy cập website
+                    </a>
+                  </div>
+                )}
 
-              {/* Highlights */}
-              <div className="mb-8">
-                <h4 className="text-xl font-semibold text-gray-900 mb-4">Điểm nổi bật</h4>
-                <div className="grid md:grid-cols-2 gap-4">
-                  {details.highlights.map((highlight, index) => (
-                    <div key={index} className="flex items-center gap-3 p-4 bg-blue-50 rounded-xl border border-blue-100">
-                      <svg className="w-5 h-5 text-blue-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                      </svg>
-                      <span className="text-gray-700 font-medium">{highlight}</span>
-                    </div>
-                  ))}
+                {/* Contact */}
+                <div className="mt-6 p-4 bg-gray-50 rounded-xl">
+                  <p className="text-sm text-gray-600 text-center">
+                    Liên hệ: <a href="tel:+84351359520" className="text-blue-600 font-semibold hover:underline">035 135 9520</a>
+                  </p>
                 </div>
-              </div>
 
-              {/* Website */}
-              {details.website && (
-                <div className="pt-6 border-t border-gray-200">
-                  <a 
-                    href={details.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full font-semibold transition-all shadow-md hover:shadow-lg"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                {/* Scroll hint */}
+                <div className="mt-6 text-center">
+                  <p className="text-xs text-gray-400 flex items-center justify-center gap-2">
+                    <svg className="w-4 h-4 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
                     </svg>
-                    Truy cập website
-                  </a>
+                    Cuộn xuống cuối để đóng
+                  </p>
                 </div>
-              )}
-
-              {/* Contact */}
-              <div className="mt-6 p-4 bg-gray-50 rounded-xl">
-                <p className="text-sm text-gray-600 text-center">
-                  Liên hệ: <a href="tel:+84351359520" className="text-blue-600 font-semibold hover:underline">035 135 9520</a>
-                </p>
-              </div>
-
-              {/* Scroll hint */}
-              <div className="mt-6 text-center">
-                <p className="text-xs text-gray-400 flex items-center justify-center gap-2">
-                  <svg className="w-4 h-4 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-                  </svg>
-                  Cuộn xuống cuối để đóng
-                </p>
               </div>
             </div>
           </div>
-          </div>
-        </>
+        </>,
+        document.body
       )}
     </>
   )

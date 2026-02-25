@@ -146,13 +146,14 @@ export default function EcosystemModal({ brands }: EcosystemModalProps) {
   const details = brandDetails[selectedBrand.name]
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 animate-fadeIn">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 animate-fadeIn" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
       <div 
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={closeModal}
+        style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
       />
 
-      <div className="relative bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-scaleIn">
+      <div className="relative bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-scaleIn" style={{ position: 'relative', zIndex: 1 }}>
         {/* Close Button */}
         <button
           onClick={closeModal}
