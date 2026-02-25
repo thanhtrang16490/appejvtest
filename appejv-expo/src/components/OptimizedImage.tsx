@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { View, Image, StyleSheet, ActivityIndicator, ImageProps } from 'react-native'
+import { View, Image, StyleSheet, ActivityIndicator, ImageProps, ViewStyle, ImageStyle } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 
-interface OptimizedImageProps extends Omit<ImageProps, 'source'> {
+interface OptimizedImageProps extends Omit<ImageProps, 'source' | 'style'> {
   source: string | { uri: string } | number
   width?: number
   height?: number
@@ -10,6 +10,7 @@ interface OptimizedImageProps extends Omit<ImageProps, 'source'> {
   fallback?: React.ReactElement
   showLoader?: boolean
   borderRadius?: number
+  style?: ViewStyle
 }
 
 export function OptimizedImage({
@@ -28,13 +29,19 @@ export function OptimizedImage({
 
   const imageSource = typeof source === 'string' ? { uri: source } : source
 
-  const containerStyle = [
-    styles.container,
-    width && { width },
-    height && { height },
-    borderRadius && { borderRadius },
-    style,
-  ]
+  const containerSizeStyle: ViewStyle = {
+    ...(width != null ? { width } : {}),
+    ...(height != null ? { height } : {}),
+    ...(borderRadius ? { borderRadius } : {}),
+  }
+
+  const imageSizeStyle: ImageStyle = {
+    ...(width != null ? { width } : {}),
+    ...(height != null ? { height } : {}),
+    ...(borderRadius ? { borderRadius } : {}),
+  }
+
+  const containerStyle = [styles.container, containerSizeStyle, style]
 
   if (error) {
     return (
@@ -60,10 +67,8 @@ export function OptimizedImage({
         source={imageSource}
         style={[
           styles.image,
-          width && { width },
-          height && { height },
-          borderRadius && { borderRadius },
-          loading && styles.hidden,
+          imageSizeStyle,
+          loading ? styles.hidden : undefined,
         ]}
         onLoadStart={() => setLoading(true)}
         onLoadEnd={() => setLoading(false)}
@@ -71,10 +76,7 @@ export function OptimizedImage({
           setLoading(false)
           setError(true)
         }}
-        // Performance optimizations
         resizeMode={props.resizeMode || 'cover'}
-        // Cache images
-        cache="force-cache"
       />
     </View>
   )

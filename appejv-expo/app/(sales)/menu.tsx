@@ -104,7 +104,7 @@ export default function MenuScreen() {
         icon: 'people-circle',
         color: '#175ead',
         bg: '#dbeafe',
-        onPress: () => router.push('/(sales)/team'),
+        onPress: () => router.push('/(sales)/team' as any),
       })
     }
 

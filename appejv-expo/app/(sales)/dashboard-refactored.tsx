@@ -42,7 +42,7 @@ export default function SalesDashboard() {
   const [refreshing, setRefreshing] = useState(false)
   const [showTimeRangeModal, setShowTimeRangeModal] = useState(false)
   const lastScrollY = useRef(0)
-  const scrollTimeout = useRef<NodeJS.Timeout | null>(null)
+  const scrollTimeout = useRef<number | null>(null)
   const isInitialMount = useRef(true)
 
   // Use custom hook for data fetching
@@ -130,7 +130,7 @@ export default function SalesDashboard() {
   }
 
   const handleViewProducts = () => {
-    router.push('/(sales)/products')
+    router.push('/(sales)/products' as any)
   }
 
   const handleViewCustomers = () => {
@@ -156,9 +156,9 @@ export default function SalesDashboard() {
   if (loading && !profile) {
     return (
       <SafeAreaView style={styles.container}>
-        <AppHeader title="Dashboard" showBack={false} />
+        <AppHeader />
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
+          <ActivityIndicator size="large" color={COLORS.PRIMARY.DEFAULT} />
         </View>
       </SafeAreaView>
     )
@@ -166,7 +166,7 @@ export default function SalesDashboard() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <AppHeader title="Dashboard" showBack={false} />
+      <AppHeader />
 
       <ScrollView
         style={styles.scrollView}

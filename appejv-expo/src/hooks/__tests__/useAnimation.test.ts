@@ -14,7 +14,7 @@ import {
   useFadeSlideIn,
 } from '../useAnimation'
 
-// Mock Animated
+// Mock Animated and Easing
 jest.mock('react-native', () => ({
   Animated: {
     Value: jest.fn((value) => ({
@@ -27,16 +27,35 @@ jest.mock('react-native', () => ({
     spring: jest.fn(() => ({
       start: jest.fn((callback) => callback && callback()),
     })),
-    loop: jest.fn((animation) => ({
+    loop: jest.fn((_animation) => ({
       start: jest.fn(),
       stop: jest.fn(),
     })),
-    sequence: jest.fn((animations) => ({
+    sequence: jest.fn((_animations) => ({
       start: jest.fn((callback) => callback && callback()),
     })),
-    parallel: jest.fn((animations) => ({
+    parallel: jest.fn((_animations) => ({
       start: jest.fn((callback) => callback && callback()),
     })),
+  },
+  Easing: {
+    linear: jest.fn((t) => t),
+    ease: jest.fn((t) => t),
+    quad: jest.fn((t) => t),
+    cubic: jest.fn((t) => t),
+    bezier: jest.fn(() => jest.fn((t) => t)),
+    in: jest.fn((fn) => fn),
+    out: jest.fn((fn) => fn),
+    inOut: jest.fn((fn) => fn),
+    back: jest.fn(() => jest.fn((t) => t)),
+    bounce: jest.fn((t) => t),
+    elastic: jest.fn(() => jest.fn((t) => t)),
+    sin: jest.fn((t) => t),
+    circle: jest.fn((t) => t),
+    exp: jest.fn((t) => t),
+    poly: jest.fn(() => jest.fn((t) => t)),
+    step0: jest.fn((t) => t),
+    step1: jest.fn((t) => t),
   },
 }))
 

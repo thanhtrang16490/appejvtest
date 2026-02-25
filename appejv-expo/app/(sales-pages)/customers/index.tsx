@@ -96,7 +96,7 @@ export default function CustomersScreen() {
   const router = useRouter()
   const { contentPaddingBottom } = useTabBarHeight()
   const lastScrollY = useRef(0)
-  const scrollTimeout = useRef<NodeJS.Timeout | null>(null)
+  const scrollTimeout = useRef<number | null>(null)
   const [profile, setProfile] = useState<any>(null)
   const [customers, setCustomers] = useState<any[]>([])
   const [searchQuery, setSearchQuery] = useState('')
@@ -220,9 +220,8 @@ export default function CustomersScreen() {
         company: c.company || '',
         assigned_to: c.assigned_to,
         assigned_sale: c.assigned_sale,
-        address: p.address || '',
-        email: p.email || '',
-        created_at: p.created_at,
+        address: c.address || '',
+        created_at: c.created_at,
       }))
 
       setCustomers(mappedCustomers)

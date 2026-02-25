@@ -37,7 +37,7 @@ function OptimizedImageComponent({
   width,
   height,
   showLoader = true,
-  loaderColor = COLORS.primary,
+  loaderColor = COLORS.PRIMARY.DEFAULT,
   fallbackSource,
   onLoadStart,
   onLoadEnd,
@@ -65,27 +65,26 @@ function OptimizedImageComponent({
     onError?.()
   }
 
-  const imageStyle = [
-    style,
-    width && { width },
-    height && { height },
-  ]
+  const sizeStyle = {
+    ...(width != null ? { width } : {}),
+    ...(height != null ? { height } : {}),
+  }
 
   if (error && fallbackSource) {
     return (
       <Image
         source={fallbackSource}
-        style={imageStyle}
+        style={[style, sizeStyle]}
         {...props}
       />
     )
   }
 
   return (
-    <View style={[styles.container, imageStyle]}>
+    <View style={[styles.container, sizeStyle]}>
       <Image
         source={{ uri }}
-        style={[styles.image, imageStyle]}
+        style={[styles.image, style]}
         onLoadStart={handleLoadStart}
         onLoadEnd={handleLoadEnd}
         onError={handleError}

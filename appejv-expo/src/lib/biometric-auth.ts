@@ -71,7 +71,7 @@ export class BiometricAuth {
       const supportedTypes = await LocalAuthentication.supportedAuthenticationTypesAsync()
       const securityLevel = await LocalAuthentication.getEnrolledLevelAsync()
 
-      const types: BiometricType[] = supportedTypes.map((type) => {
+      const types: BiometricType[] = supportedTypes.map((type: LocalAuthentication.AuthenticationType) => {
         switch (type) {
           case LocalAuthentication.AuthenticationType.FINGERPRINT:
             return BiometricType.FINGERPRINT

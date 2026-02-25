@@ -37,7 +37,7 @@ export default function OrdersScreen() {
   const [showSuccessModal, setShowSuccessModal] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
   const lastScrollY = useRef<number>(0)
-  const scrollTimeout = useRef<NodeJS.Timeout | null>(null)
+  const scrollTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const handleScroll = (event: any) => {
     const currentScrollY = event.nativeEvent.contentOffset.y

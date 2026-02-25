@@ -1,168 +1,201 @@
 /**
  * Error Tracking & Monitoring
- * Centralized error handling and logging
+ * Centralized error handling and logging.
+ *
+ * To enable Sentry in production:
+ * 1. Install: npx expo install @sentry/react-native
+ * 2. Set EXPO_PUBLIC_SENTRY_DSN in .env
+ * 3. Uncomment Sentry code blocks below
  */
 
-interface ErrorContext {
+import AsyncStorage from '@react-native-async-storage/async-storage'
+
+// import * as Sentry from '@sentry/react-native'
+
+const ERROR_LOGS_KEY = '@appejv:error_logs'
+const MAX_STORED_ERRORS = 50
+
+export interface ErrorContext {
   userId?: string
   screen?: string
   action?: string
-  [key: string]: any
+  [key: string]: unknown
 }
 
-class ErrorTracker {
+interface StoredError {
+  timestamp: string
+  message: string
+  stack?: string
+  context?: ErrorContext
+}
+
+class ErrorTrackerService {
   private isInitialized = false
-  private isDevelopment = __DEV__
+  private currentUser: { id?: string; email?: string; role?: string } = {}
 
   /**
-   * Initialize error tracking service
-   * In production, this would initialize Sentry or similar service
+   * Initialize error tracking service.
+   * Call once at app startup.
    */
-  init() {
+  init(): void {
     if (this.isInitialized) return
 
-    // TODO: Initialize Sentry in production
     // Sentry.init({
     //   dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
     //   enableAutoSessionTracking: true,
-    //   tracesSampleRate: 1.0,
+    //   tracesSampleRate: __DEV__ ? 0 : 1.0,
+    //   environment: __DEV__ ? 'development' : 'production',
     // })
 
     this.isInitialized = true
-    console.log('Error tracking initialized')
+    if (__DEV__) console.log('[ErrorTracker] Initialized')
   }
 
   /**
-   * Log an error with context
+   * Log an error with optional context.
    */
-  logError(error: Error, context?: ErrorContext) {
-    if (this.isDevelopment) {
-      console.error('Error:', error.message, context)
-      console.error('Stack:', error.stack)
+  logError(error: Error | unknown, context?: ErrorContext): void {
+    const err = error instanceof Error ? error : new Error(String(error))
+
+    if (__DEV__) {
+      console.error('[ErrorTracker] Error:', err.message, context ?? '')
+      if (err.stack) console.error(err.stack)
     }
 
-    // TODO: Send to Sentry in production
-    // Sentry.captureException(error, { extra: context })
-
-    // Store error locally for debugging
-    this.storeErrorLocally(error, context)
+    // Sentry.captureException(err, { extra: context })
+    this.storeErrorLocally(err, context)
   }
 
   /**
-   * Log a warning
+   * Alias for logError - compatible with ErrorTracker.error() call pattern.
    */
-  logWarning(message: string, context?: ErrorContext) {
-    if (this.isDevelopment) {
-      console.warn('Warning:', message, context)
+  error(error: Error | unknown, contextOrAction?: ErrorContext | string): void {
+    const context: ErrorContext | undefined =
+      typeof contextOrAction === 'string'
+        ? { action: contextOrAction }
+        : contextOrAction
+    this.logError(error, context)
+  }
+
+  /**
+   * Log a warning message.
+   */
+  logWarning(message: string, context?: ErrorContext): void {
+    if (__DEV__) {
+      console.warn('[ErrorTracker] Warning:', message, context ?? '')
     }
 
-    // TODO: Send to Sentry as breadcrumb
-    // Sentry.addBreadcrumb({
-    //   message,
-    //   level: 'warning',
-    //   data: context,
-    // })
+    // Sentry.addBreadcrumb({ message, level: 'warning', data: context })
   }
 
   /**
-   * Log an info message
+   * Log an informational message.
    */
-  logInfo(message: string, context?: ErrorContext) {
-    if (this.isDevelopment) {
-      console.log('Info:', message, context)
+  logInfo(message: string, context?: ErrorContext): void {
+    if (__DEV__) {
+      console.log('[ErrorTracker] Info:', message, context ?? '')
     }
 
-    // TODO: Send to Sentry as breadcrumb
-    // Sentry.addBreadcrumb({
-    //   message,
-    //   level: 'info',
-    //   data: context,
-    // })
+    // Sentry.addBreadcrumb({ message, level: 'info', data: context })
   }
 
   /**
-   * Set user context for error tracking
+   * Set the current user context for error reports.
    */
-  setUser(userId: string, email?: string, role?: string) {
-    // TODO: Set user in Sentry
-    // Sentry.setUser({ id: userId, email, role })
-    
-    if (this.isDevelopment) {
-      console.log('User context set:', { userId, email, role })
+  setUser(userId: string, email?: string, role?: string): void {
+    this.currentUser = { id: userId, email, role }
+
+    // Sentry.setUser({ id: userId, email, username: role })
+
+    if (__DEV__) {
+      console.log('[ErrorTracker] User set:', { userId, role })
     }
   }
 
   /**
-   * Clear user context
+   * Clear user context (call on logout).
    */
-  clearUser() {
-    // TODO: Clear user in Sentry
+  clearUser(): void {
+    this.currentUser = {}
+
     // Sentry.setUser(null)
-    
-    if (this.isDevelopment) {
-      console.log('User context cleared')
+
+    if (__DEV__) {
+      console.log('[ErrorTracker] User cleared')
     }
   }
 
   /**
-   * Store error locally for debugging
+   * Store error locally in AsyncStorage for offline debugging.
    */
-  private async storeErrorLocally(error: Error, context?: ErrorContext) {
+  private async storeErrorLocally(error: Error, context?: ErrorContext): Promise<void> {
     try {
-      const errorLog = {
+      const newEntry: StoredError = {
         timestamp: new Date().toISOString(),
         message: error.message,
         stack: error.stack,
-        context,
+        context: {
+          ...context,
+          userId: context?.userId ?? this.currentUser.id,
+        },
       }
 
-      // Store in AsyncStorage for later review
-      // const existingLogs = await AsyncStorage.getItem('error_logs')
-      // const logs = existingLogs ? JSON.parse(existingLogs) : []
-      // logs.push(errorLog)
-      // await AsyncStorage.setItem('error_logs', JSON.stringify(logs.slice(-50))) // Keep last 50 errors
-    } catch (e) {
-      console.error('Failed to store error locally:', e)
+      const raw = await AsyncStorage.getItem(ERROR_LOGS_KEY)
+      const logs: StoredError[] = raw ? JSON.parse(raw) : []
+      logs.push(newEntry)
+
+      // Keep only the last N errors
+      const trimmed = logs.slice(-MAX_STORED_ERRORS)
+      await AsyncStorage.setItem(ERROR_LOGS_KEY, JSON.stringify(trimmed))
+    } catch {
+      // Silently fail - don't cause infinite error loops
     }
   }
 
   /**
-   * Get stored error logs (for debugging)
+   * Retrieve stored error logs (for debugging / support).
    */
-  async getErrorLogs() {
+  async getErrorLogs(): Promise<StoredError[]> {
     try {
-      // const logs = await AsyncStorage.getItem('error_logs')
-      // return logs ? JSON.parse(logs) : []
-      return []
-    } catch (e) {
-      console.error('Failed to get error logs:', e)
+      const raw = await AsyncStorage.getItem(ERROR_LOGS_KEY)
+      return raw ? JSON.parse(raw) : []
+    } catch {
       return []
     }
   }
 
   /**
-   * Clear stored error logs
+   * Clear all stored error logs.
    */
-  async clearErrorLogs() {
+  async clearErrorLogs(): Promise<void> {
     try {
-      // await AsyncStorage.removeItem('error_logs')
-      console.log('Error logs cleared')
-    } catch (e) {
-      console.error('Failed to clear error logs:', e)
+      await AsyncStorage.removeItem(ERROR_LOGS_KEY)
+      if (__DEV__) console.log('[ErrorTracker] Error logs cleared')
+    } catch {
+      // Silently fail
     }
   }
 }
 
-export const errorTracker = new ErrorTracker()
+// ─── Singleton exports ────────────────────────────────────────────────────────
+
+export const errorTracker = new ErrorTrackerService()
 
 /**
- * Helper function to wrap async functions with error handling
+ * Static-style alias so callers can use `ErrorTracker.error(...)` pattern.
  */
-export function withErrorHandling<T extends (...args: any[]) => Promise<any>>(
+export const ErrorTracker = errorTracker
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+/**
+ * Wrap an async function with automatic error tracking.
+ */
+export function withErrorHandling<T extends (...args: unknown[]) => Promise<unknown>>(
   fn: T,
   context?: ErrorContext
 ): T {
-  return (async (...args: any[]) => {
+  return (async (...args: unknown[]) => {
     try {
       return await fn(...args)
     } catch (error) {
@@ -173,16 +206,16 @@ export function withErrorHandling<T extends (...args: any[]) => Promise<any>>(
 }
 
 /**
- * Helper function to handle API errors
+ * Extract a human-readable message from an API error response.
  */
-export function handleApiError(error: any, defaultMessage = 'Có lỗi xảy ra') {
-  if (error?.message) {
-    return error.message
+export function handleApiError(error: unknown, defaultMessage = 'Có lỗi xảy ra'): string {
+  if (error && typeof error === 'object') {
+    if ('message' in error && typeof (error as { message: unknown }).message === 'string') {
+      return (error as { message: string }).message
+    }
+    if ('error' in error && typeof (error as { error: unknown }).error === 'string') {
+      return (error as { error: string }).error
+    }
   }
-  
-  if (error?.error) {
-    return error.error
-  }
-  
   return defaultMessage
 }

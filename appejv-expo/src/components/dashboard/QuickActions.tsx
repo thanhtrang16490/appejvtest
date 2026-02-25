@@ -32,28 +32,28 @@ export default function QuickActions({
         <QuickActionButton
           title="Tạo đơn hàng"
           icon="add-circle"
-          color={COLORS.primary}
+          color={COLORS.PRIMARY.DEFAULT}
           iconColor="white"
           onPress={onNewOrder}
         />
         <QuickActionButton
           title="Xem sản phẩm"
           icon="cube"
-          color={COLORS.success}
+          color={COLORS.SUCCESS.DEFAULT}
           iconColor="white"
           onPress={onViewProducts}
         />
         <QuickActionButton
           title="Khách hàng"
           icon="people"
-          color={COLORS.warning}
+          color={COLORS.WARNING.DEFAULT}
           iconColor="white"
           onPress={onViewCustomers}
         />
         <QuickActionButton
           title="Báo cáo"
           icon="stats-chart"
-          color={COLORS.info}
+          color={COLORS.INFO.DEFAULT}
           iconColor="white"
           onPress={onViewReports}
         />

@@ -28,7 +28,7 @@ export async function apiCall<T>(
     // Handle offline
     if (error.message?.includes('network') || error.message?.includes('offline')) {
       if (options?.offlineAction && options?.offlineData) {
-        await OfflineManager.addToQueue(options.offlineAction, options.offlineData)
+        await OfflineManager.queueAction('create', options.offlineAction, options.offlineData)
         return { 
           error: 'Không có kết nối mạng. Hành động sẽ được thực hiện khi có mạng.',
           status: 0 
@@ -36,7 +36,8 @@ export async function apiCall<T>(
       }
     }
     
-    return handleApiError(error)
+    const errMsg = handleApiError(error)
+    return { error: typeof errMsg === 'string' ? errMsg : 'Có lỗi xảy ra', status: error?.status || 500 }
   }
 }
 

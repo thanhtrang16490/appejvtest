@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { ConditionalBottomNav } from "@/components/layout/ConditionalBottomNav";
@@ -82,13 +82,6 @@ export const metadata: Metadata = {
       },
     ],
   },
-  themeColor: "#175ead",
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-  },
   openGraph: {
     type: "website",
     locale: "vi_VN",
@@ -147,6 +140,14 @@ export const metadata: Metadata = {
     // google: "your-google-verification-code",
     // yandex: "your-yandex-verification-code",
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#175ead",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default async function RootLayout({

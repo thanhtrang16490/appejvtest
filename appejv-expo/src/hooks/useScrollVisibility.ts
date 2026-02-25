@@ -4,7 +4,7 @@ import { NativeScrollEvent, NativeSyntheticEvent } from 'react-native'
 export const useScrollVisibility = (threshold: number = 5) => {
   const [isVisible, setIsVisible] = useState(true)
   const lastScrollY = useRef(0)
-  const scrollTimeout = useRef<NodeJS.Timeout>()
+  const scrollTimeout = useRef<number | null>(null)
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const currentScrollY = event.nativeEvent.contentOffset.y

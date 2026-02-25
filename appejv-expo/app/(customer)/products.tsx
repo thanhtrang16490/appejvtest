@@ -16,7 +16,7 @@ export default function ProductsScreen() {
   const router = useRouter()
   const insets = useSafeAreaInsets()
   const lastScrollY = useRef(0)
-  const scrollTimeout = useRef<NodeJS.Timeout | null>(null)
+  const scrollTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
   const toastIdCounter = useRef(0)
   const [products, setProducts] = useState<any[]>([])
   const [categories, setCategories] = useState<any[]>([])

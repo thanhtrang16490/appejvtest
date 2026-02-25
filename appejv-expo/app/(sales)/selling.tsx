@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo, useCallback, useRef, memo } from 'react'
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, ActivityIndicator, Alert, FlatList, Modal, Image, Animated } from 'react-native'
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, ActivityIndicator, Alert, FlatList, Modal, Animated, Image } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
@@ -8,53 +8,11 @@ import { useAuth } from '../../src/contexts/AuthContext'
 import SuccessModal from '../../src/components/SuccessModal'
 import { useDebounce } from '../../src/hooks/useDebounce'
 
-// Memoized CartItem component to prevent unnecessary re-renders
-const CartItem = memo(({ 
-  item, 
-  onPress, 
-  onDecrease, 
-  onIncrease,
-  formatCurrency 
-}: { 
-  item: any
-  onPress: () => void
-  onDecrease: (e: any) => void
-  onIncrease: (e: any) => void
-  formatCurrency: (amount: number) => string
-}) => (
-  <TouchableOpacity
-    style={styles.cartItem}
-    onPress={onPress}
-    activeOpacity={0.7}
-  >
-    <View style={styles.cartItemHeader}>
-      <View style={styles.cartItemInfo}>
-        <Text style={styles.cartItemName}>{item.name}</Text>
-        <Text style={styles.cartItemPrice}>{formatCurrency(item.price)}</Text>
-      </View>
-      <View style={styles.quantityControls}>
-        <TouchableOpacity
-          onPress={onDecrease}
-          style={styles.quantityButton}
-        >
-          <Ionicons name="remove" size={16} color="#6b7280" />
-        </TouchableOpacity>
-        
-        <Text style={styles.quantityText}>{item.quantity}</Text>
-        
-        <TouchableOpacity
-          onPress={onIncrease}
-          style={styles.quantityButton}
-        >
-          <Ionicons name="add" size={16} color="#6b7280" />
-        </TouchableOpacity>
-      </View>
-    </View>
-    <Text style={styles.cartItemTotal}>
-      Thành tiền: {formatCurrency(item.price * item.quantity)}
-    </Text>
-  </TouchableOpacity>
-))
+// Import selling components
+import { CartItem } from '../../src/components/selling'
+import CustomerSelector from '../../src/components/selling/CustomerSelector'
+import ProductGrid from '../../src/components/selling/ProductGrid'
+import QuantityModal from '../../src/components/selling/QuantityModal'
 
 export default function SellingScreen() {
   const { user } = useAuth()
@@ -541,93 +499,16 @@ export default function SellingScreen() {
       </View>
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-        {/* Customer Search */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionLabel}>Khách hàng</Text>
-            {!selectedCustomer && customers.length > 0 && (
-              <TouchableOpacity onPress={() => setCustomerSearchQuery(' ')}>
-                <Text style={styles.showAllText}>Hiện tất cả ({customers.length})</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-          {selectedCustomer ? (
-            <View style={styles.selectedCustomer}>
-              <View style={styles.customerAvatar}>
-                <Text style={styles.customerAvatarText}>
-                  {selectedCustomer.full_name?.[0]?.toUpperCase() || 'K'}
-                </Text>
-              </View>
-              <View style={styles.customerInfo}>
-                <Text style={styles.customerName}>{selectedCustomer.full_name}</Text>
-                <Text style={styles.customerPhone}>{selectedCustomer.phone || selectedCustomer.id.substring(0, 8)}</Text>
-              </View>
-              <TouchableOpacity onPress={() => setSelectedCustomer(null)}>
-                <Ionicons name="close-circle" size={24} color="#9ca3af" />
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <View>
-              <View style={styles.searchInputContainer}>
-                <Ionicons name="search" size={20} color="#9ca3af" style={styles.searchIcon} />
-                <TextInput
-                  style={styles.searchInput}
-                  placeholder="Tìm theo tên hoặc số điện thoại..."
-                  value={customerSearchQuery}
-                  onChangeText={setCustomerSearchQuery}
-                  placeholderTextColor="#9ca3af"
-                />
-                {customerSearchQuery.length > 0 && (
-                  <TouchableOpacity onPress={() => setCustomerSearchQuery('')}>
-                    <Ionicons name="close-circle" size={20} color="#9ca3af" />
-                  </TouchableOpacity>
-                )}
-              </View>
-              {getFilteredCustomers.length > 0 && (
-                <View style={styles.searchResults}>
-                  {getFilteredCustomers.map((customer) => (
-                    <TouchableOpacity
-                      key={customer.id}
-                      style={styles.searchResultItem}
-                      onPress={() => {
-                        setSelectedCustomer(customer)
-                        setCustomerSearchQuery('')
-                      }}
-                    >
-                      <View style={styles.customerAvatar}>
-                        <Text style={styles.customerAvatarText}>
-                          {customer.full_name?.[0]?.toUpperCase() || 'K'}
-                        </Text>
-                      </View>
-                      <View style={styles.customerInfo}>
-                        <Text style={styles.customerName}>{customer.full_name || 'Không có tên'}</Text>
-                        <Text style={styles.customerPhone}>{customer.phone || customer.id.substring(0, 8)}</Text>
-                      </View>
-                      <Ionicons name="chevron-forward" size={20} color="#d1d5db" />
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              )}
-              {customerSearchQuery.length >= 2 && getFilteredCustomers.length === 0 && (
-                <View style={styles.noResults}>
-                  <Text style={styles.noResultsText}>Không tìm thấy khách hàng</Text>
-                  <Text style={styles.noResultsHint}>
-                    Thử tìm với từ khóa khác hoặc nhấn "Hiện tất cả"
-                  </Text>
-                </View>
-              )}
-              {customers.length === 0 && (
-                <View style={styles.noResults}>
-                  <Ionicons name="people-outline" size={48} color="#d1d5db" />
-                  <Text style={styles.noResultsText}>Chưa có khách hàng nào</Text>
-                  <Text style={styles.noResultsHint}>
-                    Thêm khách hàng từ trang Quản lý người dùng
-                  </Text>
-                </View>
-              )}
-            </View>
-          )}
-        </View>
+        {/* Customer Selector Component */}
+        <CustomerSelector
+          customers={customers}
+          selectedCustomer={selectedCustomer}
+          searchQuery={customerSearchQuery}
+          onSearchChange={setCustomerSearchQuery}
+          onSelectCustomer={setSelectedCustomer}
+          onClearSelection={() => setSelectedCustomer(null)}
+          filteredCustomers={getFilteredCustomers}
+        />
 
         {/* Cart Items or Empty State */}
         {cart.length === 0 ? (
@@ -775,68 +656,16 @@ export default function SellingScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* Search */}
-            <View style={styles.sheetSearch}>
-              <Ionicons name="search" size={20} color="#9ca3af" />
-              <TextInput
-                style={styles.sheetSearchInput}
-                placeholder="Tìm sản phẩm..."
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-                placeholderTextColor="#9ca3af"
-              />
-              {searchQuery.length > 0 && (
-                <TouchableOpacity onPress={() => setSearchQuery('')}>
-                  <Ionicons name="close-circle" size={20} color="#9ca3af" />
-                </TouchableOpacity>
-              )}
-            </View>
-
-            {/* Categories */}
-            <View style={styles.categoriesContainer}>
-              <FlatList
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                data={categoriesWithProducts}
-                renderItem={({ item }) => {
-                  if (item.id === 'all') {
-                    return (
-                      <TouchableOpacity
-                        style={[styles.categoryChip, activeCategory === 'all' && styles.categoryChipActive]}
-                        onPress={() => setActiveCategory('all')}
-                      >
-                        <Text style={[styles.categoryText, activeCategory === 'all' && styles.categoryTextActive]}>
-                          {item.name} ({item.count})
-                        </Text>
-                      </TouchableOpacity>
-                    )
-                  }
-                  return renderCategoryItem({ item })
-                }}
-                keyExtractor={(item) => item.id.toString()}
-                contentContainerStyle={styles.categoriesContent}
-              />
-            </View>
-
-            {/* Products Grid with FlatList */}
-            <FlatList
-              data={filteredProducts}
-              renderItem={renderProductItem}
-              keyExtractor={keyExtractor}
-              numColumns={3}
-              contentContainerStyle={styles.productsGridContent}
-              columnWrapperStyle={styles.productsGridRow}
-              showsVerticalScrollIndicator={false}
-              initialNumToRender={12}
-              maxToRenderPerBatch={12}
-              windowSize={5}
-              removeClippedSubviews={true}
-              ListEmptyComponent={
-                <View style={styles.emptyProducts}>
-                  <Ionicons name="cube-outline" size={48} color="#d1d5db" />
-                  <Text style={styles.emptyProductsText}>Không tìm thấy sản phẩm</Text>
-                </View>
-              }
+            {/* Product Grid Component */}
+            <ProductGrid
+              products={filteredProducts}
+              categories={categories}
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              activeCategory={activeCategory}
+              onCategoryChange={setActiveCategory}
+              onAddToCart={addToCart}
+              formatCurrency={formatCurrency}
             />
           </View>
         </View>
@@ -859,125 +688,26 @@ export default function SellingScreen() {
       />
 
       {/* Quantity Edit Modal */}
-      <Modal
+      <QuantityModal
         visible={showQuantityModal}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setShowQuantityModal(false)}
-      >
-        <TouchableOpacity
-          style={styles.quantityModalOverlay}
-          activeOpacity={1}
-          onPress={() => setShowQuantityModal(false)}
-        >
-          <View style={styles.quantityModalContent} onStartShouldSetResponder={() => true}>
-            <View style={styles.quantityModalHeader}>
-              <Text style={styles.quantityModalTitle}>Nhập số lượng</Text>
-              <TouchableOpacity onPress={() => setShowQuantityModal(false)}>
-                <Ionicons name="close" size={24} color="#6b7280" />
-              </TouchableOpacity>
-            </View>
-
-            {editingItem && (
-              <View style={styles.quantityModalBody}>
-                {/* Product Image - Large */}
-                {editingItem.image_url ? (
-                  <Image
-                    source={{ uri: editingItem.image_url }}
-                    style={styles.quantityModalImage}
-                    resizeMode="cover"
-                  />
-                ) : (
-                  <View style={styles.quantityModalImagePlaceholder}>
-                    <Ionicons name="cube" size={64} color="#175ead" />
-                  </View>
-                )}
-
-                {/* Product Info */}
-                <View style={styles.quantityModalInfo}>
-                  <Text style={styles.quantityModalProductName}>{editingItem.name}</Text>
-                  <View style={styles.quantityModalPriceRow}>
-                    <Text style={styles.quantityModalPrice}>
-                      {formatCurrency(editingItem.price)}
-                    </Text>
-                    <Text style={styles.quantityModalPriceUnit}> / sản phẩm</Text>
-                  </View>
-                  <View style={styles.quantityModalStockBadge}>
-                    <Ionicons name="cube-outline" size={14} color="#6b7280" />
-                    <Text style={styles.quantityModalStock}>
-                      Tồn kho: {editingItem.stock}
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Quantity Controls */}
-                <View style={styles.quantityModalInputContainer}>
-                  <TouchableOpacity
-                    style={styles.quantityModalButton}
-                    onPress={() => {
-                      const current = parseInt(tempQuantity) || 0
-                      if (current > 1) setTempQuantity((current - 1).toString())
-                    }}
-                  >
-                    <Ionicons name="remove" size={24} color="white" />
-                  </TouchableOpacity>
-
-                  <TextInput
-                    style={styles.quantityModalInput}
-                    value={tempQuantity}
-                    onChangeText={setTempQuantity}
-                    keyboardType="number-pad"
-                    selectTextOnFocus
-                    autoFocus
-                  />
-
-                  <TouchableOpacity
-                    style={styles.quantityModalButton}
-                    onPress={() => {
-                      const current = parseInt(tempQuantity) || 0
-                      if (current < editingItem.stock) {
-                        setTempQuantity((current + 1).toString())
-                      }
-                    }}
-                  >
-                    <Ionicons name="add" size={24} color="white" />
-                  </TouchableOpacity>
-                </View>
-
-                {/* Total Amount */}
-                <View style={styles.quantityModalTotal}>
-                  <Text style={styles.quantityModalTotalLabel}>Thành tiền</Text>
-                  <Text style={styles.quantityModalTotalAmount}>
-                    {formatCurrency(editingItem.price * (parseInt(tempQuantity) || 0))}
-                  </Text>
-                </View>
-
-                {/* Action Buttons */}
-                <View style={styles.quantityModalActions}>
-                  <TouchableOpacity
-                    style={styles.quantityModalDeleteButton}
-                    onPress={() => {
-                      updateQuantity(editingItem.id, -editingItem.quantity)
-                      setShowQuantityModal(false)
-                      setEditingItem(null)
-                    }}
-                  >
-                    <Ionicons name="trash-outline" size={20} color="#ef4444" />
-                    <Text style={styles.quantityModalDeleteText}>Xóa</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={styles.quantityModalSubmit}
-                    onPress={handleQuantitySubmit}
-                  >
-                    <Text style={styles.quantityModalSubmitText}>Xác nhận</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            )}
-          </View>
-        </TouchableOpacity>
-      </Modal>
+        item={editingItem}
+        tempQuantity={tempQuantity}
+        onTempQuantityChange={setTempQuantity}
+        onSubmit={handleQuantitySubmit}
+        onDelete={() => {
+          if (editingItem) {
+            updateQuantity(editingItem.id, -editingItem.quantity)
+          }
+          setShowQuantityModal(false)
+          setEditingItem(null)
+        }}
+        onClose={() => {
+          setShowQuantityModal(false)
+          setEditingItem(null)
+          setTempQuantity('')
+        }}
+        formatCurrency={formatCurrency}
+      />
       </SafeAreaView>
     </>
   )

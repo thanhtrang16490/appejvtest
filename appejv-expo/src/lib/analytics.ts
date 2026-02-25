@@ -1,15 +1,21 @@
 /**
  * Analytics Service
- * Centralized analytics tracking cho app
- * 
+ * Centralized analytics tracking cho app.
+ *
  * Features:
  * - Event tracking
  * - Screen tracking
  * - User properties
  * - Custom dimensions
  * - Error tracking integration
+ *
+ * To enable Firebase Analytics:
+ * 1. Install: npx expo install @react-native-firebase/app @react-native-firebase/analytics
+ * 2. Set up google-services.json / GoogleService-Info.plist
+ * 3. Uncomment Firebase code blocks below
  */
 
+import React from 'react'
 import { ErrorTracker } from './error-tracking'
 
 interface AnalyticsEvent {
@@ -131,14 +137,17 @@ class AnalyticsService {
   }
 
   /**
-   * Clear user properties (on logout)
+   * Clear user properties (call on logout).
    */
   clearUserProperties() {
     this.userProperties = {}
 
     if (__DEV__) {
-      console.log('📊 User properties cleared')
+      console.log('📊 Analytics: User properties cleared')
     }
+
+    // TODO: Clear user in analytics provider
+    // analytics().resetAnalyticsData()
   }
 
   /**
@@ -235,6 +244,8 @@ export const AnalyticsEvents = {
   PRODUCT_VIEWED: 'product_viewed',
   PRODUCT_SEARCHED: 'product_searched',
   PRODUCT_FILTERED: 'product_filtered',
+  ADD_TO_CART: 'add_to_cart',
+  PRODUCT_SHARED: 'product_shared',
 
   // Orders
   ORDER_CREATED: 'order_created',
@@ -256,6 +267,19 @@ export const AnalyticsEvents = {
   BUTTON_CLICKED: 'button_clicked',
   LINK_CLICKED: 'link_clicked',
   FORM_SUBMITTED: 'form_submitted',
+
+  // Biometric
+  BIOMETRIC_AUTH_SUCCESS: 'biometric_auth_success',
+  BIOMETRIC_AUTH_FAILED: 'biometric_auth_failed',
+  BIOMETRIC_ENABLED: 'biometric_enabled',
+  BIOMETRIC_DISABLED: 'biometric_disabled',
+
+  // Notifications
+  NOTIFICATION_PERMISSION_GRANTED: 'notification_permission_granted',
+  NOTIFICATION_PERMISSION_DENIED: 'notification_permission_denied',
+  NOTIFICATION_RECEIVED: 'notification_received',
+  NOTIFICATION_OPENED: 'notification_opened',
+  NOTIFICATION_SCHEDULED: 'notification_scheduled',
 
   // Errors
   ERROR_OCCURRED: 'error_occurred',

@@ -40,29 +40,29 @@ export default function DashboardStats({ stats, role }: DashboardStatsProps) {
           title="Đơn hàng"
           icon="cart-outline"
           value={stats.orderedCount}
-          color={COLORS.primary}
-          bg={`${COLORS.primary}20`}
+          color={COLORS.PRIMARY.DEFAULT}
+          bg={COLORS.PRIMARY.LIGHT}
         />
         <MetricCard
           title="Sản phẩm sắp hết"
           icon="alert-circle-outline"
           value={stats.lowStockCount}
-          color={COLORS.warning}
-          bg={`${COLORS.warning}20`}
+          color={COLORS.WARNING.DEFAULT}
+          bg={COLORS.WARNING.LIGHT}
         />
         <MetricCard
           title="Khách hàng"
           icon="people-outline"
           value={stats.customerCount}
-          color={COLORS.success}
-          bg={`${COLORS.success}20`}
+          color={COLORS.SUCCESS.DEFAULT}
+          bg={COLORS.SUCCESS.LIGHT}
         />
         <MetricCard
           title="Doanh thu"
           icon="cash-outline"
           value={formatCurrency(stats.totalRevenue)}
-          color={COLORS.info}
-          bg={`${COLORS.info}20`}
+          color={COLORS.INFO.DEFAULT}
+          bg={COLORS.INFO.LIGHT}
         />
       </ScrollView>
     </View>

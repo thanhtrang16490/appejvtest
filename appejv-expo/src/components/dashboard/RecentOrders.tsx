@@ -90,10 +90,10 @@ export default function RecentOrders({ orders, onOrderPress, onViewAll }: Recent
             <View
               style={[
                 styles.statusBadge,
-                { backgroundColor: `${getStatusColor(order.status)}20` },
+                { backgroundColor: getStatusColor(order.status).bg },
               ]}
             >
-              <Text style={[styles.statusText, { color: getStatusColor(order.status) }]}>
+              <Text style={[styles.statusText, { color: getStatusColor(order.status).color }]}>
                 {getStatusLabel(order.status)}
               </Text>
             </View>
@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   viewAllText: {
-    color: COLORS.primary,
+    color: COLORS.PRIMARY.DEFAULT,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -201,7 +201,7 @@ const styles = StyleSheet.create({
   amountValue: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: COLORS.primary,
+    color: COLORS.PRIMARY.DEFAULT,
   },
   emptyState: {
     alignItems: 'center',

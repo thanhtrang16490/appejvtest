@@ -2,6 +2,8 @@
  * Performance monitoring utilities
  */
 
+import React from 'react'
+
 interface PerformanceMetric {
   name: string
   startTime: number

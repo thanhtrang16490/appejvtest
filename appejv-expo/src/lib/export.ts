@@ -1,4 +1,4 @@
-import * as FileSystem from 'expo-file-system'
+import { File, Paths } from 'expo-file-system'
 import * as Sharing from 'expo-sharing'
 
 export interface ExportData {
@@ -26,15 +26,13 @@ export const exportToCSV = async (data: ExportData): Promise<void> => {
     const bom = '\uFEFF'
     const fullContent = bom + csvContent
 
-    // Save to file
-    const fileUri = `${FileSystem.documentDirectory}${data.filename}.csv`
-    await FileSystem.writeAsStringAsync(fileUri, fullContent, {
-      encoding: FileSystem.EncodingType.UTF8
-    })
+    // Save to file using new expo-file-system v19 API
+    const file = new File(Paths.document, `${data.filename}.csv`)
+    file.write(fullContent)
 
     // Share the file
     if (await Sharing.isAvailableAsync()) {
-      await Sharing.shareAsync(fileUri, {
+      await Sharing.shareAsync(file.uri, {
         mimeType: 'text/csv',
         dialogTitle: 'Xuất dữ liệu CSV'
       })
@@ -50,14 +48,12 @@ export const exportToCSV = async (data: ExportData): Promise<void> => {
 export const exportToJSON = async (data: any, filename: string): Promise<void> => {
   try {
     const jsonContent = JSON.stringify(data, null, 2)
-    const fileUri = `${FileSystem.documentDirectory}${filename}.json`
-    
-    await FileSystem.writeAsStringAsync(fileUri, jsonContent, {
-      encoding: FileSystem.EncodingType.UTF8
-    })
+    // Save to file using new expo-file-system v19 API
+    const file = new File(Paths.document, `${filename}.json`)
+    file.write(jsonContent)
 
     if (await Sharing.isAvailableAsync()) {
-      await Sharing.shareAsync(fileUri, {
+      await Sharing.shareAsync(file.uri, {
         mimeType: 'application/json',
         dialogTitle: 'Xuất dữ liệu JSON'
       })

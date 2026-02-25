@@ -12,9 +12,9 @@ import AppHeader from '../../../src/components/AppHeader'
 export default function InventoryScreen() {
   const { user } = useAuth()
   const router = useRouter()
-  const tabBarHeight = useTabBarHeight()
+  const { contentPaddingBottom: tabBarContentPadding } = useTabBarHeight()
   const lastScrollY = useRef(0)
-  const scrollTimeout = useRef<NodeJS.Timeout | null>(null)
+  const scrollTimeout = useRef<number | null>(null)
   const [profile, setProfile] = useState<any>(null)
   const [products, setProducts] = useState<any[]>([])
   const [categories, setCategories] = useState<any[]>([])
@@ -298,7 +298,7 @@ export default function InventoryScreen() {
       {/* Products Grid */}
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={[styles.scrollContent, { paddingBottom: tabBarHeight + 16 }]}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: tabBarContentPadding }]}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }

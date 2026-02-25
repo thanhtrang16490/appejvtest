@@ -26,7 +26,7 @@ interface LazyComponentProps {
 export function createLazyComponent<P extends object>(
   importFunc: () => Promise<{ default: ComponentType<P> }>,
   fallback?: React.ReactNode,
-  loaderColor: string = COLORS.primary
+  loaderColor: string = COLORS.PRIMARY.DEFAULT
 ): ComponentType<P> {
   const LazyComponent = lazy(importFunc)
 
@@ -48,7 +48,7 @@ export function createLazyComponent<P extends object>(
 /**
  * Default loader component
  */
-export function DefaultLoader({ color = COLORS.primary }: { color?: string }) {
+export function DefaultLoader({ color = COLORS.PRIMARY.DEFAULT }: { color?: string }) {
   return (
     <View style={styles.loaderContainer}>
       <ActivityIndicator size="large" color={color} />

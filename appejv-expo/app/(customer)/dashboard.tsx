@@ -8,22 +8,15 @@ import { Ionicons } from '@expo/vector-icons'
 import { emitScrollVisibility } from './_layout'
 import { useTabBarHeight } from '../../src/hooks/useTabBarHeight'
 import CustomerHeader from '../../src/components/CustomerHeader'
-
-const statusMap: Record<string, { label: string; color: string; bg: string }> = {
-  draft: { label: 'Đơn nháp', color: '#374151', bg: '#f3f4f6' },
-  ordered: { label: 'Đơn đặt hàng', color: '#d97706', bg: '#fef3c7' },
-  shipping: { label: 'Giao hàng', color: '#2563eb', bg: '#dbeafe' },
-  paid: { label: 'Thanh toán', color: '#9333ea', bg: '#f3e8ff' },
-  completed: { label: 'Hoàn thành', color: '#059669', bg: '#d1fae5' },
-  cancelled: { label: 'Đã hủy', color: '#dc2626', bg: '#fee2e2' }
-}
+import StatusBadge from '../../src/components/shared/StatusBadge'
+import { errorTracker } from '../../src/lib/error-tracking'
 
 export default function CustomerDashboard() {
   const { user } = useAuth()
   const router = useRouter()
   const { contentPaddingBottom } = useTabBarHeight()
   const lastScrollY = useRef(0)
-  const scrollTimeout = useRef<NodeJS.Timeout | null>(null)
+  const scrollTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [recentOrders, setRecentOrders] = useState<any[]>([])
@@ -41,31 +34,27 @@ export default function CustomerDashboard() {
     try {
       if (!user) return
 
-      // Fetch recent orders (last 5)
-      const { data: orders } = await supabase
+      // Single query: fetch all orders for stats + recent 5 in one go
+      const { data: allOrders, error } = await supabase
         .from('orders')
-        .select('*')
+        .select('id, status, total_amount, created_at')
         .eq('customer_id', user.id)
         .order('created_at', { ascending: false })
-        .limit(5)
 
-      setRecentOrders(orders || [])
+      if (error) throw error
 
-      // Calculate stats
-      const { data: allOrders } = await supabase
-        .from('orders')
-        .select('status')
-        .eq('customer_id', user.id)
+      const orders = allOrders ?? []
 
-      if (allOrders) {
-        setStats({
-          totalOrders: allOrders.length,
-          pendingOrders: allOrders.filter(o => ['draft', 'ordered', 'shipping'].includes(o.status)).length,
-          completedOrders: allOrders.filter(o => o.status === 'completed').length,
-        })
-      }
+      setRecentOrders(orders.slice(0, 5))
+      setStats({
+        totalOrders: orders.length,
+        pendingOrders: orders.filter(o =>
+          ['draft', 'ordered', 'shipping'].includes(o.status)
+        ).length,
+        completedOrders: orders.filter(o => o.status === 'completed').length,
+      })
     } catch (error) {
-      console.error('Error fetching data:', error)
+      errorTracker.logError(error as Error, { action: 'CustomerDashboard.fetchData' })
     } finally {
       setLoading(false)
       setRefreshing(false)
@@ -132,7 +121,7 @@ export default function CustomerDashboard() {
         {/* Welcome Section */}
         <View style={styles.welcomeSection}>
           <Text style={styles.welcomeTitle}>
-            Xin chào, Khách hàng!
+            Xin chào{user?.full_name ? `, ${user.full_name}` : ''}! 👋
           </Text>
           <Text style={styles.welcomeSubtitle}>
             Chào mừng bạn đến với APPE JV
@@ -222,40 +211,36 @@ export default function CustomerDashboard() {
             </View>
           ) : (
             <View style={styles.ordersContainer}>
-              {recentOrders.map((order) => {
-                const config = statusMap[order.status] || statusMap.draft
-                return (
-                  <TouchableOpacity
-                    key={order.id}
-                    style={styles.orderCard}
-                    onPress={() => router.push(`/(customer)/orders/${order.id}`)}
-                  >
-                    <View style={styles.orderHeader}>
-                      <View style={styles.orderLeft}>
-                        <View style={styles.orderIcon}>
-                          <Ionicons name="bag-handle" size={20} color="#10b981" />
-                        </View>
-                        <View style={styles.orderInfo}>
-                          <Text style={styles.orderTitle}>Đơn hàng #{order.id}</Text>
-                          <Text style={styles.orderDate}>
-                            {new Date(order.created_at).toLocaleDateString('vi-VN')}
-                          </Text>
-                        </View>
+              {recentOrders.map((order) => (
+                <TouchableOpacity
+                  key={order.id}
+                  style={styles.orderCard}
+                  onPress={() => router.push(`/(customer)/orders/${order.id}`)}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.orderHeader}>
+                    <View style={styles.orderLeft}>
+                      <View style={styles.orderIcon}>
+                        <Ionicons name="bag-handle" size={20} color="#10b981" />
                       </View>
-                      <View style={styles.orderRight}>
-                        <Text style={styles.orderAmount}>
-                          {formatCurrency(order.total_amount)}
+                      <View style={styles.orderInfo}>
+                        <Text style={styles.orderTitle}>
+                          Đơn #{order.id.slice(0, 8).toUpperCase()}
                         </Text>
-                        <View style={[styles.statusBadge, { backgroundColor: config.bg }]}>
-                          <Text style={[styles.statusText, { color: config.color }]}>
-                            {config.label}
-                          </Text>
-                        </View>
+                        <Text style={styles.orderDate}>
+                          {new Date(order.created_at).toLocaleDateString('vi-VN')}
+                        </Text>
                       </View>
                     </View>
-                  </TouchableOpacity>
-                )
-              })}
+                    <View style={styles.orderRight}>
+                      <Text style={styles.orderAmount}>
+                        {formatCurrency(order.total_amount)}
+                      </Text>
+                      <StatusBadge status={order.status} size="sm" />
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              ))}
             </View>
           )}
         </View>

@@ -171,7 +171,7 @@ export function scale(
 export function spring(
   animatedValue: Animated.Value,
   toValue: number,
-  config: typeof SPRING_CONFIG.DEFAULT = SPRING_CONFIG.DEFAULT,
+  config: { tension: number; friction: number } = SPRING_CONFIG.DEFAULT,
   callback?: () => void
 ) {
   Animated.spring(animatedValue, {

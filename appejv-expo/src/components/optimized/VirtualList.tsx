@@ -1,6 +1,8 @@
 import React, { memo, useCallback } from 'react'
 import { FlatList, FlatListProps, View, Text, StyleSheet } from 'react-native'
-import { SPACING } from '../../constants/layout'
+import { LAYOUT } from '../../constants/layout'
+
+const { PADDING: SPACING } = LAYOUT
 
 interface VirtualListProps<T> extends Omit<FlatListProps<T>, 'renderItem'> {
   data: T[]
@@ -102,7 +104,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: SPACING.xl,
+    padding: SPACING.XLARGE,
   },
   emptyText: {
     fontSize: 16,

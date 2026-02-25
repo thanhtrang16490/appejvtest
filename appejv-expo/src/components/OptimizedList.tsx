@@ -1,5 +1,5 @@
 import { FlatList, View, Text, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native'
-import { memo } from 'react'
+import { memo, useCallback } from 'react'
 
 interface OptimizedListProps<T> {
   data: T[]
@@ -37,9 +37,10 @@ function OptimizedListComponent<T>({
   contentContainerStyle,
 }: OptimizedListProps<T>) {
   
-  const renderItemMemo = memo(({ item, index }: { item: T; index: number }) => {
-    return renderItem(item, index)
-  })
+  const renderItemCallback = useCallback(
+    ({ item, index }: { item: T; index: number }) => renderItem(item, index),
+    [renderItem]
+  )
 
   const renderFooter = () => {
     if (ListFooterComponent) return ListFooterComponent
@@ -77,7 +78,7 @@ function OptimizedListComponent<T>({
   return (
     <FlatList
       data={data}
-      renderItem={({ item, index }) => <renderItemMemo item={item} index={index} />}
+      renderItem={renderItemCallback}
       keyExtractor={keyExtractor}
       // Performance optimizations
       removeClippedSubviews={true}

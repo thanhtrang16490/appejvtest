@@ -1,20 +1,10 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
-
-export default function App() {
-  return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+/**
+ * App.tsx
+ *
+ * This file is intentionally minimal.
+ * The app entry point is handled by Expo Router via `expo-router/entry` (see index.ts).
+ * All routing, providers, and layout are defined in app/_layout.tsx.
+ *
+ * Do NOT add logic here — it will not be executed by Expo Router.
+ */
+export {}

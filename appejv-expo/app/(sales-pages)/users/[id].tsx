@@ -491,6 +491,7 @@ export default function UserDetailScreen() {
             onPress={() => {
               setEditing(false)
               setEditedData({
+                email: userProfile.email || '',
                 full_name: userProfile.full_name || '',
                 phone: userProfile.phone || '',
                 address: userProfile.address || '',

@@ -140,22 +140,39 @@ class OfflineManager {
   }
 
   /**
-   * Execute a queued action
+   * Execute a queued action against Supabase
    */
   private async executeAction(action: QueuedAction): Promise<void> {
-    // TODO: Implement actual Supabase operations
-    // This is a placeholder that should be replaced with real implementation
-    
+    // Lazy import to avoid circular dependency
+    const { supabase } = await import('./supabase')
+
     switch (action.type) {
-      case 'create':
-        // await supabase.from(action.table).insert(action.data)
+      case 'create': {
+        const { error } = await supabase.from(action.table).insert(action.data)
+        if (error) throw error
         break
-      case 'update':
-        // await supabase.from(action.table).update(action.data).eq('id', action.data.id)
+      }
+      case 'update': {
+        if (!action.data?.id) throw new Error(`Missing id for update on table "${action.table}"`)
+        const { id, ...updateData } = action.data
+        const { error } = await supabase
+          .from(action.table)
+          .update(updateData)
+          .eq('id', id)
+        if (error) throw error
         break
-      case 'delete':
-        // await supabase.from(action.table).delete().eq('id', action.data.id)
+      }
+      case 'delete': {
+        if (!action.data?.id) throw new Error(`Missing id for delete on table "${action.table}"`)
+        const { error } = await supabase
+          .from(action.table)
+          .delete()
+          .eq('id', action.data.id)
+        if (error) throw error
         break
+      }
+      default:
+        throw new Error(`Unknown action type: ${(action as QueuedAction).type}`)
     }
   }
 

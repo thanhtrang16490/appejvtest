@@ -1,44 +1,67 @@
-import { View, Text, Image, TouchableOpacity, StyleSheet, Linking } from 'react-native'
+import { View, Text, Image, TouchableOpacity, StyleSheet, Linking, Alert } from 'react-native'
 import { useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { useAuth } from '../contexts/AuthContext'
 import NotificationButton from './NotificationButton'
+import { APP_CONFIG } from '../constants/config'
 
 interface AppHeaderProps {
+  /** Show notification bell icon. Default: true */
   showNotification?: boolean
+  /** Override the menu navigation target. Default: '/(sales)/menu' */
+  menuHref?: string
 }
 
-export default function AppHeader({ showNotification = true }: AppHeaderProps) {
+export default function AppHeader({
+  showNotification = true,
+  menuHref = '/(sales)/menu',
+}: AppHeaderProps) {
   const router = useRouter()
   const { user } = useAuth()
 
   const handlePhonePress = () => {
-    // Số hotline - có thể thay đổi theo nhu cầu
-    const phoneNumber = '0123456789'
-    Linking.openURL(`tel:${phoneNumber}`)
+    const url = `tel:${APP_CONFIG.hotline}`
+    Linking.canOpenURL(url)
+      .then(supported => {
+        if (supported) {
+          Linking.openURL(url)
+        } else {
+          Alert.alert('Hotline', APP_CONFIG.hotline)
+        }
+      })
+      .catch(() => Alert.alert('Hotline', APP_CONFIG.hotline))
   }
 
   return (
     <View style={styles.topHeader}>
       <View style={styles.logoContainer}>
-        <Image 
-          source={require('../../assets/icon.png')} 
+        <Image
+          source={require('../../assets/icon.png')}
           style={styles.logo}
           resizeMode="contain"
         />
-        <Text style={styles.logoTitle}>APPE JV</Text>
+        <Text style={styles.logoTitle}>{APP_CONFIG.name}</Text>
       </View>
+
       <View style={styles.headerActions}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.phoneButton}
           onPress={handlePhonePress}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          accessibilityLabel={`Gọi hotline ${APP_CONFIG.hotline}`}
+          accessibilityRole="button"
         >
           <Ionicons name="call" size={20} color="#10b981" />
         </TouchableOpacity>
+
         {showNotification && <NotificationButton userId={user?.id} />}
-        <TouchableOpacity 
+
+        <TouchableOpacity
           style={styles.menuButton}
-          onPress={() => router.push('/(sales)/menu')}
+          onPress={() => router.push(menuHref as any)}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          accessibilityLabel="Mở menu"
+          accessibilityRole="button"
         >
           <Ionicons name="menu" size={24} color="#111827" />
         </TouchableOpacity>

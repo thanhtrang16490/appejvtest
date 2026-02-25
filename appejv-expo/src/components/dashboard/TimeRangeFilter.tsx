@@ -113,7 +113,7 @@ export function TimeRangeModal({
                   {option.label}
                 </Text>
                 {activeFilter === option.id && (
-                  <Ionicons name="checkmark" size={20} color={COLORS.primary} />
+                  <Ionicons name="checkmark" size={20} color={COLORS.PRIMARY.DEFAULT} />
                 )}
               </TouchableOpacity>
             ))}
@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
   },
   activeFilterTab: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.PRIMARY.DEFAULT,
   },
   filterText: {
     fontSize: 14,
@@ -186,14 +186,14 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.TINY,
   },
   activeOptionItem: {
-    backgroundColor: `${COLORS.primary}10`,
+    backgroundColor: COLORS.PRIMARY.LIGHT,
   },
   optionText: {
     fontSize: 16,
     color: '#333',
   },
   activeOptionText: {
-    color: COLORS.primary,
+    color: COLORS.PRIMARY.DEFAULT,
     fontWeight: '600',
   },
 })

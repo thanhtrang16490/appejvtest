@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, memo, useRef } from 'react'
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator, RefreshControl, Modal, NativeScrollEvent, NativeSyntheticEvent } from 'react-native'
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator, RefreshControl, Modal, NativeScrollEvent, NativeSyntheticEvent, DimensionValue } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
@@ -63,8 +63,8 @@ type SaleAdminData = {
 
 // Memoized Report Item Component
 const ReportItem = memo(({ item, maxRevenue, formatCurrency, roleTab }: any) => {
-  const progressWidth = useMemo(() => {
-    return `${(item.revenue / (maxRevenue || 1)) * 100}%`
+  const progressWidth = useMemo<DimensionValue>(() => {
+    return `${(item.revenue / (maxRevenue || 1)) * 100}%` as DimensionValue
   }, [item.revenue, maxRevenue])
 
   const progressStyle = useMemo(() => {
@@ -100,8 +100,8 @@ const ReportItem = memo(({ item, maxRevenue, formatCurrency, roleTab }: any) => 
 
 // Memoized Chart Bar Component
 const ChartBar = memo(({ trend, maxRevenue }: any) => {
-  const height = useMemo(() => {
-    return `${(trend.revenue / maxRevenue) * 100}%`
+  const height = useMemo<DimensionValue>(() => {
+    return `${(trend.revenue / maxRevenue) * 100}%` as DimensionValue
   }, [trend.revenue, maxRevenue])
 
   return (
@@ -115,9 +115,9 @@ const ChartBar = memo(({ trend, maxRevenue }: any) => {
 export default function ReportsScreen() {
   const { user } = useAuth()
   const router = useRouter()
-  const tabBarHeight = useTabBarHeight()
+  const { contentPaddingBottom: tabBarContentPadding } = useTabBarHeight()
   const lastScrollY = useRef(0)
-  const scrollTimeout = useRef<NodeJS.Timeout | null>(null)
+  const scrollTimeout = useRef<number | null>(null)
   const [profile, setProfile] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -517,7 +517,7 @@ export default function ReportsScreen() {
 
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={[styles.scrollContent, { paddingBottom: tabBarHeight + 16 }]}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: tabBarContentPadding }]}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }

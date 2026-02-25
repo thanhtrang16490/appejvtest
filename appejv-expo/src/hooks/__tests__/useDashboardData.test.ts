@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from '@testing-library/react-native'
+import { renderHook, act, waitFor } from '@testing-library/react-native'
 import { useDashboardData } from '../useDashboardData'
 
 // Mock supabase
@@ -94,8 +94,10 @@ describe('useDashboardData', () => {
 
     expect(typeof result.current.refetch).toBe('function')
 
-    // Call refetch
-    result.current.refetch()
+    // Call refetch - wrap in act() to flush synchronous state updates
+    act(() => {
+      result.current.refetch()
+    })
 
     expect(result.current.loading).toBe(true)
   })

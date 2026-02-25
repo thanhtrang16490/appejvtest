@@ -5,28 +5,32 @@ import * as SecureStore from 'expo-secure-store'
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!
 
-console.log('Supabase Config:', {
-  url: supabaseUrl,
-  hasKey: !!supabaseAnonKey,
-  keyLength: supabaseAnonKey?.length
-})
+if (__DEV__) {
+  console.log('[Supabase] Initializing client:', {
+    url: supabaseUrl ? '✓ set' : '✗ missing',
+    key: supabaseAnonKey ? '✓ set' : '✗ missing',
+  })
+}
 
-// Custom storage adapter for Expo SecureStore
+/**
+ * Custom storage adapter for Expo SecureStore.
+ * NOTE: All methods MUST return promises for Supabase auth to persist sessions correctly.
+ */
 const ExpoSecureStoreAdapter = {
-  getItem: (key: string) => {
+  getItem: (key: string): Promise<string | null> => {
     return SecureStore.getItemAsync(key)
   },
-  setItem: (key: string, value: string) => {
-    SecureStore.setItemAsync(key, value)
+  setItem: (key: string, value: string): Promise<void> => {
+    return SecureStore.setItemAsync(key, value)
   },
-  removeItem: (key: string) => {
-    SecureStore.deleteItemAsync(key)
+  removeItem: (key: string): Promise<void> => {
+    return SecureStore.deleteItemAsync(key)
   },
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
-    storage: ExpoSecureStoreAdapter as any,
+    storage: ExpoSecureStoreAdapter,
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: false,

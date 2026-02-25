@@ -9,6 +9,7 @@
  * - Queue management
  */
 
+import React from 'react'
 import { ErrorTracker } from './error-tracking'
 import { OfflineManager } from './offline-manager'
 
@@ -94,7 +95,7 @@ class OptimisticUpdatesManager {
 
       // Queue for offline retry if network error
       if (this.isNetworkError(error)) {
-        await OfflineManager.addToQueue(type, data)
+        await OfflineManager.queueAction('update', type, data)
       }
 
       return { success: false, error: error as Error }
@@ -170,7 +171,7 @@ class OptimisticUpdatesManager {
       this.updates.delete(update.id)
 
       // Queue for retry
-      await OfflineManager.addToQueue(update.type, update.data)
+      await OfflineManager.queueAction('update', update.type, update.data)
     }
 
     this.notifyListeners()

@@ -96,7 +96,7 @@ export default function CustomersScreen() {
   const router = useRouter()
   const { contentPaddingBottom } = useTabBarHeight()
   const lastScrollY = useRef(0)
-  const scrollTimeout = useRef<NodeJS.Timeout | null>(null)
+  const scrollTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [profile, setProfile] = useState<any>(null)
   const [customers, setCustomers] = useState<any[]>([])
   const [searchQuery, setSearchQuery] = useState('')

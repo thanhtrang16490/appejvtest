@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl, Modal } from 'react-native'
+import { View, Text, ScrollView, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { supabase } from '../../src/lib/supabase'
 import { useRouter, useFocusEffect } from 'expo-router'
@@ -8,13 +8,15 @@ import { emitScrollVisibility } from './_layout'
 import { useTabBarHeight } from '../../src/hooks/useTabBarHeight'
 import AppHeader from '../../src/components/AppHeader'
 import { hasSaleAdminDashboard } from '../../src/lib/feature-flags'
-
-const filterTabs = [
-  { id: 'today', label: 'Hôm nay' },
-  { id: 'yesterday', label: 'Hôm qua' },
-  { id: 'thisMonth', label: 'Tháng này' },
-  { id: 'other', label: 'Khác' },
-]
+import { useDashboardData } from '../../src/hooks/useDashboardData'
+import {
+  DashboardStats,
+  QuickActions,
+  RecentOrders,
+  TimeRangeFilter,
+  TimeRangeModal,
+} from '../../src/components/dashboard'
+import { COLORS } from '../../src/constants/colors'
 
 const timeRangeOptions = [
   { id: 'today', label: 'Hôm nay' },
@@ -50,7 +52,7 @@ export default function SalesDashboard() {
   const [refreshing, setRefreshing] = useState(false)
   const [showTimeRangeModal, setShowTimeRangeModal] = useState(false)
   const lastScrollY = useRef(0)
-  const scrollTimeout = useRef<NodeJS.Timeout | null>(null)
+  const scrollTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
   const isInitialMount = useRef(true)
 
   const handleScroll = (event: any) => {

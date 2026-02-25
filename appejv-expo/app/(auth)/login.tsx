@@ -1,10 +1,15 @@
 import { useState, useEffect } from 'react'
-import { View, Text, TextInput, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, ScrollView, Image, StyleSheet } from 'react-native'
+import {
+  View, Text, TextInput, TouchableOpacity, Alert,
+  KeyboardAvoidingView, Platform, ScrollView, Image, StyleSheet,
+  ActivityIndicator,
+} from 'react-native'
 import { useRouter } from 'expo-router'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Ionicons } from '@expo/vector-icons'
 import { useAuth } from '../../src/contexts/AuthContext'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { AUTH_CONFIG, APP_CONFIG } from '../../src/constants/config'
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('')
@@ -19,26 +24,27 @@ export default function LoginScreen() {
     loadRememberedEmail()
   }, [])
 
+  const [showPassword, setShowPassword] = useState(false)
+
   const loadRememberedEmail = async () => {
     try {
-      const savedEmail = await AsyncStorage.getItem('rememberedEmail')
+      const savedEmail = await AsyncStorage.getItem(AUTH_CONFIG.rememberedEmailKey)
       if (savedEmail) {
         setEmail(savedEmail)
         setHasRememberedEmail(true)
       }
-    } catch (error) {
-      console.error('Error loading email:', error)
+    } catch {
+      // Non-critical — silently ignore
     }
   }
 
   const clearRememberedEmail = async () => {
     try {
-      await AsyncStorage.removeItem('rememberedEmail')
+      await AsyncStorage.removeItem(AUTH_CONFIG.rememberedEmailKey)
       setEmail('')
       setHasRememberedEmail(false)
-      Alert.alert('Thành công', 'Đã xóa tài khoản đã lưu')
-    } catch (error) {
-      console.error('Error clearing email:', error)
+    } catch {
+      // Non-critical — silently ignore
     }
   }
 
@@ -57,15 +63,15 @@ export default function LoginScreen() {
       return
     }
 
-    // Save or remove email based on rememberMe checkbox
+    // Save or remove email based on rememberMe preference
     try {
       if (rememberMe) {
-        await AsyncStorage.setItem('rememberedEmail', email)
+        await AsyncStorage.setItem(AUTH_CONFIG.rememberedEmailKey, email)
       } else {
-        await AsyncStorage.removeItem('rememberedEmail')
+        await AsyncStorage.removeItem(AUTH_CONFIG.rememberedEmailKey)
       }
-    } catch (error) {
-      console.error('Error saving remember preference:', error)
+    } catch {
+      // Non-critical — silently ignore
     }
 
     // Redirect based on role
@@ -91,7 +97,7 @@ export default function LoginScreen() {
                 style={styles.logo}
                 resizeMode="contain"
               />
-              <Text style={styles.title}>APPE JV</Text>
+              <Text style={styles.title}>{APP_CONFIG.name}</Text>
               <Text style={styles.subtitle}>Đăng nhập vào hệ thống</Text>
             </View>
 
@@ -127,14 +133,28 @@ export default function LoginScreen() {
 
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Mật khẩu</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="••••••••"
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry
-                  editable={!loading}
-                />
+                <View style={styles.inputWithButton}>
+                  <TextInput
+                    style={[styles.input, styles.inputWithClear]}
+                    placeholder="••••••••"
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry={!showPassword}
+                    editable={!loading}
+                    autoComplete="password"
+                  />
+                  <TouchableOpacity
+                    style={styles.clearButton}
+                    onPress={() => setShowPassword(prev => !prev)}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <Ionicons
+                      name={showPassword ? 'eye-off' : 'eye'}
+                      size={20}
+                      color="#9ca3af"
+                    />
+                  </TouchableOpacity>
+                </View>
               </View>
 
               <TouchableOpacity
@@ -152,10 +172,13 @@ export default function LoginScreen() {
                 style={[styles.button, loading && styles.buttonDisabled]}
                 onPress={handleLogin}
                 disabled={loading}
+                activeOpacity={0.8}
               >
-                <Text style={styles.buttonText}>
-                  {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
-                </Text>
+                {loading ? (
+                  <ActivityIndicator size="small" color="white" />
+                ) : (
+                  <Text style={styles.buttonText}>Đăng nhập</Text>
+                )}
               </TouchableOpacity>
 
               <TouchableOpacity

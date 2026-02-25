@@ -24,7 +24,6 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: '10mb',
     },
-    optimizePackageImports: ['lucide-react', '@supabase/ssr'],
   },
   
   // Compiler Options
@@ -34,7 +33,7 @@ const nextConfig: NextConfig = {
     } : false,
   },
   
-  // Turbopack config (empty to silence warning)
+  // Turbopack config
   turbopack: {},
   
   // Headers for Security and Performance

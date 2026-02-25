@@ -89,6 +89,27 @@ export const validators = {
   },
 }
 
+/**
+ * Standalone boolean validators (for use in tests and simple checks)
+ */
+export function validateEmail(email: string): boolean {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  return !!email && emailRegex.test(email)
+}
+
+export function validatePhone(phone: string): boolean {
+  const phoneRegex = /^[0-9]{10,11}$/
+  return !!phone && phoneRegex.test(phone.replace(/\s/g, ''))
+}
+
+export function validatePassword(password: string): boolean {
+  if (!password || password.length < 8) return false
+  const hasUppercase = /[A-Z]/.test(password)
+  const hasLowercase = /[a-z]/.test(password)
+  const hasNumberOrSpecial = /[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)
+  return hasUppercase && hasLowercase && hasNumberOrSpecial
+}
+
 export function validateField(value: string, rules: ValidationRule[]): ValidationResult {
   for (const rule of rules) {
     if (rule.required && !value) {

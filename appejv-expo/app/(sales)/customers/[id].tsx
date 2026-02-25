@@ -187,7 +187,7 @@ export default function CustomerDetailScreen() {
         },
         {
           text: 'Tạo',
-          onPress: async (password) => {
+          onPress: async (password: string | undefined) => {
             if (!password || password.length < 6) {
               Alert.alert('Lỗi', 'Mật khẩu phải có ít nhất 6 ký tự')
               return

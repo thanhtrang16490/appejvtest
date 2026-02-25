@@ -1,10 +1,11 @@
-import React, { createContext, useContext, useEffect, useState } from 'react'
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react'
 import { Session, User as SupabaseUser } from '@supabase/supabase-js'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { supabase } from '../lib/supabase'
-import { User } from '../types'
+import { User, UserRole } from '../types'
 import { errorTracker } from '../lib/error-tracking'
 import { Analytics, AnalyticsEvents } from '../lib/analytics'
+import { AUTH_CONFIG } from '../constants/config'
 
 interface AuthContextType {
   session: Session | null
@@ -22,48 +23,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const mountedRef = useRef(true)
 
   useEffect(() => {
-    console.log('AuthProvider: Initializing...')
-    let mounted = true
-    
-    // Set timeout to prevent infinite loading - reduced to 2 seconds
+    mountedRef.current = true
+
+    // Safety timeout — prevents infinite loading on network issues
     const timeout = setTimeout(() => {
-      if (mounted) {
-        console.log('AuthProvider: Timeout - forcing loading to false')
+      if (mountedRef.current && loading) {
+        if (__DEV__) console.warn('[AuthProvider] Init timeout — forcing loading=false')
         setLoading(false)
       }
-    }, 2000)
-    
-    // Initialize auth
+    }, AUTH_CONFIG.initTimeoutMs)
+
     const initAuth = async () => {
       try {
-        console.log('AuthProvider: Getting session...')
         const { data: { session }, error } = await supabase.auth.getSession()
-        
-        if (!mounted) return
-        
+
+        if (!mountedRef.current) return
+
         if (error) {
-          console.error('AuthProvider: Session error:', error.message)
           errorTracker.logError(error, { action: 'AuthProvider.initAuth' })
           setLoading(false)
           return
         }
-        
-        console.log('AuthProvider: Session result:', session ? 'exists' : 'null')
+
         setSession(session)
-        
+
         if (session?.user) {
           await fetchUserProfile(session.user)
         } else {
           setLoading(false)
         }
       } catch (err) {
-        console.error('AuthProvider: Init error:', err)
         errorTracker.logError(err as Error, { action: 'AuthProvider.initAuth' })
-        if (mounted) {
-          setLoading(false)
-        }
+        if (mountedRef.current) setLoading(false)
       } finally {
         clearTimeout(timeout)
       }
@@ -71,28 +65,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     initAuth()
 
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      console.log('AuthProvider: Auth state changed:', _event, session ? 'exists' : 'null')
-      if (!mounted) return
-      
+      if (!mountedRef.current) return
+
       setSession(session)
       if (session?.user) {
         fetchUserProfile(session.user)
       } else {
         setUser(null)
+        setLoading(false)
       }
     })
 
     return () => {
-      mounted = false
+      mountedRef.current = false
       clearTimeout(timeout)
       subscription.unsubscribe()
     }
   }, [])
 
   const fetchUserProfile = async (supabaseUser: SupabaseUser) => {
-    console.log('AuthProvider: Fetching profile for', supabaseUser.id)
     try {
       const { data: profile, error } = await supabase
         .from('profiles')
@@ -101,49 +93,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .single()
 
       if (error) {
-        console.error('AuthProvider: Error fetching profile', error)
         errorTracker.logError(error, { action: 'AuthProvider.fetchUserProfile' })
         throw error
       }
 
-      console.log('AuthProvider: Got profile', profile)
-      const userData = {
+      const userData: User = {
         id: supabaseUser.id,
         email: supabaseUser.email,
         phone: supabaseUser.phone,
-        full_name: profile?.full_name,
-        role: profile?.role || 'customer',
+        full_name: profile?.full_name ?? undefined,
+        role: (profile?.role as UserRole) ?? 'customer',
       }
-      setUser(userData)
-      
-      // Track user properties in analytics
-      Analytics.setUserProperties({
-        userId: userData.id,
-        email: userData.email || undefined,
-        phone: userData.phone || undefined,
-        role: userData.role,
-        name: userData.full_name || undefined,
-      })
+
+      if (mountedRef.current) {
+        setUser(userData)
+        Analytics.setUserProperties({
+          userId: userData.id,
+          email: userData.email,
+          phone: userData.phone,
+          role: userData.role,
+          name: userData.full_name,
+        })
+      }
     } catch (error) {
-      console.error('AuthProvider: Error in fetchUserProfile', error)
       errorTracker.logError(error as Error, { action: 'AuthProvider.fetchUserProfile' })
-      setUser({
-        id: supabaseUser.id,
-        email: supabaseUser.email,
-        phone: supabaseUser.phone,
-        role: 'customer',
-      })
+      // Fallback: set minimal user so app doesn't get stuck
+      if (mountedRef.current) {
+        setUser({
+          id: supabaseUser.id,
+          email: supabaseUser.email,
+          phone: supabaseUser.phone,
+          role: 'customer',
+        })
+      }
     } finally {
-      setLoading(false)
+      if (mountedRef.current) setLoading(false)
     }
   }
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password })
 
       if (error) {
         errorTracker.logWarning(error.message, { action: 'AuthProvider.signIn' })
@@ -157,15 +147,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           .eq('id', data.user.id)
           .single()
 
-        errorTracker.setUser(data.user.id, data.user.email || undefined, profile?.role || 'customer')
-        
-        // Track login event
-        Analytics.trackEvent(AnalyticsEvents.LOGIN, {
-          method: 'email',
-          role: profile?.role || 'customer',
-        })
-        
-        return { role: profile?.role || 'customer' }
+        const role = (profile?.role as UserRole) ?? 'customer'
+        errorTracker.setUser(data.user.id, data.user.email ?? undefined, role)
+        Analytics.trackEvent(AnalyticsEvents.LOGIN, { method: 'email', role })
+        return { role }
       }
 
       return {}
@@ -177,10 +162,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithPhone = async (phone: string, password: string) => {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        phone,
-        password,
-      })
+      const { data, error } = await supabase.auth.signInWithPassword({ phone, password })
 
       if (error) {
         errorTracker.logWarning(error.message, { action: 'AuthProvider.signInWithPhone' })
@@ -194,15 +176,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           .eq('id', data.user.id)
           .single()
 
-        errorTracker.setUser(data.user.id, data.user.phone || undefined, profile?.role || 'customer')
-        
-        // Track login event
-        Analytics.trackEvent(AnalyticsEvents.LOGIN, {
-          method: 'phone',
-          role: profile?.role || 'customer',
-        })
-        
-        return { role: profile?.role || 'customer' }
+        const role = (profile?.role as UserRole) ?? 'customer'
+        errorTracker.setUser(data.user.id, data.user.phone ?? undefined, role)
+        Analytics.trackEvent(AnalyticsEvents.LOGIN, { method: 'phone', role })
+        return { role }
       }
 
       return {}
@@ -213,21 +190,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signOut = async () => {
-    // Track logout event
-    Analytics.trackEvent(AnalyticsEvents.LOGOUT, {
-      role: user?.role,
-    })
-    
-    // Save email to AsyncStorage before signing out
+    Analytics.trackEvent(AnalyticsEvents.LOGOUT, { role: user?.role })
+
+    // Persist email for "remember me" feature
     if (user?.email) {
       try {
-        await AsyncStorage.setItem('rememberedEmail', user.email)
+        await AsyncStorage.setItem(AUTH_CONFIG.rememberedEmailKey, user.email)
       } catch (error) {
-        console.error('Error saving email:', error)
         errorTracker.logWarning('Failed to save email to AsyncStorage', { action: 'AuthProvider.signOut' })
       }
     }
+
     errorTracker.clearUser()
+    Analytics.clearUserProperties()
     await supabase.auth.signOut()
   }
 

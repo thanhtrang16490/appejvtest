@@ -18,23 +18,19 @@ import { useState, useEffect, useRef } from 'react'
  */
 export function useThrottle<T>(value: T, interval: number = 500): T {
   const [throttledValue, setThrottledValue] = useState<T>(value)
-  const lastExecuted = useRef<number>(Date.now())
+  // Initialize to 0 so the first update always passes through immediately
+  const lastExecuted = useRef<number>(0)
 
   useEffect(() => {
     const now = Date.now()
     const timeSinceLastExecution = now - lastExecuted.current
 
+    // Leading-edge only: update immediately if enough time has passed
     if (timeSinceLastExecution >= interval) {
       lastExecuted.current = now
       setThrottledValue(value)
-    } else {
-      const timeoutId = setTimeout(() => {
-        lastExecuted.current = Date.now()
-        setThrottledValue(value)
-      }, interval - timeSinceLastExecution)
-
-      return () => clearTimeout(timeoutId)
     }
+    // No trailing timeout — prevents stale value from firing after rapid updates
   }, [value, interval])
 
   return throttledValue
@@ -60,8 +56,9 @@ export function useThrottledCallback<T extends (...args: any[]) => any>(
   callback: T,
   interval: number = 500
 ): (...args: Parameters<T>) => void {
-  const lastExecuted = useRef<number>(Date.now())
-  const timeoutId = useRef<NodeJS.Timeout | null>(null)
+  // Initialize to 0 so the first call always fires immediately
+  const lastExecuted = useRef<number>(0)
+  const timeoutId = useRef<number | null>(null)
 
   return (...args: Parameters<T>) => {
     const now = Date.now()
