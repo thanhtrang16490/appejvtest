@@ -22,6 +22,8 @@ export const slugMapping: Record<string, { vi: string; en: string; cn: string }>
   'chinh-sach-cookie': { vi: 'chinh-sach-cookie', en: 'cookie-policy', cn: 'cookie-policy' },
   'app': { vi: 'ung-dung', en: 'app', cn: 'app' },
   'ung-dung': { vi: 'ung-dung', en: 'app', cn: 'app' },
+  'partners': { vi: 'doi-tac', en: 'partners', cn: 'partners' },
+  'doi-tac': { vi: 'doi-tac', en: 'partners', cn: 'partners' },
 }
 
 // Remove language prefix from path

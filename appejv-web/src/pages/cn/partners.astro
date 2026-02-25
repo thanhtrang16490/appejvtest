@@ -1,0 +1,263 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro'
+
+const seoTitle = "合作伙伴 - APPE JV | 国际技术合作"
+const seoDescription = "APPE JV与世界领先的技术合作伙伴合作：MaggRabbit（美国）和Danish Farm Concept（丹麦），带来最现代化的动物饲料生产技术。"
+const seoKeywords = [
+  "APPE合作伙伴",
+  "Danish Farm Concept",
+  "MaggRabbit",
+  "畜牧技术",
+  "国际合作",
+  "丹麦",
+  "美国",
+  "动物饲料技术"
+]
+
+const partners = [
+  {
+    name: "MaggRabbit",
+    country: "美国",
+    flag: "🇺🇸",
+    description: "来自美国的领先技术公司，专门为动物饲料行业提供软件解决方案和研究设备",
+    expertise: [
+      "生产管理软件系统",
+      "研究和测试设备",
+      "质量控制技术",
+      "食品安全解决方案"
+    ]
+  },
+  {
+    name: "Danish Farm Concept",
+    country: "丹麦",
+    flag: "🇩🇰",
+    description: "代表整个现代丹麦养猪模式，提供从农场设计到畜牧管理的综合解决方案",
+    expertise: [
+      "现代化猪场设计",
+      "高效养猪技术",
+      "丹麦遗传学和育种",
+      "专业营养计划",
+      "可持续解决方案",
+      "教育和培训"
+    ],
+    members: [
+      "Hamlet Protein",
+      "SKOV",
+      "Dalum农业商学院",
+      "Danbred International",
+      "Danish Farm Design",
+      "Vissing Agro"
+    ]
+  }
+]
+---
+
+<BaseLayout 
+  title={seoTitle}
+  description={seoDescription}
+  keywords={seoKeywords}
+  canonical="/cn/partners"
+  lang="cn"
+>
+  <!-- Hero Section -->
+  <section class="pt-24 md:pt-32 pb-16 md:pb-20 bg-white">
+    <div class="max-w-[980px] mx-auto px-4 sm:px-6">
+      <div class="text-center mb-12">
+        <h1 class="text-4xl sm:text-5xl md:text-6xl font-semibold text-gray-900 mb-6 tracking-tight leading-tight">
+          合作伙伴
+        </h1>
+        <p class="text-lg sm:text-xl md:text-2xl text-gray-600 font-light max-w-3xl mx-auto leading-relaxed">
+          与世界领先的技术公司合作
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Introduction Section -->
+  <section class="py-16 md:py-20 bg-[#f5f5f7]">
+    <div class="max-w-[692px] mx-auto px-4 sm:px-6">
+      <div class="text-center">
+        <p class="text-[17px] md:text-[19px] text-gray-700 leading-relaxed font-light mb-8">
+          如今，现代动物饲料供应链行业需要最先进的设备和技术来生产高质量的产品。
+        </p>
+        <p class="text-[17px] md:text-[19px] text-gray-700 leading-relaxed font-light mb-8">
+          扩展整个生产过程，从原材料到饲料颗粒，必须拥有标准的软件系统、研究和测试设备以及现代化的生产技术。
+        </p>
+        <p class="text-[17px] md:text-[19px] text-gray-900 leading-relaxed font-medium">
+          因此，MaggRabbit（美国）和Danish Farm Concept（丹麦）一直在为APPE提供动物饲料生产技术方面的最佳能力支持。
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Partners Section -->
+  <section class="py-20 md:py-24 bg-white">
+    <div class="max-w-[980px] mx-auto px-4 sm:px-6">
+      <div class="space-y-20 md:space-y-24">
+        {partners.map((partner, index) => (
+          <div class={`${index % 2 === 0 ? '' : 'md:flex-row-reverse'}`}>
+            <div class="bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500">
+              <div class="bg-gradient-to-br from-blue-600 to-blue-700 p-8 md:p-12 text-white">
+                <div class="flex items-center gap-4 mb-4">
+                  <span class="text-5xl">{partner.flag}</span>
+                  <div>
+                    <h2 class="text-3xl md:text-4xl font-semibold tracking-tight">
+                      {partner.name}
+                    </h2>
+                    <p class="text-blue-100 text-lg mt-1">{partner.country}</p>
+                  </div>
+                </div>
+                <p class="text-[17px] text-blue-50 leading-relaxed font-light">
+                  {partner.description}
+                </p>
+              </div>
+
+              <div class="p-8 md:p-12">
+                <div class="mb-8">
+                  <h3 class="text-xl font-semibold text-gray-900 mb-4">
+                    专业知识与服务
+                  </h3>
+                  <div class="grid gap-3">
+                    {partner.expertise.map((item) => (
+                      <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                        <svg class="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span class="text-[15px] text-gray-700">{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {partner.members && (
+                  <div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-4">
+                      关联成员
+                    </h3>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      {partner.members.map((member) => (
+                        <div class="p-4 bg-blue-50 rounded-xl border border-blue-100 text-center">
+                          <span class="text-[13px] font-medium text-gray-900">{member}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Danish Farm Highlight -->
+  <section class="py-20 md:py-24 bg-[#f5f5f7]">
+    <div class="max-w-[980px] mx-auto px-4 sm:px-6">
+      <div class="bg-white rounded-3xl p-8 md:p-12 shadow-xl">
+        <div class="max-w-[692px] mx-auto text-center">
+          <div class="w-20 h-20 bg-gradient-to-br from-blue-600 to-blue-700 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+          </div>
+          
+          <h2 class="text-3xl md:text-4xl font-semibold text-gray-900 mb-6 tracking-tight">
+            合作承诺
+          </h2>
+          
+          <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-8 mb-6">
+            <p class="text-[19px] md:text-[21px] text-gray-900 leading-relaxed font-medium italic">
+              "APPE和丹麦Danish Farm正在合作，为养猪场带来最佳效益，并为越南市场提供高质量的猪精液"
+            </p>
+          </div>
+
+          <p class="text-[15px] text-gray-600 leading-relaxed">
+            Danish Farm Concept ©是一家代表整个丹麦养猪模式的公司和品牌，包括农场设计、养殖技术、遗传学、营养、可持续解决方案、教育和管理。
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Benefits Section -->
+  <section class="py-20 md:py-24 bg-white">
+    <div class="max-w-[980px] mx-auto px-4 sm:px-6">
+      <div class="text-center mb-16">
+        <h2 class="text-3xl md:text-4xl font-semibold text-gray-900 mb-4 tracking-tight">
+          合作优势
+        </h2>
+        <p class="text-[17px] text-gray-600 max-w-2xl mx-auto font-light">
+          先进技术与国际经验的结合
+        </p>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-8">
+        <div class="text-center">
+          <div class="w-16 h-16 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-semibold text-gray-900 mb-3">质量保证</h3>
+          <p class="text-[15px] text-gray-600 leading-relaxed">
+            技术和生产流程符合国际标准
+          </p>
+        </div>
+
+        <div class="text-center">
+          <div class="w-16 h-16 bg-gradient-to-br from-green-100 to-green-200 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-semibold text-gray-900 mb-3">高效率</h3>
+          <p class="text-[15px] text-gray-600 leading-relaxed">
+            优化生产流程，提高生产力
+          </p>
+        </div>
+
+        <div class="text-center">
+          <div class="w-16 h-16 bg-gradient-to-br from-purple-100 to-purple-200 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-semibold text-gray-900 mb-3">深度培训</h3>
+          <p class="text-[15px] text-gray-600 leading-relaxed">
+            技术转让和专业团队培训
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="py-16 md:py-20 bg-[#f5f5f7]">
+    <div class="max-w-[692px] mx-auto px-4 sm:px-6 text-center">
+      <h2 class="text-3xl sm:text-4xl font-semibold text-gray-900 mb-4 tracking-tight">
+        对合作感兴趣？
+      </h2>
+      <p class="text-[17px] text-gray-600 mb-8 font-light">
+        联系我们了解更多合作机会
+      </p>
+      <div class="flex flex-col sm:flex-row gap-3 justify-center">
+        <a 
+          href="tel:+84351359520"
+          class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[15px] font-medium transition-all"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+          </svg>
+          立即致电：0351 359 520
+        </a>
+        <a 
+          href="/cn/contact"
+          class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white hover:bg-gray-50 text-gray-900 rounded-xl text-[15px] font-medium transition-all border border-gray-200"
+        >
+          联系咨询
+        </a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
