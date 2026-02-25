@@ -64,7 +64,6 @@ export default function EcosystemModal({ brands }: EcosystemModalProps) {
         'Cung cấp giống chất lượng cao',
         'Dịch vụ tư vấn trang trại'
       ],
-      website: 'https://masothue.com/0900301560-cong-ty-co-phan-afarm',
       highlights: [
         'MST: 0900301560 - Thành lập 2008',
         'Địa chỉ: KCN Phố Nối A, Hưng Yên',
