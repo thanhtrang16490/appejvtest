@@ -20,6 +20,8 @@ export const slugMapping: Record<string, { vi: string; en: string; cn: string }>
   'dieu-khoan-su-dung': { vi: 'dieu-khoan-su-dung', en: 'terms-of-service', cn: 'terms-of-service' },
   'cookie-policy': { vi: 'chinh-sach-cookie', en: 'cookie-policy', cn: 'cookie-policy' },
   'chinh-sach-cookie': { vi: 'chinh-sach-cookie', en: 'cookie-policy', cn: 'cookie-policy' },
+  'app': { vi: 'ung-dung', en: 'app', cn: 'app' },
+  'ung-dung': { vi: 'ung-dung', en: 'app', cn: 'app' },
 }
 
 // Remove language prefix from path

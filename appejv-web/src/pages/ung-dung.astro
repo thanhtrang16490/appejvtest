@@ -1,0 +1,470 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const seoTitle = "Ứng Dụng APPE JV - Đặt Hàng Dễ Dàng Cho Đại Lý";
+const seoDescription = "Ứng dụng di động APPE JV giúp đại lý đặt hàng nhanh chóng, theo dõi đơn hàng realtime, quản lý lịch sử mua hàng. Tải ngay trên App Store và Google Play.";
+---
+
+<BaseLayout 
+  title={seoTitle}
+  description={seoDescription}
+  canonical="/ung-dung"
+>
+  <!-- Hero Section -->
+  <section class="pt-24 md:pt-32 pb-16 md:pb-20 bg-gradient-to-b from-blue-50 to-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <!-- Left Content -->
+        <div>
+          <div class="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-medium mb-6">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/>
+            </svg>
+            Miễn phí tải về
+          </div>
+          
+          <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+            Ứng Dụng APPE JV
+          </h1>
+          
+          <p class="text-xl text-gray-600 mb-8 leading-relaxed">
+            Giải pháp đặt hàng thông minh dành cho đại lý. Đặt hàng nhanh, theo dõi đơn hàng realtime, quản lý dễ dàng.
+          </p>
+
+          <!-- Download Buttons -->
+          <div class="flex flex-col sm:flex-row gap-4 mb-8">
+            <a 
+              href="https://apps.apple.com/app/appejv" 
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center justify-center gap-3 px-6 py-4 bg-black hover:bg-gray-800 text-white rounded-xl transition-all group"
+            >
+              <svg class="w-8 h-8" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
+              </svg>
+              <div class="text-left">
+                <div class="text-xs opacity-90">Tải trên</div>
+                <div class="text-lg font-semibold">App Store</div>
+              </div>
+            </a>
+
+            <a 
+              href="https://play.google.com/store/apps/details?id=com.appejv.android"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center justify-center gap-3 px-6 py-4 bg-black hover:bg-gray-800 text-white rounded-xl transition-all group"
+            >
+              <svg class="w-8 h-8" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M3,20.5V3.5C3,2.91 3.34,2.39 3.84,2.15L13.69,12L3.84,21.85C3.34,21.6 3,21.09 3,20.5M16.81,15.12L6.05,21.34L14.54,12.85L16.81,15.12M20.16,10.81C20.5,11.08 20.75,11.5 20.75,12C20.75,12.5 20.5,12.92 20.16,13.19L17.89,14.5L15.39,12L17.89,9.5L20.16,10.81M6.05,2.66L16.81,8.88L14.54,11.15L6.05,2.66Z"/>
+              </svg>
+              <div class="text-left">
+                <div class="text-xs opacity-90">Tải trên</div>
+                <div class="text-lg font-semibold">Google Play</div>
+              </div>
+            </a>
+          </div>
+
+          <!-- Stats -->
+          <div class="grid grid-cols-3 gap-6">
+            <div>
+              <div class="text-3xl font-bold text-gray-900">150+</div>
+              <div class="text-sm text-gray-600">Đại lý</div>
+            </div>
+            <div>
+              <div class="text-3xl font-bold text-gray-900">4.8★</div>
+              <div class="text-sm text-gray-600">Đánh giá</div>
+            </div>
+            <div>
+              <div class="text-3xl font-bold text-gray-900">24/7</div>
+              <div class="text-sm text-gray-600">Hỗ trợ</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right - App Preview -->
+        <div class="relative">
+          <div class="relative z-10">
+            <!-- Phone mockup placeholder -->
+            <div class="mx-auto w-[300px] h-[600px] bg-gradient-to-br from-blue-600 to-blue-800 rounded-[3rem] p-3 shadow-2xl">
+              <div class="w-full h-full bg-white rounded-[2.5rem] overflow-hidden">
+                <div class="h-full flex items-center justify-center text-gray-400">
+                  <div class="text-center">
+                    <svg class="w-24 h-24 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                    </svg>
+                    <p class="text-sm">App Screenshot</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Decorative elements -->
+          <div class="absolute top-10 -right-10 w-72 h-72 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
+          <div class="absolute -bottom-10 -left-10 w-72 h-72 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="text-center mb-16">
+        <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+          Tính Năng Nổi Bật
+        </h2>
+        <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+          Mọi thứ bạn cần để quản lý đơn hàng hiệu quả
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- Feature 1 -->
+        <div class="p-6 rounded-2xl bg-gradient-to-br from-blue-50 to-white border border-blue-100">
+          <div class="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center mb-4">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+            </svg>
+          </div>
+          <h3 class="text-xl font-semibold text-gray-900 mb-2">Đặt Hàng Nhanh</h3>
+          <p class="text-gray-600">Tìm kiếm sản phẩm dễ dàng, thêm vào giỏ hàng và đặt hàng chỉ trong vài giây.</p>
+        </div>
+
+        <!-- Feature 2 -->
+        <div class="p-6 rounded-2xl bg-gradient-to-br from-green-50 to-white border border-green-100">
+          <div class="w-12 h-12 bg-green-600 rounded-xl flex items-center justify-center mb-4">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+            </svg>
+          </div>
+          <h3 class="text-xl font-semibold text-gray-900 mb-2">Theo Dõi Đơn Hàng</h3>
+          <p class="text-gray-600">Cập nhật trạng thái đơn hàng realtime, biết chính xác hàng đang ở đâu.</p>
+        </div>
+
+        <!-- Feature 3 -->
+        <div class="p-6 rounded-2xl bg-gradient-to-br from-purple-50 to-white border border-purple-100">
+          <div class="w-12 h-12 bg-purple-600 rounded-xl flex items-center justify-center mb-4">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+          </div>
+          <h3 class="text-xl font-semibold text-gray-900 mb-2">Lịch Sử Mua Hàng</h3>
+          <p class="text-gray-600">Xem lại tất cả đơn hàng đã đặt, dễ dàng đặt lại sản phẩm yêu thích.</p>
+        </div>
+
+        <!-- Feature 4 -->
+        <div class="p-6 rounded-2xl bg-gradient-to-br from-orange-50 to-white border border-orange-100">
+          <div class="w-12 h-12 bg-orange-600 rounded-xl flex items-center justify-center mb-4">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+            </svg>
+          </div>
+          <h3 class="text-xl font-semibold text-gray-900 mb-2">Thông Báo Tức Thì</h3>
+          <p class="text-gray-600">Nhận thông báo ngay khi đơn hàng có cập nhật, không bỏ lỡ thông tin quan trọng.</p>
+        </div>
+
+        <!-- Feature 5 -->
+        <div class="p-6 rounded-2xl bg-gradient-to-br from-red-50 to-white border border-red-100">
+          <div class="w-12 h-12 bg-red-600 rounded-xl flex items-center justify-center mb-4">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+            </svg>
+          </div>
+          <h3 class="text-xl font-semibold text-gray-900 mb-2">Báo Cáo Chi Tiết</h3>
+          <p class="text-gray-600">Xem báo cáo doanh số, phân tích xu hướng mua hàng của bạn.</p>
+        </div>
+
+        <!-- Feature 6 -->
+        <div class="p-6 rounded-2xl bg-gradient-to-br from-indigo-50 to-white border border-indigo-100">
+          <div class="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center mb-4">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/>
+            </svg>
+          </div>
+          <h3 class="text-xl font-semibold text-gray-900 mb-2">Hỗ Trợ 24/7</h3>
+          <p class="text-gray-600">Đội ngũ hỗ trợ luôn sẵn sàng giải đáp mọi thắc mắc của bạn.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="py-20 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="text-center mb-16">
+        <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+          Cách Sử Dụng
+        </h2>
+        <p class="text-xl text-gray-600">
+          Chỉ 3 bước đơn giản để bắt đầu
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="text-center">
+          <div class="w-16 h-16 bg-blue-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">
+            1
+          </div>
+          <h3 class="text-xl font-semibold text-gray-900 mb-2">Tải Ứng Dụng</h3>
+          <p class="text-gray-600">Tải APPE JV từ App Store hoặc Google Play, hoàn toàn miễn phí</p>
+        </div>
+
+        <div class="text-center">
+          <div class="w-16 h-16 bg-blue-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">
+            2
+          </div>
+          <h3 class="text-xl font-semibold text-gray-900 mb-2">Đăng Ký Tài Khoản</h3>
+          <p class="text-gray-600">Đăng ký với thông tin đại lý, xác thực và bắt đầu sử dụng</p>
+        </div>
+
+        <div class="text-center">
+          <div class="w-16 h-16 bg-blue-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">
+            3
+          </div>
+          <h3 class="text-xl font-semibold text-gray-900 mb-2">Đặt Hàng Ngay</h3>
+          <p class="text-gray-600">Chọn sản phẩm, thêm vào giỏ hàng và hoàn tất đơn hàng</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Benefits -->
+  <section class="py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <div>
+          <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+            Tại Sao Chọn APPE JV?
+          </h2>
+          <div class="space-y-6">
+            <div class="flex gap-4">
+              <div class="flex-shrink-0">
+                <div class="w-10 h-10 bg-green-100 text-green-600 rounded-lg flex items-center justify-center">
+                  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                  </svg>
+                </div>
+              </div>
+              <div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-1">Tiết Kiệm Thời Gian</h3>
+                <p class="text-gray-600">Đặt hàng nhanh chóng, không cần gọi điện hay gửi email</p>
+              </div>
+            </div>
+
+            <div class="flex gap-4">
+              <div class="flex-shrink-0">
+                <div class="w-10 h-10 bg-green-100 text-green-600 rounded-lg flex items-center justify-center">
+                  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                  </svg>
+                </div>
+              </div>
+              <div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-1">Minh Bạch</h3>
+                <p class="text-gray-600">Theo dõi đơn hàng realtime, biết chính xác trạng thái</p>
+              </div>
+            </div>
+
+            <div class="flex gap-4">
+              <div class="flex-shrink-0">
+                <div class="w-10 h-10 bg-green-100 text-green-600 rounded-lg flex items-center justify-center">
+                  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                  </svg>
+                </div>
+              </div>
+              <div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-1">Dễ Quản Lý</h3>
+                <p class="text-gray-600">Lịch sử đơn hàng, báo cáo chi tiết, tất cả trong một app</p>
+              </div>
+            </div>
+
+            <div class="flex gap-4">
+              <div class="flex-shrink-0">
+                <div class="w-10 h-10 bg-green-100 text-green-600 rounded-lg flex items-center justify-center">
+                  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                  </svg>
+                </div>
+              </div>
+              <div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-1">An Toàn & Bảo Mật</h3>
+                <p class="text-gray-600">Dữ liệu được mã hóa, bảo vệ thông tin tuyệt đối</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl p-8 text-white">
+          <h3 class="text-2xl font-bold mb-6">Đặc Quyền Dành Cho Đại Lý</h3>
+          <ul class="space-y-4">
+            <li class="flex items-start gap-3">
+              <svg class="w-6 h-6 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+              </svg>
+              <span>Giá ưu đãi đặc biệt cho đại lý</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <svg class="w-6 h-6 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+              </svg>
+              <span>Hỗ trợ tư vấn kỹ thuật miễn phí</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <svg class="w-6 h-6 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+              </svg>
+              <span>Ưu tiên xử lý đơn hàng</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <svg class="w-6 h-6 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+              </svg>
+              <span>Chương trình khuyến mãi độc quyền</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <svg class="w-6 h-6 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+              </svg>
+              <span>Đào tạo sử dụng sản phẩm</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="py-20 bg-gradient-to-br from-blue-600 to-blue-800 text-white">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 text-center">
+      <h2 class="text-3xl md:text-4xl font-bold mb-6">
+        Sẵn Sàng Bắt Đầu?
+      </h2>
+      <p class="text-xl mb-8 opacity-90">
+        Tải ngay ứng dụng APPE JV và trải nghiệm cách đặt hàng hiện đại
+      </p>
+      
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <a 
+          href="https://apps.apple.com/app/appejv" 
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center justify-center gap-3 px-8 py-4 bg-white text-gray-900 hover:bg-gray-100 rounded-xl transition-all font-semibold"
+        >
+          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
+          </svg>
+          Tải trên App Store
+        </a>
+
+        <a 
+          href="https://play.google.com/store/apps/details?id=com.appejv.android"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center justify-center gap-3 px-8 py-4 bg-white text-gray-900 hover:bg-gray-100 rounded-xl transition-all font-semibold"
+        >
+          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M3,20.5V3.5C3,2.91 3.34,2.39 3.84,2.15L13.69,12L3.84,21.85C3.34,21.6 3,21.09 3,20.5M16.81,15.12L6.05,21.34L14.54,12.85L16.81,15.12M20.16,10.81C20.5,11.08 20.75,11.5 20.75,12C20.75,12.5 20.5,12.92 20.16,13.19L17.89,14.5L15.39,12L17.89,9.5L20.16,10.81M6.05,2.66L16.81,8.88L14.54,11.15L6.05,2.66Z"/>
+          </svg>
+          Tải trên Google Play
+        </a>
+      </div>
+
+      <p class="mt-8 text-sm opacity-75">
+        Hoặc liên hệ: <a href="tel:+84351359520" class="underline hover:no-underline">0351 3595 202</a> | 
+        <a href="mailto:info@appejv.app" class="underline hover:no-underline">info@appejv.app</a>
+      </p>
+    </div>
+  </section>
+
+  <!-- FAQ Section -->
+  <section class="py-20 bg-white">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+          Câu Hỏi Thường Gặp
+        </h2>
+      </div>
+
+      <div class="space-y-4">
+        <details class="group bg-gray-50 rounded-xl p-6">
+          <summary class="flex justify-between items-center cursor-pointer list-none">
+            <span class="text-lg font-semibold text-gray-900">Ứng dụng có miễn phí không?</span>
+            <svg class="w-5 h-5 text-gray-500 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </summary>
+          <p class="mt-4 text-gray-600">
+            Có, ứng dụng APPE JV hoàn toàn miễn phí tải về và sử dụng. Bạn chỉ thanh toán cho các đơn hàng thực tế.
+          </p>
+        </details>
+
+        <details class="group bg-gray-50 rounded-xl p-6">
+          <summary class="flex justify-between items-center cursor-pointer list-none">
+            <span class="text-lg font-semibold text-gray-900">Ai có thể sử dụng ứng dụng?</span>
+            <svg class="w-5 h-5 text-gray-500 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </summary>
+          <p class="mt-4 text-gray-600">
+            Ứng dụng dành cho đại lý và khách hàng của APPE JV. Bạn cần đăng ký tài khoản và được xác thực để sử dụng đầy đủ tính năng.
+          </p>
+        </details>
+
+        <details class="group bg-gray-50 rounded-xl p-6">
+          <summary class="flex justify-between items-center cursor-pointer list-none">
+            <span class="text-lg font-semibold text-gray-900">Làm sao để đăng ký tài khoản đại lý?</span>
+            <svg class="w-5 h-5 text-gray-500 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </summary>
+          <p class="mt-4 text-gray-600">
+            Liên hệ với chúng tôi qua hotline 0351 3595 202 hoặc email info@appejv.app để đăng ký làm đại lý. Đội ngũ của chúng tôi sẽ hướng dẫn bạn chi tiết.
+          </p>
+        </details>
+
+        <details class="group bg-gray-50 rounded-xl p-6">
+          <summary class="flex justify-between items-center cursor-pointer list-none">
+            <span class="text-lg font-semibold text-gray-900">Ứng dụng có hỗ trợ thanh toán online không?</span>
+            <svg class="w-5 h-5 text-gray-500 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </summary>
+          <p class="mt-4 text-gray-600">
+            Hiện tại ứng dụng hỗ trợ đặt hàng và thanh toán theo hình thức chuyển khoản hoặc COD. Chúng tôi đang phát triển tính năng thanh toán online.
+          </p>
+        </details>
+
+        <details class="group bg-gray-50 rounded-xl p-6">
+          <summary class="flex justify-between items-center cursor-pointer list-none">
+            <span class="text-lg font-semibold text-gray-900">Tôi có thể hủy đơn hàng không?</span>
+            <svg class="w-5 h-5 text-gray-500 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </summary>
+          <p class="mt-4 text-gray-600">
+            Bạn có thể hủy đơn hàng trước khi đơn hàng được xác nhận và chuẩn bị. Liên hệ ngay với bộ phận hỗ trợ để được xử lý nhanh chóng.
+          </p>
+        </details>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  @keyframes blob {
+    0% { transform: translate(0px, 0px) scale(1); }
+    33% { transform: translate(30px, -50px) scale(1.1); }
+    66% { transform: translate(-20px, 20px) scale(0.9); }
+    100% { transform: translate(0px, 0px) scale(1); }
+  }
+  
+  .animate-blob {
+    animation: blob 7s infinite;
+  }
+  
+  .animation-delay-2000 {
+    animation-delay: 2s;
+  }
+</style>
