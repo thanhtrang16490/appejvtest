@@ -3,7 +3,6 @@ import '../styles/global.css'
 import LanguageSwitcher from '../components/LanguageSwitcher.astro'
 import { getLangFromUrl, type Language } from '../i18n/languages'
 import { getLocalizedPath } from '../i18n/url-utils'
-import { ViewTransitions } from 'astro:transitions'
 
 interface Props {
   title: string
@@ -240,9 +239,6 @@ const websiteSchema = {
     <link rel="dns-prefetch" href="https://connect.facebook.net" />
     <link rel="dns-prefetch" href="https://sp.zalo.me" />
     
-    <!-- View Transitions for smooth page navigation -->
-    <ViewTransitions />
-    
     <!-- Google Analytics 4 with Partytown -->
     <script type="text/partytown" async src="https://www.googletagmanager.com/gtag/js?id=G-RGN1EGREY6"></script>
     <script type="text/partytown">
@@ -426,42 +422,46 @@ const websiteSchema = {
       const overlay = document.getElementById('mobile-menu-overlay');
       const menuLinks = document.querySelectorAll('.mobile-menu-link');
 
-      function openMenu() {
-        menu?.classList.remove('-translate-y-full');
-        overlay?.classList.remove('opacity-0', 'pointer-events-none');
-        document.body.style.overflow = 'hidden';
+      if (menuButton && menuClose && menu && overlay) {
+        function openMenu() {
+          menu.classList.remove('-translate-y-full');
+          overlay.classList.remove('opacity-0', 'pointer-events-none');
+          document.body.style.overflow = 'hidden';
+        }
+
+        function closeMenu() {
+          menu.classList.add('-translate-y-full');
+          overlay.classList.add('opacity-0', 'pointer-events-none');
+          document.body.style.overflow = '';
+        }
+
+        menuButton.addEventListener('click', openMenu);
+        menuClose.addEventListener('click', closeMenu);
+        overlay.addEventListener('click', closeMenu);
+        menuLinks.forEach(link => link.addEventListener('click', closeMenu));
       }
 
-      function closeMenu() {
-        menu?.classList.add('-translate-y-full');
-        overlay?.classList.add('opacity-0', 'pointer-events-none');
-        document.body.style.overflow = '';
-      }
-
-      menuButton?.addEventListener('click', openMenu);
-      menuClose?.addEventListener('click', closeMenu);
-      overlay?.addEventListener('click', closeMenu);
-      menuLinks.forEach(link => link.addEventListener('click', closeMenu));
-
-      // Header scroll effect - more subtle
+      // Header scroll effect
       let lastScroll = 0;
       const header = document.querySelector('header');
       
-      window.addEventListener('scroll', () => {
-        const currentScroll = window.pageYOffset;
-        
-        if (currentScroll > 50) {
-          header?.classList.add('shadow-sm');
-          header?.classList.remove('bg-white/70');
-          header?.classList.add('bg-white/90');
-        } else {
-          header?.classList.remove('shadow-sm');
-          header?.classList.remove('bg-white/90');
-          header?.classList.add('bg-white/70');
-        }
-        
-        lastScroll = currentScroll;
-      });
+      if (header) {
+        window.addEventListener('scroll', () => {
+          const currentScroll = window.pageYOffset;
+          
+          if (currentScroll > 50) {
+            header.classList.add('shadow-sm');
+            header.classList.remove('bg-white/70');
+            header.classList.add('bg-white/90');
+          } else {
+            header.classList.remove('shadow-sm');
+            header.classList.remove('bg-white/90');
+            header.classList.add('bg-white/70');
+          }
+          
+          lastScroll = currentScroll;
+        });
+      }
     </script>
 
     <!-- Main Content -->

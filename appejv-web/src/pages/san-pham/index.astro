@@ -125,71 +125,80 @@ function formatPrice(price: number): string {
         </p>
       </div>
 
-      {filteredProducts.length === 0 ? (
-        <div class="text-center py-20">
-          <svg class="w-20 h-20 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-          </svg>
-          <h3 class="text-xl font-semibold text-gray-900 mb-2">Không tìm thấy sản phẩm</h3>
-          <p class="text-[15px] text-gray-600 mb-6">Thử tìm kiếm với từ khóa khác hoặc chọn danh mục khác</p>
-          <a href="/san-pham" class="inline-block px-6 py-3 bg-blue-600 text-white rounded-xl text-[15px] font-medium hover:bg-blue-700 transition-all">
-            Xem tất cả sản phẩm
-          </a>
-        </div>
-      ) : (
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-          {filteredProducts.map((product) => (
-            <a 
-              href={`/san-pham/${product.slug}`}
-              class="group bg-white rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300"
-            >
-              <!-- Product Image -->
-              <div class="aspect-square bg-[#f5f5f7] overflow-hidden">
-                {product.image_url ? (
-                  <img 
-                    src={product.image_url} 
-                    alt={product.name}
-                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    loading="lazy"
-                  />
-                ) : (
-                  <div class="w-full h-full flex items-center justify-center">
-                    <svg class="w-16 h-16 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                    </svg>
-                  </div>
-                )}
-              </div>
+      <!-- No Results Message (always in DOM, hidden by default) -->
+      <div id="no-results" class="text-center py-20" style={filteredProducts.length > 0 ? 'display: none;' : ''}>
+        <svg class="w-20 h-20 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+        </svg>
+        <h3 class="text-xl font-semibold text-gray-900 mb-2">Không tìm thấy sản phẩm</h3>
+        <p id="no-results-message" class="text-[15px] text-gray-600 mb-6">Thử tìm kiếm với từ khóa khác hoặc chọn danh mục khác</p>
+        <a href="/san-pham" class="inline-block px-6 py-3 bg-blue-600 text-white rounded-xl text-[15px] font-medium hover:bg-blue-700 transition-all">
+          Xem tất cả sản phẩm
+        </a>
+      </div>
 
-              <!-- Product Info -->
-              <div class="p-4">
-                <h3 class="text-[15px] font-semibold text-gray-900 mb-1 line-clamp-2 group-hover:text-blue-600 transition-colors">
-                  {product.name}
-                </h3>
-                
-                {product.description && (
-                  <p class="text-[13px] text-gray-600 mb-2 line-clamp-2">
-                    {product.description}
-                  </p>
-                )}
+      <!-- Products Grid (always in DOM) -->
+      <div id="products-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6" style={filteredProducts.length === 0 ? 'display: none;' : ''}>
+        {allProducts.map((product) => (
+          <a 
+            href={`/san-pham/${product.slug}`}
+            class="product-card group bg-white rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300"
+            data-product-name={product.name.toLowerCase()}
+            data-product-description={(product.description || '').toLowerCase()}
+            data-category-id={product.category_id}
+            style={
+              (categoryFilter !== 'all' && product.category_id !== categoryFilter) ||
+              (searchQuery && !product.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                ? 'display: none;'
+                : ''
+            }
+          >
+            <!-- Product Image -->
+            <div class="aspect-square bg-[#f5f5f7] overflow-hidden">
+              {product.image_url ? (
+                <img 
+                  src={product.image_url} 
+                  alt={product.name}
+                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  loading="lazy"
+                />
+              ) : (
+                <div class="w-full h-full flex items-center justify-center">
+                  <svg class="w-16 h-16 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                  </svg>
+                </div>
+              )}
+            </div>
 
-                {product.price && (
-                  <div class="flex items-baseline gap-2">
-                    <span class="text-[17px] font-semibold text-gray-900">
-                      {formatPrice(product.price)}đ
+            <!-- Product Info -->
+            <div class="p-4">
+              <h3 class="text-[15px] font-semibold text-gray-900 mb-1 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                {product.name}
+              </h3>
+              
+              {product.description && (
+                <p class="text-[13px] text-gray-600 mb-2 line-clamp-2">
+                  {product.description}
+                </p>
+              )}
+
+              {product.price && (
+                <div class="flex items-baseline gap-2">
+                  <span class="text-[17px] font-semibold text-gray-900">
+                    {formatPrice(product.price)}đ
+                  </span>
+                  {product.unit && (
+                    <span class="text-[13px] text-gray-500">
+                      /{product.unit}
                     </span>
-                    {product.unit && (
-                      <span class="text-[13px] text-gray-500">
-                        /{product.unit}
-                      </span>
-                    )}
-                  </div>
-                )}
-              </div>
-            </a>
-          ))}
-        </div>
-      )}
+                  )}
+                </div>
+              )}
+            </div>
+          </a>
+        ))}
+      </div>
 
       <!-- Load More (if needed) -->
       {filteredProducts.length > 12 && (
@@ -257,8 +266,9 @@ function formatPrice(price: number): string {
     // Real-time search functionality
     document.addEventListener('DOMContentLoaded', () => {
       const searchInput = document.querySelector('input[name="search"]') as HTMLInputElement;
-      const productsGrid = document.querySelector('.grid.grid-cols-2') as HTMLElement;
-      const noResultsDiv = document.querySelector('.text-center.py-20') as HTMLElement;
+      const productsGrid = document.getElementById('products-grid') as HTMLElement;
+      const noResultsDiv = document.getElementById('no-results') as HTMLElement;
+      const noResultsMessage = document.getElementById('no-results-message') as HTMLElement;
       const resultCount = document.querySelector('.result-count') as HTMLElement;
       
       if (!searchInput || !productsGrid) {
@@ -267,11 +277,11 @@ function formatPrice(price: number): string {
       }
 
       // Get all product cards
-      const allProductCards = Array.from(productsGrid.children) as HTMLElement[];
+      const allProductCards = Array.from(document.querySelectorAll('.product-card')) as HTMLElement[];
       
       // Debounce function for performance
       function debounce(func: Function, wait: number) {
-        let timeout: NodeJS.Timeout;
+        let timeout: ReturnType<typeof setTimeout>;
         return function executedFunction(...args: any[]) {
           const later = () => {
             clearTimeout(timeout);
@@ -289,8 +299,8 @@ function formatPrice(price: number): string {
         let visibleCount = 0;
         
         allProductCards.forEach((card) => {
-          const productName = card.querySelector('h3')?.textContent?.toLowerCase() || '';
-          const productDesc = card.querySelector('p')?.textContent?.toLowerCase() || '';
+          const productName = card.getAttribute('data-product-name') || '';
+          const productDesc = card.getAttribute('data-product-description') || '';
           
           const matches = term === '' || 
                          productName.includes(term) || 
@@ -314,9 +324,8 @@ function formatPrice(price: number): string {
           productsGrid.style.display = 'none';
           if (noResultsDiv) {
             noResultsDiv.style.display = 'block';
-            const messageP = noResultsDiv.querySelector('p');
-            if (messageP && term) {
-              messageP.textContent = `Không tìm thấy sản phẩm với từ khóa "${searchTerm}"`;
+            if (noResultsMessage && term) {
+              noResultsMessage.textContent = `Không tìm thấy sản phẩm với từ khóa "${searchTerm}"`;
             }
           }
         } else {

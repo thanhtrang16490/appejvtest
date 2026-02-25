@@ -56,18 +56,21 @@ export default function EcosystemModal({ brands }: EcosystemModalProps) {
       ]
     },
     'AFARM': {
-      fullDescription: 'AFARM vận hành các trang trại chăn nuôi công nghệ cao với quy trình khép kín, đảm bảo chất lượng từ giống đến sản phẩm. Áp dụng công nghệ IoT và AI để tối ưu hiệu quả chăn nuôi.',
+      fullDescription: 'Công ty Cổ phần AFARM (MST: 0900301560) - thành viên của A Group, chuyên chăn nuôi heo, gia cầm và thủy sản công nghệ cao. Thành lập từ năm 2008, với trang trại hiện đại tại Khu công nghiệp Phố Nối A, Hưng Yên. AFARM áp dụng quy trình khép kín, công nghệ IoT và AI để tối ưu hiệu quả chăn nuôi.',
       services: [
-        'Chăn nuôi heo công nghiệp',
-        'Chăn nuôi gia cầm quy mô lớn',
+        'Chăn nuôi heo công nghiệp quy mô lớn',
+        'Chăn nuôi gia cầm (gà, vịt, ngan)',
+        'Nuôi trồng thủy sản',
         'Cung cấp giống chất lượng cao',
         'Dịch vụ tư vấn trang trại'
       ],
+      website: 'https://masothue.com/0900301560-cong-ty-co-phan-afarm',
       highlights: [
+        'MST: 0900301560 - Thành lập 2008',
+        'Địa chỉ: KCN Phố Nối A, Hưng Yên',
         'Công nghệ IoT & AI',
         'Quy trình khép kín',
-        'Tiêu chuẩn VietGAP',
-        'Truy xuất nguồn gốc 100%'
+        'Tiêu chuẩn VietGAP'
       ]
     },
     'AFOOD': {
@@ -101,33 +104,37 @@ export default function EcosystemModal({ brands }: EcosystemModalProps) {
       ]
     },
     'APHAMA': {
-      fullDescription: 'APHAMA chuyên nghiên cứu, sản xuất và phân phối dược thú y, sinh học ứng dụng. Với đội ngũ chuyên gia và phòng lab hiện đại, APHAMA cung cấp giải pháp chăm sóc sức khỏe toàn diện cho vật nuôi.',
+      fullDescription: 'APHAMA (A Pharma) chuyên nghiên cứu, sản xuất và phân phối dược thú y, sinh học ứng dụng. Với đội ngũ chuyên gia và phòng lab hiện đại, APHAMA cung cấp giải pháp chăm sóc sức khỏe toàn diện cho vật nuôi, đảm bảo an toàn và hiệu quả cao.',
       services: [
         'Dược thú y chất lượng cao',
         'Sinh phẩm vi sinh',
         'Vitamin & khoáng chất',
-        'Tư vấn điều trị bệnh'
+        'Thuốc điều trị và phòng bệnh',
+        'Tư vấn điều trị bệnh chuyên sâu'
       ],
+      website: 'http://www.apharmadvm.com.vn/',
       highlights: [
         'Phòng lab chuẩn quốc tế',
-        'Đội ngũ bác sĩ thú y',
+        'Đội ngũ bác sĩ thú y giàu kinh nghiệm',
         'Sản phẩm đạt chuẩn GMP',
-        'Nghiên cứu & phát triển'
+        'Nghiên cứu & phát triển liên tục'
       ]
     },
     'AVAC': {
-      fullDescription: 'AVAC chuyên sản xuất vaccine và sinh phẩm phòng bệnh cho vật nuôi. Với công nghệ sinh học tiên tiến và quy trình sản xuất đạt chuẩn quốc tế, AVAC góp phần bảo vệ sức khỏe đàn vật nuôi.',
+      fullDescription: 'AVAC (A Vaccine) là công ty hàng đầu trong lĩnh vực sản xuất vaccine và sinh phẩm phòng bệnh cho vật nuôi tại Việt Nam. Với công nghệ sinh học tiên tiến và quy trình sản xuất đạt chuẩn quốc tế, AVAC góp phần bảo vệ sức khỏe đàn vật nuôi và phát triển ngành chăn nuôi bền vững.',
       services: [
-        'Vaccine phòng bệnh',
+        'Vaccine phòng bệnh cho gia súc, gia cầm',
         'Sinh phẩm miễn dịch',
-        'Chẩn đoán bệnh',
-        'Dịch vụ tiêm phòng'
+        'Dịch vụ chẩn đoán bệnh',
+        'Dịch vụ tiêm phòng chuyên nghiệp',
+        'Tư vấn chương trình phòng bệnh'
       ],
+      website: 'https://www.avac.com.vn/',
       highlights: [
         'Công nghệ sinh học tiên tiến',
-        'Chuỗi lạnh đạt chuẩn',
+        'Chuỗi lạnh đạt chuẩn quốc tế',
         'Hiệu quả phòng bệnh cao',
-        'Đội ngũ chuyên gia hàng đầu'
+        'Đội ngũ chuyên gia hàng đầu Việt Nam'
       ]
     }
   }

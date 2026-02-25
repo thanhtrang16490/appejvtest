@@ -1,39 +1,46 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 export default function ExitIntentPopup() {
   const [isVisible, setIsVisible] = useState(false)
   const [email, setEmail] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
+  const exitIntentTriggeredRef = useRef(false)
+  const timerRef = useRef<NodeJS.Timeout | undefined>(undefined)
 
   useEffect(() => {
+    // Check if popup was already seen
     const hasSeenPopup = localStorage.getItem('exitPopupSeen')
-    if (hasSeenPopup) return
-
-    let exitIntentTriggered = false
+    if (hasSeenPopup || exitIntentTriggeredRef.current) return
 
     const handleMouseLeave = (e: MouseEvent) => {
-      if (e.clientY <= 0 && !exitIntentTriggered) {
-        exitIntentTriggered = true
+      // Only trigger if mouse leaves from top and hasn't been triggered before
+      if (e.clientY <= 0 && !exitIntentTriggeredRef.current) {
+        exitIntentTriggeredRef.current = true
         setIsVisible(true)
         localStorage.setItem('exitPopupSeen', 'true')
       }
     }
 
-    const timer = setTimeout(() => {
+    // Delay adding the event listener to avoid immediate triggers
+    timerRef.current = setTimeout(() => {
       document.addEventListener('mouseleave', handleMouseLeave)
     }, 5000)
 
+    // Cleanup function
     return () => {
-      clearTimeout(timer)
+      if (timerRef.current) {
+        clearTimeout(timerRef.current)
+      }
       document.removeEventListener('mouseleave', handleMouseLeave)
     }
   }, [])
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsSubmitting(true)
 
+    // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1500))
 
     console.log('Email submitted:', email)
@@ -41,6 +48,7 @@ export default function ExitIntentPopup() {
     setIsSubmitting(false)
     setIsSuccess(true)
 
+    // Close popup after success message
     setTimeout(() => {
       setIsVisible(false)
     }, 2000)
@@ -53,13 +61,24 @@ export default function ExitIntentPopup() {
   if (!isVisible) return null
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 animate-fadeIn">
+    <div 
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+      style={{
+        animation: 'fadeIn 0.3s ease-out'
+      }}
+    >
       <div 
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={handleClose}
+        style={{ cursor: 'pointer' }}
       />
 
-      <div className="relative bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden animate-scaleIn">
+      <div 
+        className="relative bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden"
+        style={{
+          animation: 'scaleIn 0.3s ease-out'
+        }}
+      >
         <button
           onClick={handleClose}
           className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors z-10"

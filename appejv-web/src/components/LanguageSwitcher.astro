@@ -66,40 +66,46 @@ const basePath = getBasePath(currentPath)
   const menu = document.getElementById('language-menu')
   const switcher = document.getElementById('language-switcher')
 
-  function toggleMenu() {
-    const isOpen = menu?.classList.contains('opacity-100')
-    
-    if (isOpen) {
-      menu?.classList.remove('opacity-100', 'scale-100')
-      menu?.classList.add('opacity-0', 'scale-95', 'pointer-events-none')
-      button?.setAttribute('aria-expanded', 'false')
-    } else {
-      menu?.classList.remove('opacity-0', 'scale-95', 'pointer-events-none')
-      menu?.classList.add('opacity-100', 'scale-100')
-      button?.setAttribute('aria-expanded', 'true')
+  if (!button || !menu || !switcher) {
+    console.warn('Language switcher elements not found')
+  } else {
+    function toggleMenu() {
+      const isOpen = menu.classList.contains('opacity-100')
+      
+      if (isOpen) {
+        menu.classList.remove('opacity-100', 'scale-100')
+        menu.classList.add('opacity-0', 'scale-95', 'pointer-events-none')
+        button.setAttribute('aria-expanded', 'false')
+      } else {
+        menu.classList.remove('opacity-0', 'scale-95', 'pointer-events-none')
+        menu.classList.add('opacity-100', 'scale-100')
+        button.setAttribute('aria-expanded', 'true')
+      }
     }
+
+    function closeMenu() {
+      menu.classList.remove('opacity-100', 'scale-100')
+      menu.classList.add('opacity-0', 'scale-95', 'pointer-events-none')
+      button.setAttribute('aria-expanded', 'false')
+    }
+
+    button.addEventListener('click', (e) => {
+      e.stopPropagation()
+      toggleMenu()
+    })
+
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!switcher.contains(e.target as Node)) {
+        closeMenu()
+      }
+    })
+
+    // Close menu on escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeMenu()
+      }
+    })
   }
-
-  button?.addEventListener('click', (e) => {
-    e.stopPropagation()
-    toggleMenu()
-  })
-
-  // Close menu when clicking outside
-  document.addEventListener('click', (e) => {
-    if (!switcher?.contains(e.target as Node)) {
-      menu?.classList.remove('opacity-100', 'scale-100')
-      menu?.classList.add('opacity-0', 'scale-95', 'pointer-events-none')
-      button?.setAttribute('aria-expanded', 'false')
-    }
-  })
-
-  // Close menu on escape key
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      menu?.classList.remove('opacity-100', 'scale-100')
-      menu?.classList.add('opacity-0', 'scale-95', 'pointer-events-none')
-      button?.setAttribute('aria-expanded', 'false')
-    }
-  })
 </script>
