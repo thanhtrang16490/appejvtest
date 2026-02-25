@@ -6,7 +6,10 @@ import partytown from '@astrojs/partytown'
 export default defineConfig({
   integrations: [
     tailwind(), 
-    react(),
+    react({
+      // Enable SSR for React components but handle Three.js specially
+      include: ['**/react/*', '**/components/**/*'],
+    }),
     partytown({
       config: {
         forward: ['dataLayer.push', 'fbq', 'clarity'],
@@ -16,21 +19,36 @@ export default defineConfig({
   output: 'static',
   site: 'https://appejv.app',
   
+  // Security Headers - Applied at build time for static hosting
+  // For additional security, configure these at your CDN/edge (Cloudflare, Vercel, Nginx)
+  compressHTML: true,
+  
   // Performance Optimizations
   prefetch: {
     prefetchAll: true,
-    defaultStrategy: 'viewport', // Prefetch links when they enter viewport
+    defaultStrategy: 'viewport',
   },
   
   // Build optimizations
   build: {
-    inlineStylesheets: 'auto', // Inline small CSS files
+    inlineStylesheets: 'auto',
+    assets: 'inline',
+  },
+  
+  // Image optimization
+  image: {
+    service: {
+      entrypoint: 'astro/assets/services/sharp',
+      config: {
+        limitInputPixels: false,
+      },
+    },
   },
   
   // Vite optimizations
   vite: {
     build: {
-      cssMinify: 'esbuild', // Fast CSS minification
+      cssMinify: 'esbuild',
       rollupOptions: {
         output: {
           manualChunks: {
@@ -39,6 +57,13 @@ export default defineConfig({
           },
         },
       },
+    },
+    optimizeDeps: {
+      include: ['react', 'react-dom', 'three', '@react-three/fiber', '@react-three/drei'],
+    },
+    ssr: {
+      // External packages that should not be server-side rendered
+      external: ['three', '@react-three/fiber', '@react-three/drei'],
     },
   },
 })

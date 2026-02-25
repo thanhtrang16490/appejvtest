@@ -10,6 +10,8 @@ import ScrollDrivenProduct from '../components/ScrollDrivenProduct.astro'
 import ExitIntentPopup from '../components/ExitIntentPopup'
 import QualityCertifications from '../components/QualityCertifications.astro'
 import EcosystemWithModal from '../components/EcosystemWithModal'
+import LoadingSkeleton from '../components/LoadingSkeleton'
+import { FEATURE_FLAGS } from '../lib/config'
 
 const seoTitle = "APPE JV Việt Nam - Thức ăn chăn nuôi và thủy sản chất lượng cao"
 const seoDescription = "APPE JV chuyên sản xuất và cung cấp thức ăn chăn nuôi chất lượng cao cho heo, gia cầm và thủy sản. Thành lập từ 2008, ứng dụng công nghệ tiên tiến, xuất khẩu sang Đông Nam Á và Châu Âu."
@@ -208,7 +210,7 @@ const values = [
   <div class="min-h-screen bg-white">
   <!-- Hero Section - Apple Style with Video Background -->
   <section class="min-h-screen flex items-center justify-center px-4 pt-24 pb-20 relative overflow-hidden" id="hero-section">
-    <!-- Video Background with Fallback -->
+    <!-- Video Background with Fallback - client:only for SSR compatibility -->
     <VideoHeroBackground 
       videoUrl="/factory-video.mp4"
       fallbackImage="/hero-fallback.jpg"
@@ -216,7 +218,7 @@ const values = [
       client:only="react"
     />
     
-    <!-- 3D Enhanced Background (as secondary layer) -->
+    <!-- 3D Enhanced Background (as secondary layer) - client:only for SSR compatibility -->
     <div class="absolute inset-0 opacity-20">
       <Hero3DBackground client:only="react" />
     </div>
@@ -260,19 +262,19 @@ const values = [
       <div class="flex flex-col md:flex-row md:flex-wrap md:justify-center gap-3 md:gap-0 text-base md:text-lg lg:text-xl text-gray-600 mb-10 max-w-3xl mx-auto opacity-0 hero-fade-in font-light" style="animation-delay: 0.6s">
         <span class="flex items-center gap-2 md:mx-2">
           <svg class="w-5 h-5 flex-shrink-0 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
           </svg>
           <span>Tăng trọng nhanh hơn</span>
         </span>
         <span class="flex items-center gap-2 md:mx-2">
           <svg class="w-5 h-5 flex-shrink-0 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
           </svg>
           <span>Giảm chi phí thức ăn</span>
         </span>
         <span class="flex items-center gap-2 md:mx-2">
           <svg class="w-5 h-5 flex-shrink-0 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
           </svg>
           <span>Vật nuôi khỏe mạnh</span>
         </span>
@@ -411,7 +413,7 @@ const values = [
     </div>
     
     <!-- 3D DNA Helix Background -->
-    <div class="absolute right-0 top-1/2 transform -translate-y-1/2 opacity-15 hidden lg:block">
+    <div class="absolute right-0 top-1/2 transform -translate-y-1/2 opacity-[0.15] hidden lg:block">
       <DNA3DHelix client:only="react" />
     </div>
     
@@ -540,7 +542,7 @@ const values = [
     <div class="absolute inset-0 bg-gradient-to-br from-gray-50 via-white to-gray-50"></div>
     
     <!-- 3D Wave Background -->
-    <div class="absolute inset-0 opacity-8">
+    <div class="absolute inset-0 opacity-[0.08]">
       <ParticleWave3D client:only="react" />
     </div>
     
@@ -663,7 +665,7 @@ const values = [
     <div class="absolute inset-0 bg-gradient-to-br from-blue-50/30 via-white to-purple-50/30"></div>
     
     <!-- 3D Animated Sphere Background -->
-    <div class="absolute left-0 top-1/2 transform -translate-y-1/2 opacity-8 hidden lg:block">
+    <div class="absolute left-0 top-1/2 transform -translate-y-1/2 opacity-[0.08] hidden lg:block">
       <AnimatedSphere3D client:only="react" />
     </div>
     
@@ -682,7 +684,7 @@ const values = [
       </div>
       <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
         {testimonials.map((testimonial, index) => (
-          <div class="bg-white/80 backdrop-blur-sm rounded-3xl p-10 hover:bg-white hover:shadow-2xl transition-all duration-500 scroll-reveal ring-1 ring-gray-900/5" style={`animation-delay: ${index * 0.1}s`}>
+          <div class="bg-white/80 backdrop-blur-sm rounded-3xl p-10 hover:bg-white hover:shadow-2xl transition-all duration-500 scroll-reveal ring-1 ring-gray-900/5" style={`animation-delay: ${String(index * 0.1)}s`}>
             <div class="flex mb-6">
               {Array.from({ length: testimonial.rating }).map(() => (
                 <svg class="w-5 h-5 text-gray-900" fill="currentColor" viewBox="0 0 20 20">
@@ -864,8 +866,9 @@ const values = [
       const tabContents = document.querySelectorAll('.tab-content');
       
       tabButtons.forEach(button => {
-        button.addEventListener('click', () => {
+          button.addEventListener('click', () => {
           const tabName = button.getAttribute('data-tab');
+          if (!tabName) return;
           
           // Remove active class from all buttons and contents
           tabButtons.forEach(btn => btn.classList.remove('active', 'bg-white/20'));
@@ -873,8 +876,12 @@ const values = [
           
           // Add active class to clicked button and corresponding content
           button.classList.add('active', 'bg-white/20');
-          document.getElementById(`${tabName}-tab`).classList.add('active');
+          const tabElement = document.getElementById(`${tabName}-tab`);
+          if (tabElement) {
+            tabElement.classList.add('active');
+          }
         });
+
       });
     });
   </script>
@@ -899,7 +906,7 @@ const values = [
       </div>
       <div class="space-y-2">
         {faqs.map((faq, index) => (
-          <details class="group bg-white/80 backdrop-blur-sm rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300 scroll-reveal ring-1 ring-gray-900/5" style={`animation-delay: ${index * 0.05}s`}>
+          <details class="group bg-white/80 backdrop-blur-sm rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300 scroll-reveal ring-1 ring-gray-900/5" style={`animation-delay: ${String(index * 0.05)}s`}>
             <summary class="flex justify-between items-center cursor-pointer p-8 font-semibold text-gray-900 text-lg md:text-xl">
               <span class="pr-8">{faq.question}</span>
               <svg class="w-6 h-6 text-gray-400 transition-transform group-open:rotate-180 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -952,11 +959,11 @@ const values = [
       const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
           if (entry.isIntersecting && !entry.target.classList.contains('counted')) {
-            const target = entry.target;
+            const target = entry.target as HTMLElement;
             const shouldCountUp = target.dataset.countup === 'true';
             
             if (shouldCountUp) {
-              const finalValue = parseInt(target.dataset.target);
+              const finalValue = parseInt(target.dataset.target || '0');
               const suffix = target.dataset.suffix || '';
               const duration = 2000;
               const steps = 60;
@@ -1025,21 +1032,23 @@ const values = [
       // Parallax layers in hero
       const parallaxLayers = document.querySelectorAll('.parallax-layer');
       parallaxLayers.forEach(layer => {
-        const speed = parseFloat(layer.dataset.speed) || 0.5;
+        const el = layer as HTMLElement;
+        const speed = parseFloat(el.dataset.speed || '0.5');
         const yPos = -(scrolled * speed);
-        layer.style.transform = `translateY(${yPos}px)`;
+        el.style.transform = `translateY(${yPos}px)`;
       });
       
       // Parallax text elements
       const parallaxTexts = document.querySelectorAll('.parallax-text');
       parallaxTexts.forEach(text => {
-        const speed = parseFloat(text.dataset.speed) || 0.3;
+        const el = text as HTMLElement;
+        const speed = parseFloat(el.dataset.speed || '0.3');
         const yPos = -(scrolled * speed);
-        text.style.transform = `translateY(${yPos}px)`;
+        el.style.transform = `translateY(${yPos}px)`;
       });
       
       // Hide scroll indicator after scrolling
-      const scrollIndicator = document.querySelector('.scroll-indicator');
+      const scrollIndicator = document.querySelector('.scroll-indicator') as HTMLElement | null;
       if (scrollIndicator) {
         if (scrolled > 100) {
           scrollIndicator.style.opacity = '0';
@@ -1053,7 +1062,8 @@ const values = [
       // Scale effect on sections
       const sections = document.querySelectorAll('section');
       sections.forEach(section => {
-        const rect = section.getBoundingClientRect();
+        const el = section as HTMLElement;
+        const rect = el.getBoundingClientRect();
         const scrollProgress = 1 - (rect.top / window.innerHeight);
         
         if (scrollProgress > 0 && scrollProgress < 1) {
@@ -1061,9 +1071,9 @@ const values = [
           const opacity = Math.max(0.3, scrollProgress);
           
           // Apply subtle scale and opacity
-          if (section.id !== 'hero-section') {
-            section.style.transform = `scale(${Math.min(scale, 1)})`;
-            section.style.opacity = opacity;
+          if (el.id !== 'hero-section') {
+            el.style.transform = `scale(${Math.min(scale, 1)})`;
+            el.style.opacity = String(opacity);
           }
         }
       });
@@ -1091,7 +1101,7 @@ const values = [
   <!-- Sticky CTA Bar Script -->
   <script>
     let lastScroll = 0;
-    const stickyCTA = document.getElementById('sticky-cta');
+    const stickyCTA = document.getElementById('sticky-cta') as HTMLElement | null;
     const heroHeight = window.innerHeight;
     
     window.addEventListener('scroll', () => {

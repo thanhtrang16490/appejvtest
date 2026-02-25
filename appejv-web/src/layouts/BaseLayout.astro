@@ -279,7 +279,15 @@ const websiteSchema = {
       />
     </noscript>
   </head>
-  <body class="bg-white min-h-screen">
+<body class="bg-white min-h-screen">
+    <!-- Skip Links for Accessibility -->
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300">
+      {currentLang === 'en' ? 'Skip to main content' : currentLang === 'cn' ? '跳转到主要内容' : 'Chuyển đến nội dung chính'}
+    </a>
+    <a href="#main-nav" class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-40 focus:z-50 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300">
+      {currentLang === 'en' ? 'Skip to navigation' : currentLang === 'cn' ? '跳转到导航' : 'Chuyển đến điều hướng'}
+    </a>
+
     <!-- Header - Apple Style -->
     <header class="fixed top-0 left-0 right-0 z-50 bg-white/70 backdrop-blur-2xl border-b border-gray-200/80 transition-all duration-300">
       <div class="max-w-[980px] mx-auto px-4 sm:px-6">
@@ -297,7 +305,7 @@ const websiteSchema = {
           </a>
 
           <!-- Desktop Navigation -->
-          <nav class="hidden md:flex items-center gap-8">
+          <nav id="main-nav" class="hidden md:flex items-center gap-8" role="navigation" aria-label="Main navigation">
             <a href={currentLang === 'en' ? '/en' : currentLang === 'cn' ? '/cn' : '/'} class="text-[12px] font-normal text-gray-800 hover:text-gray-900 transition-colors duration-200 tracking-tight">
               {currentLang === 'en' ? 'Home' : currentLang === 'cn' ? '首页' : 'Trang chủ'}
             </a>
@@ -420,31 +428,43 @@ const websiteSchema = {
       </div>
     </div>
 
-    <script>
+<script>
       // Mobile menu functionality
-      const menuButton = document.getElementById('mobile-menu-button');
-      const menuClose = document.getElementById('mobile-menu-close');
-      const menu = document.getElementById('mobile-menu');
-      const overlay = document.getElementById('mobile-menu-overlay');
+      const menuButton = document.getElementById('mobile-menu-button') as HTMLElement | null;
+      const menuClose = document.getElementById('mobile-menu-close') as HTMLElement | null;
+      const menu = document.getElementById('mobile-menu') as HTMLElement | null;
+      const overlay = document.getElementById('mobile-menu-overlay') as HTMLElement | null;
       const menuLinks = document.querySelectorAll('.mobile-menu-link');
 
-      if (menuButton && menuClose && menu && overlay) {
+if (menuButton && menuClose && menu && overlay) {
         function openMenu() {
+          if (!menu || !overlay) return;
           menu.classList.remove('-translate-y-full');
           overlay.classList.remove('opacity-0', 'pointer-events-none');
           document.body.style.overflow = 'hidden';
+          menuClose?.focus();
         }
 
         function closeMenu() {
+          if (!menu || !overlay) return;
           menu.classList.add('-translate-y-full');
           overlay.classList.add('opacity-0', 'pointer-events-none');
           document.body.style.overflow = '';
+          menuButton?.focus();
         }
 
         menuButton.addEventListener('click', openMenu);
         menuClose.addEventListener('click', closeMenu);
         overlay.addEventListener('click', closeMenu);
         menuLinks.forEach(link => link.addEventListener('click', closeMenu));
+        
+        // Keyboard navigation - ESC to close
+        document.addEventListener('keydown', (e: Event) => {
+          const keyboardEvent = e as KeyboardEvent;
+          if (keyboardEvent.key === 'Escape' && !menu.classList.contains('-translate-y-full')) {
+            closeMenu();
+          }
+        });
       }
 
       // Header scroll effect
@@ -471,7 +491,7 @@ const websiteSchema = {
     </script>
 
     <!-- Main Content -->
-    <main>
+    <main id="main-content" role="main" tabindex="-1">
       <slot />
     </main>
 
