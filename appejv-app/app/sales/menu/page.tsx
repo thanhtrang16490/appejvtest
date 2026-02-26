@@ -1,172 +1,336 @@
 'use client'
 
-import { createClient } from '@/lib/supabase/client'
-import { Button } from '@/components/ui/button'
-import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import { LogOut, Settings, Package, BarChart3, Users, FileText, Building2, ChevronRight, User } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { useAuth } from '@/contexts/AuthContext'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
+import Image from 'next/image'
 import Link from 'next/link'
-import { HeaderMenu } from '@/components/layout/HeaderMenu'
-import { NotificationModal } from '@/components/layout/NotificationModal'
+import {
+  X,
+  Box,
+  UserPlus,
+  Users,
+  BarChart3,
+  Folder,
+  Download,
+  Shield,
+  Settings,
+  LogOut,
+  ChevronRight,
+  Grid3X3,
+  ShieldCheck,
+} from 'lucide-react'
+import { toast } from 'sonner'
 
-export default function MenuPage() {
-    const [user, setUser] = useState<any>(null)
-    const [profile, setProfile] = useState<any>(null)
-    const [loading, setLoading] = useState(true)
-    const router = useRouter()
-
-    useEffect(() => { fetchData() }, [])
-
-    const fetchData = async () => {
-        try {
-            const sb = createClient()
-            const { data: { user } } = await sb.auth.getUser()
-            if (!user) { router.push('/auth/login'); return }
-            setUser(user)
-            const { data: pd } = await sb.from('profiles').select('role, full_name, email').eq('id', user.id).single()
-            setProfile(pd)
-        } catch (e) { console.error(e) }
-        finally { setLoading(false) }
-    }
-
-    const handleLogout = async () => {
-        const sb = createClient()
-        await sb.auth.signOut()
-        router.push('/auth/login')
-    }
-
-    const isAdmin = profile?.role === 'admin'
-    const isSaleAdmin = profile?.role === 'sale_admin'
-
-    const getRoleLabel = (role: string) => {
-        switch (role) {
-            case 'admin': return 'Quản trị viên'
-            case 'sale_admin': return 'Trưởng phòng kinh doanh'
-            case 'sale': return 'Nhân viên bán hàng'
-            default: return 'Nhân viên'
-        }
-    }
-
-    const menuItems = [
-        { title: 'Kho hàng', desc: 'Kiểm tra tồn kho và giá bán', icon: Package, href: '/sales/inventory', color: 'bg-amber-50 text-amber-600' },
-    ]
-
-    if (isSaleAdmin || isAdmin) {
-        menuItems.push({ title: 'Gán khách hàng', desc: 'Phân công khách hàng cho NV', icon: Users, href: '/sales/customers/assign', color: 'bg-emerald-50 text-emerald-600' })
-    }
-
-    const adminItems = []
-    if (isSaleAdmin) {
-        adminItems.push({ title: 'Quản lý Team', desc: 'Xem và quản lý thành viên', icon: Users, href: '/sales/team', color: 'bg-blue-50 text-blue-600' })
-    }
-    if (isSaleAdmin || isAdmin) {
-        adminItems.push(
-            { title: 'Phân tích dữ liệu', desc: 'Analytics và insights', icon: BarChart3, href: '/sales/reports', color: 'bg-purple-50 text-purple-600' },
-            { title: 'Danh mục sản phẩm', desc: 'Tạo và chỉnh sửa danh mục', icon: Package, href: '/sales/categories', color: 'bg-amber-50 text-amber-600' },
-            { title: 'Xuất dữ liệu', desc: 'Export CSV/Excel', icon: FileText, href: '/sales/export', color: 'bg-emerald-50 text-emerald-600' },
-            { title: 'Quản lý nhân sự', desc: 'Tài khoản và phân quyền', icon: Users, href: '/sales/users', color: 'bg-red-50 text-red-600' },
-        )
-    }
-    if (isAdmin) {
-        adminItems.push({ title: 'Cài đặt hệ thống', desc: 'Cấu hình hệ thống', icon: Settings, href: '/admin/settings', color: 'bg-gray-50 text-gray-600' })
-    }
-
-    if (loading) return <div className="min-h-screen bg-[#f0f9ff] flex items-center justify-center"><div className="text-gray-500">Đang tải...</div></div>
-
-    return (
-        <div className="min-h-screen bg-[#f0f9ff]">
-            {/* Header */}
-            <div className="bg-[#f0f9ff] p-4 pb-2">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <img src="/appejv-logo.png" alt="Logo" className="w-10 h-10 object-contain" />
-                        <span className="text-xl font-bold text-gray-900">Menu</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        {user && profile && (<><NotificationModal user={user} role={profile.role} /><HeaderMenu user={user} role={profile.role} /></>)}
-                    </div>
-                </div>
-            </div>
-
-            <div className="p-4 pb-8 flex flex-col gap-6">
-                {/* User Card */}
-                <div className="bg-white rounded-2xl p-5 shadow-sm">
-                    <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center">
-                            <User className="w-7 h-7 text-[#175ead]" />
-                        </div>
-                        <div className="flex-1">
-                            <h3 className="text-base font-bold text-gray-900">{profile?.full_name || 'Người dùng'}</h3>
-                            <p className="text-sm text-gray-500">{profile?.email}</p>
-                            <span className="inline-block mt-1 text-xs font-semibold bg-blue-50 text-[#175ead] px-2 py-0.5 rounded-md">
-                                {getRoleLabel(profile?.role)}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Menu Items */}
-                {menuItems.length > 0 && (
-                    <div>
-                        <h3 className="text-sm font-semibold text-gray-500 mb-3 uppercase tracking-wide">Tính năng</h3>
-                        <div className="flex flex-col gap-2">
-                            {menuItems.map((item, i) => (
-                                <Link key={i} href={item.href} className="bg-white rounded-xl p-4 flex items-center gap-4 shadow-sm hover:shadow-md transition-shadow">
-                                    <div className={cn("w-11 h-11 rounded-xl flex items-center justify-center", item.color)}>
-                                        <item.icon className="w-5 h-5" />
-                                    </div>
-                                    <div className="flex-1">
-                                        <h4 className="text-sm font-bold text-gray-900">{item.title}</h4>
-                                        <p className="text-xs text-gray-500">{item.desc}</p>
-                                    </div>
-                                    <ChevronRight className="w-5 h-5 text-gray-300" />
-                                </Link>
-                            ))}
-                        </div>
-                    </div>
-                )}
-
-                {/* Admin Tools */}
-                {adminItems.length > 0 && (
-                    <div>
-                        <div className="flex items-center gap-2 mb-3">
-                            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Công cụ quản trị</h3>
-                            {(isAdmin || isSaleAdmin) && (
-                                <span className="text-[10px] font-bold bg-blue-50 text-[#175ead] px-2 py-0.5 rounded-md">
-                                    {isAdmin ? 'ADMIN' : 'SALE ADMIN'}
-                                </span>
-                            )}
-                        </div>
-                        <div className="flex flex-col gap-2">
-                            {adminItems.map((item, i) => (
-                                <Link key={i} href={item.href} className="bg-white rounded-xl p-4 flex items-center gap-4 shadow-sm hover:shadow-md transition-shadow">
-                                    <div className={cn("w-11 h-11 rounded-xl flex items-center justify-center", item.color)}>
-                                        <item.icon className="w-5 h-5" />
-                                    </div>
-                                    <div className="flex-1">
-                                        <h4 className="text-sm font-bold text-gray-900">{item.title}</h4>
-                                        <p className="text-xs text-gray-500">{item.desc}</p>
-                                    </div>
-                                    <ChevronRight className="w-5 h-5 text-gray-300" />
-                                </Link>
-                            ))}
-                        </div>
-                    </div>
-                )}
-
-                {/* Logout */}
-                <Button onClick={handleLogout} variant="destructive" className="w-full py-6 rounded-xl mt-4">
-                    <LogOut className="w-5 h-5 mr-2" />
-                    Đăng xuất
-                </Button>
-
-                {/* Version */}
-                <p className="text-center text-xs text-gray-400 font-medium uppercase tracking-widest opacity-50">
-                    SalesApp v1.0.0
-                </p>
-            </div>
-        </div>
-    )
+interface Profile {
+  id: string
+  email?: string
+  phone?: string
+  full_name?: string
+  role: string
 }
 
+interface MenuItem {
+  title: string
+  description: string
+  icon: any
+  color: string
+  bg: string
+  href: string
+}
+
+function getRoleLabel(role: string): string {
+  switch (role) {
+    case 'admin': return 'Quản trị viên'
+    case 'sale_admin': return 'Trưởng phòng'
+    case 'sale': return 'Nhân viên bán hàng'
+    default: return 'Nhân viên'
+  }
+}
+
+function getAvatarColor(role?: string): string {
+  switch (role) {
+    case 'admin': return 'bg-purple-600'
+    case 'sale_admin': return 'bg-[#175ead]'
+    case 'sale': return 'bg-cyan-600'
+    case 'warehouse': return 'bg-amber-600'
+    default: return 'bg-gray-600'
+  }
+}
+
+export default function MenuPage() {
+  const { user, signOut } = useAuth()
+  const router = useRouter()
+  const [profile, setProfile] = useState<Profile | null>(null)
+  const [loading, setLoading] = useState(true)
+  const supabase = createClient()
+
+  useEffect(() => {
+    fetchProfile()
+  }, [])
+
+  const fetchProfile = async () => {
+    try {
+      const { data: { user: authUser } } = await supabase.auth.getUser()
+      if (!authUser) return
+
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', authUser.id)
+        .single()
+
+      setProfile(profileData)
+    } catch (error) {
+      console.error('Error fetching profile:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleLogout = async () => {
+    if (confirm('Bạn có chắc chắn muốn đăng xuất?')) {
+      try {
+        await signOut()
+        toast.success('Đã đăng xuất')
+        router.push('/auth/login')
+      } catch (error) {
+        console.error('Logout error:', error)
+        toast.error('Có lỗi khi đăng xuất')
+      }
+    }
+  }
+
+  const isAdmin = profile?.role === 'admin'
+  const isSaleAdmin = profile?.role === 'sale_admin'
+
+  const menuItems: MenuItem[] = [
+    {
+      title: 'Quản lý kho hàng',
+      description: 'Kiểm tra tồn kho và giá bán',
+      icon: Box,
+      color: '#f59e0b',
+      bg: '#fef3c7',
+      href: '/sales/inventory',
+    },
+  ]
+
+  // Add customer assignment for sale_admin and admin
+  if (isSaleAdmin || isAdmin) {
+    menuItems.push({
+      title: 'Gán khách hàng',
+      description: 'Phân công khách hàng cho nhân viên',
+      icon: UserPlus,
+      color: '#10b981',
+      bg: '#d1fae5',
+      href: '/sales/customers/assign',
+    })
+  }
+
+  const adminMenuItems: MenuItem[] = []
+
+  if (isAdmin || isSaleAdmin) {
+    // Add Team Management for sale_admin
+    if (isSaleAdmin) {
+      adminMenuItems.push({
+        title: 'Quản lý Team',
+        description: 'Xem và quản lý thành viên trong team',
+        icon: Users,
+        color: '#175ead',
+        bg: '#dbeafe',
+        href: '/sales/team',
+      })
+    }
+
+    adminMenuItems.push(
+      {
+        title: 'Phân tích dữ liệu',
+        description: 'Analytics và insights chi tiết',
+        icon: BarChart3,
+        color: '#8b5cf6',
+        bg: '#f3e8ff',
+        href: '/sales/analytics',
+      },
+      {
+        title: 'Quản lý danh mục',
+        description: 'Tạo và chỉnh sửa danh mục sản phẩm',
+        icon: Folder,
+        color: '#f59e0b',
+        bg: '#fef3c7',
+        href: '/sales/categories',
+      },
+      {
+        title: 'Xuất dữ liệu',
+        description: 'Export CSV/Excel cho báo cáo',
+        icon: Download,
+        color: '#10b981',
+        bg: '#d1fae5',
+        href: '/sales/export',
+      },
+      {
+        title: 'Quản lý nhân sự',
+        description: 'Quản lý tài khoản và phân quyền',
+        icon: Shield,
+        color: '#ef4444',
+        bg: '#fee2e2',
+        href: '/sales/users',
+      }
+    )
+  }
+
+  if (isAdmin) {
+    adminMenuItems.push({
+      title: 'Cài đặt hệ thống',
+      description: 'Cấu hình và tùy chỉnh hệ thống',
+      icon: Settings,
+      color: '#6b7280',
+      bg: '#f3f4f6',
+      href: '/sales/settings',
+    })
+  }
+
+  const avatarColor = getAvatarColor(profile?.role)
+  const initials = profile?.full_name?.[0]?.toUpperCase() || profile?.email?.[0]?.toUpperCase() || 'U'
+
+  return (
+    <div className="min-h-screen bg-[#f0f9ff]">
+      {/* Header with Logo */}
+      <div className="flex items-center justify-between px-4 py-3 bg-[#f0f9ff]">
+        <div className="flex items-center gap-2">
+          <div className="w-10 h-10 relative">
+            <Image
+              src="/appejv-logo.png"
+              alt="APPE JV"
+              width={40}
+              height={40}
+              className="object-contain"
+            />
+          </div>
+          <h1 className="text-lg font-bold text-gray-900">APPE JV</h1>
+        </div>
+        <button
+          onClick={() => router.back()}
+          className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors"
+          aria-label="Đóng"
+        >
+          <X className="w-6 h-6 text-gray-900" />
+        </button>
+      </div>
+
+      {/* Content */}
+      <div className="p-4 space-y-5">
+        {/* Page Header */}
+        <div className="mb-2">
+          <h2 className="text-[28px] font-bold text-gray-900 mb-1">Menu</h2>
+          <p className="text-sm text-gray-600 italic">Các tính năng bổ sung và công cụ quản trị</p>
+        </div>
+
+        {/* User Info Card */}
+        <div className="bg-[rgba(23,94,173,0.05)] rounded-2xl p-4 flex items-center gap-3">
+          <div className={`w-14 h-14 rounded-full flex items-center justify-center ${avatarColor}`}>
+            <span className="text-white text-2xl font-bold">{initials}</span>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-base font-bold text-gray-900 truncate">
+              {profile?.full_name || 'Người dùng'}
+            </p>
+            <p className="text-xs text-gray-600 truncate">
+              {profile?.email || profile?.phone}
+            </p>
+            <p className="text-[10px] font-bold text-[#175ead] uppercase tracking-wide mt-1">
+              {getRoleLabel(profile?.role || '')}
+            </p>
+          </div>
+        </div>
+
+        {/* Menu Items */}
+        {menuItems.length > 0 && (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Grid3X3 className="w-5 h-5 text-[#175ead]" />
+                <h3 className="text-base font-bold text-gray-900">Tính năng bổ sung</h3>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              {menuItems.map((item, index) => (
+                <Link key={index} href={item.href}>
+                  <div className="bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+                    <div className="flex items-center p-4 gap-3">
+                      <div
+                        className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+                        style={{ backgroundColor: item.bg }}
+                      >
+                        <item.icon className="w-6 h-6" style={{ color: item.color }} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-base font-bold text-gray-900">{item.title}</p>
+                        <p className="text-xs text-gray-600 truncate">{item.description}</p>
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-gray-300 flex-shrink-0" />
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Admin Tools Section */}
+        {(isAdmin || isSaleAdmin) && adminMenuItems.length > 0 && (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-5 h-5 text-[#175ead]" />
+                <h3 className="text-base font-bold text-gray-900">Công cụ quản trị</h3>
+              </div>
+              <div className="bg-[#dbeafe] px-3 py-1 rounded-xl">
+                <span className="text-[10px] font-bold text-[#175ead] tracking-wide">
+                  {isAdmin ? 'ADMIN' : 'SALE ADMIN'}
+                </span>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              {adminMenuItems.map((item, index) => (
+                <Link key={`admin-${index}`} href={item.href}>
+                  <div className="bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+                    <div className="flex items-center p-4 gap-3">
+                      <div
+                        className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+                        style={{ backgroundColor: item.bg }}
+                      >
+                        <item.icon className="w-6 h-6" style={{ color: item.color }} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-base font-bold text-gray-900">{item.title}</p>
+                        <p className="text-xs text-gray-600 truncate">{item.description}</p>
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-gray-300 flex-shrink-0" />
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Logout Button */}
+        <button
+          onClick={handleLogout}
+          className="w-full bg-red-500 hover:bg-red-600 rounded-xl py-4 flex items-center justify-center gap-2 transition-colors mt-3"
+        >
+          <LogOut className="w-5 h-5 text-white" />
+          <span className="text-base font-semibold text-white">Đăng xuất</span>
+        </button>
+
+        {/* App Version */}
+        <p className="text-[10px] text-gray-400 text-center font-bold uppercase tracking-widest opacity-50 mt-2 mb-5">
+          SalesApp Workspace • v1.0.0
+        </p>
+      </div>
+    </div>
+  )
+}

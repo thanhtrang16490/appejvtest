@@ -1,866 +1,629 @@
 'use client'
 
-import { createClient } from '@/lib/supabase/client'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { formatCurrency, cn } from '@/lib/utils'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import { TrendingUp, Package, Tag, Wallet, BarChart3, ChevronDown } from 'lucide-react'
-import { HeaderMenu } from '@/components/layout/HeaderMenu'
-import { NotificationModal } from '@/components/layout/NotificationModal'
-import { ReportsLoading } from '@/components/loading/ReportsLoading'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import { useScrollHeader } from '@/hooks/useScrollHeader'
+import { useAuth } from '@/contexts/AuthContext'
+import { createClient } from '@/lib/supabase/client'
+import { formatCurrency, cn } from '@/lib/utils'
+import { BarChart3, TrendingUp, Wallet, Package, Users, ChevronDown, X } from 'lucide-react'
 
 const filterTabs = [
-    { id: 'today', label: 'Hôm nay' },
-    { id: 'yesterday', label: 'Hôm qua' },
-    { id: 'this_month', label: 'Tháng này' },
-    { id: 'other', label: 'Khác' },
+  { id: 'today', label: 'Hôm nay' },
+  { id: 'yesterday', label: 'Hôm qua' },
+  { id: 'this_month', label: 'Tháng này' },
+  { id: 'all', label: 'Tất cả' },
+  { id: 'other', label: 'Khác' },
 ]
 
-// Types for aggregation
+const timeRangeOptions = [
+  { id: 'today', label: 'Hôm nay' },
+  { id: 'yesterday', label: 'Hôm qua' },
+  { id: 'last_7_days', label: '7 ngày qua' },
+  { id: 'this_month', label: 'Tháng này' },
+  { id: 'last_month', label: 'Tháng trước' },
+  { id: 'last_3_months', label: '3 tháng gần đây' },
+  { id: 'this_quarter', label: 'Quý này' },
+  { id: 'this_year', label: 'Năm nay' },
+  { id: 'all', label: 'Tất cả' },
+]
+
 type ReportData = {
-    name: string
-    revenue: number
-    quantity: number
+  name: string
+  revenue: number
+  quantity: number
 }
 
 type TrendData = {
-    label: string
-    revenue: number
+  label: string
+  revenue: number
 }
 
 type CustomerData = {
-    id: number
-    name: string
-    revenue: number
-    orderCount: number
+  id: string
+  name: string
+  revenue: number
+  orderCount: number
 }
 
 type SaleData = {
-    id: string
-    name: string
-    revenue: number
-    orderCount: number
+  id: string
+  name: string
+  revenue: number
+  orderCount: number
 }
 
-type SaleAdminData = {
-    id: string
-    name: string
-    revenue: number
-    orderCount: number
-    managedSalesCount: number
-}
+export default function ReportsPage() {
+  const { user, loading: authLoading } = useAuth()
+  const router = useRouter()
+  const [profile, setProfile] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [period, setPeriod] = useState('this_month')
+  const [showTimeRangeModal, setShowTimeRangeModal] = useState(false)
+  const [activeTab, setActiveTab] = useState<'product' | 'category'>('product')
+  const [roleTab, setRoleTab] = useState<'customer' | 'sale' | 'saleadmin'>('customer')
+  const [analytics, setAnalytics] = useState({
+    totalRevenue: 0,
+    byProduct: [] as ReportData[],
+    byCategory: [] as ReportData[],
+    byCustomer: [] as CustomerData[],
+    bySale: [] as SaleData[],
+    bySaleAdmin: [] as SaleData[],
+    trend: [] as TrendData[],
+  })
 
-async function getAnalytics(period: string = 'this_month', userId?: string, role?: string, supabase?: any) {
-    if (!supabase) {
-        throw new Error('Supabase client is required')
+  useEffect(() => {
+    if (authLoading) return
+    if (!user) {
+      router.push('/auth/login')
+      return
     }
+    fetchData()
+  }, [user, authLoading, period])
 
+  const fetchData = async () => {
+    try {
+      setLoading(true)
+      const supabase = createClient()
+
+      // Fetch profile
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('role, full_name')
+        .eq('id', user!.id)
+        .single()
+
+      if (!profileData || !['sale', 'sale_admin', 'admin'].includes(profileData.role)) {
+        router.push('/')
+        return
+      }
+
+      setProfile(profileData)
+
+      // Fetch analytics
+      const data = await getAnalytics(period, user!.id, profileData.role)
+      setAnalytics(data)
+    } catch (error) {
+      console.error('Error fetching data:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const getAnalytics = async (period: string, userId: string, role: string) => {
+    const supabase = createClient()
     const isAdmin = role === 'admin'
     const isSale = role === 'sale'
     const isSaleAdmin = role === 'sale_admin'
 
     let managedSaleIds: string[] = []
-    if (isSaleAdmin && userId) {
-        const { data: managedSales } = await supabase
-            .from('profiles')
-            .select('id')
-            .eq('manager_id', userId)
-        managedSaleIds = (managedSales as any[])?.map(s => s.id) || []
+    if (isSaleAdmin) {
+      const { data: managedSales } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('manager_id', userId)
+      managedSaleIds = managedSales?.map(s => s.id) || []
     }
 
     let query = supabase
-        .from('orders')
-        .select(`
-            id,
-            created_at,
-            customer_id,
-            sale_id,
-            customers ( name ),
-            profiles!orders_sale_id_fkey ( full_name, role ),
-            order_items (
-                quantity,
-                price_at_order,
-                products ( name, category )
-            )
-        `)
-        .eq('status', 'completed')
+      .from('orders')
+      .select(`
+        id,
+        created_at,
+        customer_id,
+        sale_id,
+        status
+      `)
+      .neq('status', 'cancelled')
 
-    // Admin sees ALL data - no filter
-    if (isAdmin) {
-        // No filter for admin
-    } else if (isSale && userId) {
-        query = query.eq('sale_id', userId)
-    } else if (isSaleAdmin && userId) {
-        query = query.in('sale_id', [userId, ...managedSaleIds])
+    if (isSale) {
+      query = query.eq('sale_id', userId)
+    } else if (isSaleAdmin) {
+      query = query.in('sale_id', [userId, ...managedSaleIds])
     }
 
+    // Apply date filter
     const now = new Date()
     if (period === 'today') {
-        const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString()
-        const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).toISOString()
-        query = query.gte('created_at', startOfDay).lt('created_at', endOfDay)
+      const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString()
+      const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).toISOString()
+      query = query.gte('created_at', startOfDay).lt('created_at', endOfDay)
     } else if (period === 'yesterday') {
-        const startOfYesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1).toISOString()
-        const endOfYesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString()
-        query = query.gte('created_at', startOfYesterday).lt('created_at', endOfYesterday)
+      const startOfYesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1).toISOString()
+      const endOfYesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString()
+      query = query.gte('created_at', startOfYesterday).lt('created_at', endOfYesterday)
+    } else if (period === 'last_7_days') {
+      const date = new Date()
+      date.setDate(date.getDate() - 7)
+      query = query.gte('created_at', date.toISOString())
     } else if (period === 'this_month') {
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
-        query = query.gte('created_at', startOfMonth)
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
+      query = query.gte('created_at', startOfMonth)
+    } else if (period === 'last_month') {
+      const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString()
+      const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
+      query = query.gte('created_at', startOfLastMonth).lt('created_at', endOfLastMonth)
     } else if (period === 'last_3_months') {
-        const date = new Date()
-        date.setMonth(date.getMonth() - 2)
-        const startOfPeriod = new Date(date.getFullYear(), date.getMonth(), 1).toISOString()
-        query = query.gte('created_at', startOfPeriod)
+      const date = new Date()
+      date.setMonth(date.getMonth() - 2)
+      const startOfPeriod = new Date(date.getFullYear(), date.getMonth(), 1).toISOString()
+      query = query.gte('created_at', startOfPeriod)
+    } else if (period === 'this_quarter') {
+      const quarter = Math.floor(now.getMonth() / 3)
+      const startOfQuarter = new Date(now.getFullYear(), quarter * 3, 1).toISOString()
+      query = query.gte('created_at', startOfQuarter)
     } else if (period === 'this_year') {
-        const startOfYear = new Date(now.getFullYear(), 0, 1).toISOString()
-        query = query.gte('created_at', startOfYear)
+      const startOfYear = new Date(now.getFullYear(), 0, 1).toISOString()
+      query = query.gte('created_at', startOfYear)
     }
 
-    const { data: orders } = await query as { data: any[] | null }
+    const { data: orders } = await query
 
-    // Aggregate data using a single loop for efficiency
+    // Aggregate data
     const byProduct: Record<string, ReportData> = {}
     const byCategory: Record<string, ReportData> = {}
-    const byCustomer: Record<number, CustomerData> = {}
+    const byCustomer: Record<string, CustomerData> = {}
     const bySale: Record<string, SaleData> = {}
-    const bySaleAdmin: Record<string, SaleAdminData> = {}
+    const bySaleAdmin: Record<string, SaleData> = {}
     const trendMap: Record<string, number> = {}
     let totalRevenue = 0
 
-    if (orders) {
-        for (const order of orders) {
-            const date = new Date(order.created_at)
-            const monthLabel = date.toLocaleString('default', { month: 'short' })
+    if (orders && orders.length > 0) {
+      // Fetch order items for all orders
+      const orderIds = orders.map(o => o.id)
+      const { data: allItems } = await supabase
+        .from('order_items')
+        .select('order_id, quantity, price_at_order, product:products(id, name, category_id)')
+        .in('order_id', orderIds)
 
-            let orderTotal = 0
-            const items = order.order_items as any[]
+      // Fetch categories
+      const categoryIds = [...new Set(allItems?.map((i: any) => i.product?.category_id).filter(Boolean))]
+      let categoriesMap: any = {}
+      if (categoryIds.length > 0) {
+        const { data: categories } = await supabase
+          .from('categories')
+          .select('id, name')
+          .in('id', categoryIds)
+        categories?.forEach((c: any) => {
+          categoriesMap[c.id] = c
+        })
+      }
 
-            for (const item of items) {
-                const productName = item.products?.name || 'Unknown'
-                const category = item.products?.category || 'Uncategorized'
-                const revenue = (item.price_at_order || 0) * (item.quantity || 0)
+      // Fetch profiles for customers and sales
+      const customerIds = [...new Set(orders.map(o => o.customer_id).filter(Boolean))]
+      const saleIds = [...new Set(orders.map(o => o.sale_id).filter(Boolean))]
+      const allProfileIds = [...new Set([...customerIds, ...saleIds])]
 
-                orderTotal += revenue
-                totalRevenue += revenue
+      let profilesMap: any = {}
+      if (allProfileIds.length > 0 && isAdmin) {
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, full_name, role')
+          .in('id', allProfileIds)
+        
+        profiles?.forEach((p: any) => {
+          profilesMap[p.id] = p
+        })
+      }
 
-                // Product Aggregation
-                if (!byProduct[productName]) {
-                    byProduct[productName] = { name: productName, revenue: 0, quantity: 0 }
-                }
-                byProduct[productName].revenue += revenue
-                byProduct[productName].quantity += item.quantity
-
-                // Category Aggregation
-                if (!byCategory[category]) {
-                    byCategory[category] = { name: category, revenue: 0, quantity: 0 }
-                }
-                byCategory[category].revenue += revenue
-                byCategory[category].quantity += item.quantity
-            }
-
-            // Customer Aggregation (for admin only)
-            if (isAdmin && order.customer_id) {
-                if (!byCustomer[order.customer_id]) {
-                    byCustomer[order.customer_id] = {
-                        id: order.customer_id,
-                        name: order.customers?.name || 'Unknown',
-                        revenue: 0,
-                        orderCount: 0
-                    }
-                }
-                byCustomer[order.customer_id].revenue += orderTotal
-                byCustomer[order.customer_id].orderCount += 1
-            }
-
-            // Sale Aggregation (for admin only)
-            if (isAdmin && order.sale_id) {
-                const saleRole = order.profiles?.role
-                
-                // Aggregate by Sale (only role='sale')
-                if (saleRole === 'sale') {
-                    if (!bySale[order.sale_id]) {
-                        bySale[order.sale_id] = {
-                            id: order.sale_id,
-                            name: order.profiles?.full_name || 'Unknown',
-                            revenue: 0,
-                            orderCount: 0
-                        }
-                    }
-                    bySale[order.sale_id].revenue += orderTotal
-                    bySale[order.sale_id].orderCount += 1
-                }
-                
-                // Aggregate by Sale Admin (only role='sale_admin')
-                if (saleRole === 'sale_admin') {
-                    if (!bySaleAdmin[order.sale_id]) {
-                        bySaleAdmin[order.sale_id] = {
-                            id: order.sale_id,
-                            name: order.profiles?.full_name || 'Unknown',
-                            revenue: 0,
-                            orderCount: 0,
-                            managedSalesCount: 0
-                        }
-                    }
-                    bySaleAdmin[order.sale_id].revenue += orderTotal
-                    bySaleAdmin[order.sale_id].orderCount += 1
-                }
-            }
-
-            // Trend (Monthly)
-            trendMap[monthLabel] = (trendMap[monthLabel] || 0) + orderTotal
+      // Group items by order
+      const itemsByOrder: Record<string, any[]> = {}
+      allItems?.forEach((item: any) => {
+        if (!itemsByOrder[item.order_id]) {
+          itemsByOrder[item.order_id] = []
         }
+        itemsByOrder[item.order_id].push(item)
+      })
+
+      for (const order of orders) {
+        const date = new Date(order.created_at)
+        const monthLabel = date.toLocaleString('default', { month: 'short' })
+
+        let orderTotal = 0
+        const items = itemsByOrder[order.id] || []
+        
+        for (const item of items) {
+          const productName = item.product?.name || 'Unknown'
+          const categoryId = item.product?.category_id
+          const categoryName = categoryId ? (categoriesMap[categoryId]?.name || 'Uncategorized') : 'Uncategorized'
+          const revenue = (item.price_at_order || 0) * (item.quantity || 0)
+
+          orderTotal += revenue
+          totalRevenue += revenue
+
+          // Product Aggregation
+          if (!byProduct[productName]) {
+            byProduct[productName] = { name: productName, revenue: 0, quantity: 0 }
+          }
+          byProduct[productName].revenue += revenue
+          byProduct[productName].quantity += item.quantity
+
+          // Category Aggregation
+          if (!byCategory[categoryName]) {
+            byCategory[categoryName] = { name: categoryName, revenue: 0, quantity: 0 }
+          }
+          byCategory[categoryName].revenue += revenue
+          byCategory[categoryName].quantity += item.quantity
+        }
+
+        // Customer Aggregation (for admin only)
+        if (isAdmin && order.customer_id) {
+          if (!byCustomer[order.customer_id]) {
+            byCustomer[order.customer_id] = {
+              id: order.customer_id,
+              name: profilesMap[order.customer_id]?.full_name || 'Unknown',
+              revenue: 0,
+              orderCount: 0
+            }
+          }
+          byCustomer[order.customer_id].revenue += orderTotal
+          byCustomer[order.customer_id].orderCount += 1
+        }
+
+        // Sale Aggregation (for admin only)
+        if (isAdmin && order.sale_id) {
+          const saleRole = profilesMap[order.sale_id]?.role
+          
+          // Aggregate by Sale (only role='sale')
+          if (saleRole === 'sale') {
+            if (!bySale[order.sale_id]) {
+              bySale[order.sale_id] = {
+                id: order.sale_id,
+                name: profilesMap[order.sale_id]?.full_name || 'Unknown',
+                revenue: 0,
+                orderCount: 0
+              }
+            }
+            bySale[order.sale_id].revenue += orderTotal
+            bySale[order.sale_id].orderCount += 1
+          }
+          
+          // Aggregate by Sale Admin (only role='sale_admin')
+          if (saleRole === 'sale_admin') {
+            if (!bySaleAdmin[order.sale_id]) {
+              bySaleAdmin[order.sale_id] = {
+                id: order.sale_id,
+                name: profilesMap[order.sale_id]?.full_name || 'Unknown',
+                revenue: 0,
+                orderCount: 0
+              }
+            }
+            bySaleAdmin[order.sale_id].revenue += orderTotal
+            bySaleAdmin[order.sale_id].orderCount += 1
+          }
+        }
+
+        // Trend
+        trendMap[monthLabel] = (trendMap[monthLabel] || 0) + orderTotal
+      }
     }
 
     return {
-        totalRevenue,
-        byProduct: Object.values(byProduct).sort((a, b) => b.revenue - a.revenue),
-        byCategory: Object.values(byCategory).sort((a, b) => b.revenue - a.revenue),
-        byCustomer: Object.values(byCustomer).sort((a, b) => b.revenue - a.revenue),
-        bySale: Object.values(bySale).sort((a, b) => b.revenue - a.revenue),
-        bySaleAdmin: Object.values(bySaleAdmin).sort((a, b) => b.revenue - a.revenue),
-        trend: Object.entries(trendMap).map(([label, revenue]) => ({ label, revenue }))
+      totalRevenue,
+      byProduct: Object.values(byProduct).sort((a, b) => b.revenue - a.revenue),
+      byCategory: Object.values(byCategory).sort((a, b) => b.revenue - a.revenue),
+      byCustomer: Object.values(byCustomer).sort((a, b) => b.revenue - a.revenue),
+      bySale: Object.values(bySale).sort((a, b) => b.revenue - a.revenue),
+      bySaleAdmin: Object.values(bySaleAdmin).sort((a, b) => b.revenue - a.revenue),
+      trend: Object.entries(trendMap).map(([label, revenue]) => ({ label, revenue })),
     }
-}
+  }
 
-export default function ReportsPage() {
-    const [user, setUser] = useState<any>(null)
-    const [profile, setProfile] = useState<any>(null)
-    const [loading, setLoading] = useState(true)
-    const [period, setPeriod] = useState('this_month')
-    const [showOtherFilters, setShowOtherFilters] = useState(false)
-    const [showAllProducts, setShowAllProducts] = useState(false)
-    const [showAllCategories, setShowAllCategories] = useState(false)
-    const [showAllCustomers, setShowAllCustomers] = useState(false)
-    const [showAllSales, setShowAllSales] = useState(false)
-    const [showAllSaleAdmins, setShowAllSaleAdmins] = useState(false)
-    const [analytics, setAnalytics] = useState<{
-        totalRevenue: number
-        byProduct: ReportData[]
-        byCategory: ReportData[]
-        byCustomer: CustomerData[]
-        bySale: SaleData[]
-        bySaleAdmin: SaleAdminData[]
-        trend: TrendData[]
-    }>({
-        totalRevenue: 0,
-        byProduct: [],
-        byCategory: [],
-        byCustomer: [],
-        bySale: [],
-        bySaleAdmin: [],
-        trend: []
-    })
-    const router = useRouter()
-    const { isHeaderVisible } = useScrollHeader()
-
-    useEffect(() => {
-        fetchData()
-    }, [period])
-
-    const fetchData = async () => {
-        try {
-            setLoading(true)
-            const supabase = createClient()
-            const { data: { user } } = await supabase.auth.getUser()
-
-            if (!user) {
-                router.push('/auth/login')
-                return
-            }
-
-            setUser(user)
-
-            const { data: profileData } = await supabase
-                .from('profiles')
-                .select('role')
-                .eq('id', user.id)
-                .single()
-
-            if (!profileData || !['sale', 'admin', 'sale_admin'].includes((profileData as any).role)) {
-                router.push('/')
-                return
-            }
-
-            setProfile(profileData)
-
-            const userRole = (profileData as any).role
-
-            const data = await getAnalytics(period, user.id, userRole, supabase)
-            setAnalytics(data)
-        } catch (error) {
-            console.error('Error fetching data:', error)
-        } finally {
-            setLoading(false)
-        }
+  const handleFilterChange = useCallback((filterId: string) => {
+    if (filterId === 'other') {
+      setShowTimeRangeModal(true)
+    } else {
+      setPeriod(filterId)
     }
+  }, [])
 
-    if (loading) {
-        return (
-            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 min-h-screen">
-                <div className="pt-24 pb-20 px-4">
-                    <ReportsLoading />
-                </div>
-            </div>
-        )
-    }
+  const handleTimeRangeSelect = useCallback((rangeId: string) => {
+    setPeriod(rangeId)
+    setShowTimeRangeModal(false)
+  }, [])
 
-    if (!user || !profile) {
-        return (
-            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 min-h-screen flex items-center justify-center">
-                <div className="text-center">
-                    <p className="text-gray-600 mb-4">Vui lòng đăng nhập</p>
-                    <Button onClick={() => router.push('/auth/login')}>
-                        Đăng nhập
-                    </Button>
-                </div>
-            </div>
-        )
-    }
+  const isAdmin = profile?.role === 'admin'
+  const isSaleAdmin = profile?.role === 'sale_admin'
+  const { totalRevenue, byProduct, byCategory, byCustomer, bySale, bySaleAdmin, trend } = analytics
+  
+  const maxRevenue = useMemo(() => Math.max(...trend.map(t => t.revenue), 1), [trend])
+  
+  const displayData = useMemo(() => {
+    return activeTab === 'product' ? byProduct.slice(0, 5) : byCategory.slice(0, 5)
+  }, [activeTab, byProduct, byCategory])
+  
+  const roleData = useMemo(() => {
+    if (roleTab === 'customer') return byCustomer.slice(0, 5)
+    if (roleTab === 'sale') return bySale.slice(0, 5)
+    return bySaleAdmin.slice(0, 5)
+  }, [roleTab, byCustomer, bySale, bySaleAdmin])
 
-    const isSaleAdmin = (profile as any).role === 'sale_admin'
-    const isAdmin = (profile as any).role === 'admin'
-    const { totalRevenue, byProduct, byCategory, byCustomer, bySale, bySaleAdmin, trend } = analytics
-    const maxRevenue = Math.max(...trend.map(t => t.revenue), 1)
+  const maxDisplayRevenue = useMemo(() => {
+    return displayData[0]?.revenue || 1
+  }, [displayData])
 
-    const ReportTable = ({ data, title, icon: Icon, showAll, onToggle }: { data: ReportData[], title: string, icon: any, showAll: boolean, onToggle: () => void }) => {
-        const displayData = showAll ? data.slice(0, 10) : data.slice(0, 5)
-        
-        return (
-            <Card className="bg-white rounded-2xl shadow-sm border-0">
-                <CardHeader className="p-6 pb-2">
-                    <div className="flex items-center justify-between mb-1">
-                        <div className="flex items-center gap-2">
-                            <div className="p-2 rounded-lg bg-blue-50 text-[#175ead]">
-                                <Icon className="w-4 h-4" />
-                            </div>
-                            <CardTitle className="text-lg font-semibold">{title}</CardTitle>
-                        </div>
-                        {data.length > 10 && (
-                            <button className="text-xs text-[#175ead] hover:underline font-medium">
-                                Xem đầy đủ →
-                            </button>
-                        )}
-                    </div>
-                </CardHeader>
-                <CardContent className="p-6">
-                    <div className="space-y-4">
-                        {displayData.map((item, idx) => (
-                            <div key={idx} className="group flex justify-between items-center text-sm">
-                                <div className="space-y-1">
-                                    <p className="font-medium group-hover:text-[#175ead] transition-colors">{item.name}</p>
-                                    <div className="flex items-center gap-2">
-                                        <div className="h-1.5 w-24 bg-gray-100 rounded-full overflow-hidden">
-                                            <div
-                                                className="h-full bg-[#175ead]/60"
-                                                style={{ width: `${(item.revenue / (data[0]?.revenue || 1)) * 100}%` }}
-                                            />
-                                        </div>
-                                        <p className="text-xs text-gray-500">{item.quantity} units</p>
-                                    </div>
-                                </div>
-                                <span className="font-bold tabular-nums text-gray-900">{formatCurrency(item.revenue)}</span>
-                            </div>
-                        ))}
-                        {data.length === 0 && (
-                            <div className="py-10 text-center space-y-2">
-                                <Package className="w-8 h-8 mx-auto text-gray-300" />
-                                <p className="text-gray-500 text-sm">Không có dữ liệu bán hàng trong khoảng thời gian này.</p>
-                            </div>
-                        )}
-                    </div>
-                    {data.length > 5 && data.length <= 10 && !showAll && (
-                        <div className="mt-4 pt-4 border-t">
-                            <Button
-                                variant="ghost"
-                                onClick={onToggle}
-                                className="w-full text-[#175ead] hover:text-[#175ead] hover:bg-blue-50"
-                            >
-                                Xem thêm ({data.length - 5})
-                            </Button>
-                        </div>
-                    )}
-                    {data.length > 10 && !showAll && (
-                        <div className="mt-4 pt-4 border-t">
-                            <Button
-                                variant="ghost"
-                                onClick={onToggle}
-                                className="w-full text-[#175ead] hover:text-[#175ead] hover:bg-blue-50"
-                            >
-                                Xem thêm 5
-                            </Button>
-                        </div>
-                    )}
-                    {showAll && data.length > 5 && (
-                        <div className="mt-4 pt-4 border-t">
-                            <Button
-                                variant="ghost"
-                                onClick={onToggle}
-                                className="w-full text-[#175ead] hover:text-[#175ead] hover:bg-blue-50"
-                            >
-                                Thu gọn
-                            </Button>
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
-        )
-    }
+  const maxRoleRevenue = useMemo(() => {
+    return roleData[0]?.revenue || 1
+  }, [roleData])
 
+  if (authLoading || loading) {
     return (
-        <div className="bg-gradient-to-br from-blue-50 to-cyan-50 min-h-screen">
-            {/* Fixed Header */}
-            <div className={cn(
-                "fixed top-0 left-0 right-0 z-50 bg-gradient-to-br from-blue-50 to-cyan-50 transition-transform duration-300",
-                isHeaderVisible ? "translate-y-0" : "-translate-y-full"
-            )}>
-                {/* Logo and AI Assistant Row */}
-                <div className="flex items-center justify-between p-4 pt-6">
-                    <div className="flex items-center gap-2">
-                        <img 
-                            src="/appejv-logo.png" 
-                            alt="APPE JV Logo" 
-                            className="w-8 h-8 object-contain"
-                        />
-                        <span className="text-xl font-bold text-gray-900">APPE JV</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <NotificationModal user={user} role={(profile as any).role} />
-                        <HeaderMenu user={user} role={(profile as any).role} />
-                    </div>
-                </div>
-            </div>
-
-            {/* Sticky Title Section */}
-            <div className={cn(
-                "sticky left-0 right-0 z-40 bg-gradient-to-br from-blue-50 to-cyan-50 px-4 pb-2 pt-2 transition-all duration-300",
-                !isHeaderVisible ? "top-0" : "top-20"
-            )}>
-                <div className="flex flex-col gap-3">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h1 className="text-2xl font-bold text-gray-900">Báo cáo & Phân tích</h1>
-                            <p className="text-sm text-gray-600">
-                                Theo dõi chi tiết hiệu suất bán hàng {isAdmin ? '(Toàn hệ thống)' : isSaleAdmin ? '(Nhóm của bạn)' : ''}.
-                            </p>
-                        </div>
-                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                            <BarChart3 className="w-5 h-5 text-[#175ead]" />
-                        </div>
-                    </div>
-                    
-                    {/* Filter Tabs */}
-                    <div className="flex gap-2 overflow-x-auto pb-2">
-                        {filterTabs.map((tab) => (
-                            <Button
-                                key={tab.id}
-                                variant={period === tab.id ? "default" : "outline"}
-                                size="sm"
-                                onClick={() => {
-                                    if (tab.id === 'other') {
-                                        setShowOtherFilters(!showOtherFilters)
-                                    } else {
-                                        setPeriod(tab.id)
-                                        setShowOtherFilters(false)
-                                    }
-                                }}
-                                className={cn(
-                                    "rounded-full whitespace-nowrap text-sm font-medium",
-                                    period === tab.id 
-                                        ? "bg-[#175ead] text-white" 
-                                        : "bg-white text-gray-600 border-gray-200"
-                                )}
-                            >
-                                {tab.label}
-                                {tab.id === 'other' && <ChevronDown className="w-4 h-4 ml-1" />}
-                            </Button>
-                        ))}
-                    </div>
-                    
-                    {/* Other Filters Dropdown */}
-                    {showOtherFilters && (
-                        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-3 space-y-2">
-                            <button
-                                onClick={() => {
-                                    setPeriod('last_3_months')
-                                    setShowOtherFilters(false)
-                                }}
-                                className={cn(
-                                    "w-full text-left px-4 py-2 rounded-lg text-sm font-medium transition-colors",
-                                    period === 'last_3_months' 
-                                        ? "bg-blue-50 text-[#175ead]" 
-                                        : "hover:bg-gray-50 text-gray-700"
-                                )}
-                            >
-                                3 tháng gần đây
-                            </button>
-                            <button
-                                onClick={() => {
-                                    setPeriod('this_year')
-                                    setShowOtherFilters(false)
-                                }}
-                                className={cn(
-                                    "w-full text-left px-4 py-2 rounded-lg text-sm font-medium transition-colors",
-                                    period === 'this_year' 
-                                        ? "bg-blue-50 text-[#175ead]" 
-                                        : "hover:bg-gray-50 text-gray-700"
-                                )}
-                            >
-                                Năm nay
-                            </button>
-                            <button
-                                onClick={() => {
-                                    setPeriod('all')
-                                    setShowOtherFilters(false)
-                                }}
-                                className={cn(
-                                    "w-full text-left px-4 py-2 rounded-lg text-sm font-medium transition-colors",
-                                    period === 'all' 
-                                        ? "bg-blue-50 text-[#175ead]" 
-                                        : "hover:bg-gray-50 text-gray-700"
-                                )}
-                            >
-                                Tất cả
-                            </button>
-                        </div>
-                    )}
-                </div>
-            </div>
-
-            {/* Main Content with top padding */}
-            <div className="pt-44 pb-20">
-                <div className="p-4 flex flex-col gap-6">
-                    {/* Overview Cards */}
-                    <Card className="relative overflow-hidden border-none bg-gradient-to-r from-[#175ead] to-[#2575be] text-white shadow-lg rounded-2xl">
-                        <div className="absolute top-0 right-0 p-6 opacity-20">
-                            <Wallet className="w-12 h-12" />
-                        </div>
-                        <CardHeader className="p-6 pb-0">
-                            <CardTitle className="text-xs font-bold uppercase tracking-wider opacity-90">Tổng doanh thu</CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-6 pt-2">
-                            <div className="text-3xl font-bold">{formatCurrency(totalRevenue)}</div>
-                            <p className="text-xs mt-2 opacity-80 flex items-center gap-1">
-                                <TrendingUp className="w-3 h-3" />
-                                Dựa trên khoảng thời gian đã chọn
-                            </p>
-                        </CardContent>
-                    </Card>
-
-                    {/* Trend Chart (CSS based) */}
-                    <Card className="bg-white rounded-2xl shadow-sm border-0 overflow-hidden">
-                        <CardHeader className="p-6">
-                            <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                                <TrendingUp className="w-4 h-4 text-emerald-500" />
-                                Xu hướng doanh thu
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-4 md:p-6 pt-0">
-                            <div className="h-48 flex items-end gap-1 md:gap-2 px-1">
-                                {trend.length > 0 ? trend.map((t, i) => (
-                                    <div key={i} className="flex-1 flex flex-col items-center gap-2 group">
-                                        <div className="w-full relative flex flex-col justify-end h-32">
-                                            <div
-                                                className="w-full bg-[#175ead]/20 hover:bg-[#175ead]/40 transition-all rounded-t-lg md:rounded-t-xl relative group-hover:ring-2 ring-[#175ead]/20"
-                                                style={{ height: `${(t.revenue / maxRevenue) * 100}%` }}
-                                            >
-                                                <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-3 py-1.5 rounded-xl text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity shadow-xl z-20 whitespace-nowrap">
-                                                    {formatCurrency(t.revenue)}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <span className="text-[8px] md:text-[10px] font-bold uppercase tracking-tighter text-gray-500 truncate w-full text-center">{t.label}</span>
-                                    </div>
-                                )) : (
-                                    <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs font-medium italic">
-                                        Chưa có đủ dữ liệu để phân tích xu hướng
-                                    </div>
-                                )}
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    {/* Products & Categories with Tabs */}
-                    <Tabs defaultValue="product" className="w-full">
-                        <TabsList className="grid w-full grid-cols-2 mb-6 bg-white/80 p-1 h-12 rounded-2xl shadow-sm">
-                            <TabsTrigger value="product" className="rounded-xl data-[state=active]:bg-[#175ead] data-[state=active]:text-white data-[state=active]:shadow-sm font-bold text-xs uppercase tracking-wider">Sản phẩm</TabsTrigger>
-                            <TabsTrigger value="category" className="rounded-xl data-[state=active]:bg-[#175ead] data-[state=active]:text-white data-[state=active]:shadow-sm font-bold text-xs uppercase tracking-wider">Danh mục</TabsTrigger>
-                        </TabsList>
-                        <TabsContent value="product" className="mt-0">
-                            <ReportTable 
-                                data={byProduct} 
-                                title="Sản phẩm bán chạy" 
-                                icon={Package}
-                                showAll={showAllProducts}
-                                onToggle={() => setShowAllProducts(!showAllProducts)}
-                            />
-                        </TabsContent>
-                        <TabsContent value="category" className="mt-0">
-                            <ReportTable 
-                                data={byCategory} 
-                                title="Danh mục hiệu quả" 
-                                icon={Tag}
-                                showAll={showAllCategories}
-                                onToggle={() => setShowAllCategories(!showAllCategories)}
-                            />
-                        </TabsContent>
-                    </Tabs>
-
-                    {/* Admin Only: Customers & Sales with Tabs */}
-                    {isAdmin && (
-                        <Tabs defaultValue="customer" className="w-full">
-                            <TabsList className="grid w-full grid-cols-3 mb-6 bg-white/80 p-1 h-12 rounded-2xl shadow-sm">
-                                <TabsTrigger value="customer" className="rounded-xl data-[state=active]:bg-emerald-500 data-[state=active]:text-white data-[state=active]:shadow-sm font-bold text-xs uppercase tracking-wider">Khách hàng</TabsTrigger>
-                                <TabsTrigger value="sale" className="rounded-xl data-[state=active]:bg-purple-500 data-[state=active]:text-white data-[state=active]:shadow-sm font-bold text-xs uppercase tracking-wider">Sale</TabsTrigger>
-                                <TabsTrigger value="saleadmin" className="rounded-xl data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-sm font-bold text-xs uppercase tracking-wider">Sale Admin</TabsTrigger>
-                            </TabsList>
-                            
-                            <TabsContent value="customer" className="mt-0">
-                                <Card className="bg-white rounded-2xl shadow-sm border-0">
-                                    <CardHeader className="p-6 pb-2">
-                                        <div className="flex items-center justify-between mb-1">
-                                            <div className="flex items-center gap-2">
-                                                <div className="p-2 rounded-lg bg-emerald-50 text-emerald-600">
-                                                    <TrendingUp className="w-4 h-4" />
-                                                </div>
-                                                <CardTitle className="text-lg font-semibold">Top khách hàng</CardTitle>
-                                            </div>
-                                            {byCustomer.length > 10 && (
-                                                <button className="text-xs text-emerald-600 hover:underline font-medium">
-                                                    Xem đầy đủ →
-                                                </button>
-                                            )}
-                                        </div>
-                                    </CardHeader>
-                                    <CardContent className="p-6">
-                                        <div className="space-y-4">
-                                            {(showAllCustomers ? byCustomer.slice(0, 10) : byCustomer.slice(0, 5)).map((customer, idx) => (
-                                                <div key={customer.id} className="group flex justify-between items-center text-sm">
-                                                    <div className="space-y-1">
-                                                        <p className="font-medium group-hover:text-emerald-600 transition-colors">{customer.name}</p>
-                                                        <div className="flex items-center gap-2">
-                                                            <div className="h-1.5 w-24 bg-gray-100 rounded-full overflow-hidden">
-                                                                <div
-                                                                    className="h-full bg-emerald-500/60"
-                                                                    style={{ width: `${(customer.revenue / (byCustomer[0]?.revenue || 1)) * 100}%` }}
-                                                                />
-                                                            </div>
-                                                            <p className="text-xs text-gray-500">{customer.orderCount} đơn</p>
-                                                        </div>
-                                                    </div>
-                                                    <span className="font-bold tabular-nums text-gray-900">{formatCurrency(customer.revenue)}</span>
-                                                </div>
-                                            ))}
-                                            {byCustomer.length === 0 && (
-                                                <div className="py-10 text-center space-y-2">
-                                                    <Package className="w-8 h-8 mx-auto text-gray-300" />
-                                                    <p className="text-gray-500 text-sm">Không có dữ liệu khách hàng.</p>
-                                                </div>
-                                            )}
-                                        </div>
-                                        {byCustomer.length > 5 && byCustomer.length <= 10 && !showAllCustomers && (
-                                            <div className="mt-4 pt-4 border-t">
-                                                <Button
-                                                    variant="ghost"
-                                                    onClick={() => setShowAllCustomers(!showAllCustomers)}
-                                                    className="w-full text-emerald-600 hover:text-emerald-600 hover:bg-emerald-50"
-                                                >
-                                                    Xem thêm ({byCustomer.length - 5})
-                                                </Button>
-                                            </div>
-                                        )}
-                                        {byCustomer.length > 10 && !showAllCustomers && (
-                                            <div className="mt-4 pt-4 border-t">
-                                                <Button
-                                                    variant="ghost"
-                                                    onClick={() => setShowAllCustomers(!showAllCustomers)}
-                                                    className="w-full text-emerald-600 hover:text-emerald-600 hover:bg-emerald-50"
-                                                >
-                                                    Xem thêm 5
-                                                </Button>
-                                            </div>
-                                        )}
-                                        {showAllCustomers && byCustomer.length > 5 && (
-                                            <div className="mt-4 pt-4 border-t">
-                                                <Button
-                                                    variant="ghost"
-                                                    onClick={() => setShowAllCustomers(!showAllCustomers)}
-                                                    className="w-full text-emerald-600 hover:text-emerald-600 hover:bg-emerald-50"
-                                                >
-                                                    Thu gọn
-                                                </Button>
-                                            </div>
-                                        )}
-                                    </CardContent>
-                                </Card>
-                            </TabsContent>
-                            
-                            <TabsContent value="sale" className="mt-0">
-                                <Card className="bg-white rounded-2xl shadow-sm border-0">
-                                    <CardHeader className="p-6 pb-2">
-                                        <div className="flex items-center justify-between mb-1">
-                                            <div className="flex items-center gap-2">
-                                                <div className="p-2 rounded-lg bg-purple-50 text-purple-600">
-                                                    <TrendingUp className="w-4 h-4" />
-                                                </div>
-                                                <CardTitle className="text-lg font-semibold">Top Sale</CardTitle>
-                                            </div>
-                                            {bySale.length > 10 && (
-                                                <button className="text-xs text-purple-600 hover:underline font-medium">
-                                                    Xem đầy đủ →
-                                                </button>
-                                            )}
-                                        </div>
-                                    </CardHeader>
-                                    <CardContent className="p-6">
-                                        <div className="space-y-4">
-                                            {(showAllSales ? bySale.slice(0, 10) : bySale.slice(0, 5)).map((sale, idx) => (
-                                                <div key={sale.id} className="group flex justify-between items-center text-sm">
-                                                    <div className="space-y-1">
-                                                        <p className="font-medium group-hover:text-purple-600 transition-colors">{sale.name}</p>
-                                                        <div className="flex items-center gap-2">
-                                                            <div className="h-1.5 w-24 bg-gray-100 rounded-full overflow-hidden">
-                                                                <div
-                                                                    className="h-full bg-purple-500/60"
-                                                                    style={{ width: `${(sale.revenue / (bySale[0]?.revenue || 1)) * 100}%` }}
-                                                                />
-                                                            </div>
-                                                            <p className="text-xs text-gray-500">{sale.orderCount} đơn</p>
-                                                        </div>
-                                                    </div>
-                                                    <span className="font-bold tabular-nums text-gray-900">{formatCurrency(sale.revenue)}</span>
-                                                </div>
-                                            ))}
-                                            {bySale.length === 0 && (
-                                                <div className="py-10 text-center space-y-2">
-                                                    <Package className="w-8 h-8 mx-auto text-gray-300" />
-                                                    <p className="text-gray-500 text-sm">Không có dữ liệu nhân viên.</p>
-                                                </div>
-                                            )}
-                                        </div>
-                                        {bySale.length > 5 && bySale.length <= 10 && !showAllSales && (
-                                            <div className="mt-4 pt-4 border-t">
-                                                <Button
-                                                    variant="ghost"
-                                                    onClick={() => setShowAllSales(!showAllSales)}
-                                                    className="w-full text-purple-600 hover:text-purple-600 hover:bg-purple-50"
-                                                >
-                                                    Xem thêm ({bySale.length - 5})
-                                                </Button>
-                                            </div>
-                                        )}
-                                        {bySale.length > 10 && !showAllSales && (
-                                            <div className="mt-4 pt-4 border-t">
-                                                <Button
-                                                    variant="ghost"
-                                                    onClick={() => setShowAllSales(!showAllSales)}
-                                                    className="w-full text-purple-600 hover:text-purple-600 hover:bg-purple-50"
-                                                >
-                                                    Xem thêm 5
-                                                </Button>
-                                            </div>
-                                        )}
-                                        {showAllSales && bySale.length > 5 && (
-                                            <div className="mt-4 pt-4 border-t">
-                                                <Button
-                                                    variant="ghost"
-                                                    onClick={() => setShowAllSales(!showAllSales)}
-                                                    className="w-full text-purple-600 hover:text-purple-600 hover:bg-purple-50"
-                                                >
-                                                    Thu gọn
-                                                </Button>
-                                            </div>
-                                        )}
-                                    </CardContent>
-                                </Card>
-                            </TabsContent>
-                            
-                            <TabsContent value="saleadmin" className="mt-0">
-                                <Card className="bg-white rounded-2xl shadow-sm border-0">
-                                    <CardHeader className="p-6 pb-2">
-                                        <div className="flex items-center justify-between mb-1">
-                                            <div className="flex items-center gap-2">
-                                                <div className="p-2 rounded-lg bg-blue-50 text-[#175ead]">
-                                                    <TrendingUp className="w-4 h-4" />
-                                                </div>
-                                                <CardTitle className="text-lg font-semibold">Top Sale Admin</CardTitle>
-                                            </div>
-                                            {bySaleAdmin.length > 10 && (
-                                                <button className="text-xs text-[#175ead] hover:underline font-medium">
-                                                    Xem đầy đủ →
-                                                </button>
-                                            )}
-                                        </div>
-                                    </CardHeader>
-                                    <CardContent className="p-6">
-                                        <div className="space-y-4">
-                                            {(showAllSaleAdmins ? bySaleAdmin.slice(0, 10) : bySaleAdmin.slice(0, 5)).map((saleAdmin, idx) => (
-                                                <div key={saleAdmin.id} className="group flex justify-between items-center text-sm">
-                                                    <div className="space-y-1">
-                                                        <p className="font-medium group-hover:text-[#175ead] transition-colors">{saleAdmin.name}</p>
-                                                        <div className="flex items-center gap-2">
-                                                            <div className="h-1.5 w-24 bg-gray-100 rounded-full overflow-hidden">
-                                                                <div
-                                                                    className="h-full bg-[#175ead]/60"
-                                                                    style={{ width: `${(saleAdmin.revenue / (bySaleAdmin[0]?.revenue || 1)) * 100}%` }}
-                                                                />
-                                                            </div>
-                                                            <p className="text-xs text-gray-500">{saleAdmin.orderCount} đơn</p>
-                                                        </div>
-                                                    </div>
-                                                    <span className="font-bold tabular-nums text-gray-900">{formatCurrency(saleAdmin.revenue)}</span>
-                                                </div>
-                                            ))}
-                                            {bySaleAdmin.length === 0 && (
-                                                <div className="py-10 text-center space-y-2">
-                                                    <Package className="w-8 h-8 mx-auto text-gray-300" />
-                                                    <p className="text-gray-500 text-sm">Không có dữ liệu Sale Admin.</p>
-                                                </div>
-                                            )}
-                                        </div>
-                                        {bySaleAdmin.length > 5 && bySaleAdmin.length <= 10 && !showAllSaleAdmins && (
-                                            <div className="mt-4 pt-4 border-t">
-                                                <Button
-                                                    variant="ghost"
-                                                    onClick={() => setShowAllSaleAdmins(!showAllSaleAdmins)}
-                                                    className="w-full text-[#175ead] hover:text-[#175ead] hover:bg-blue-50"
-                                                >
-                                                    Xem thêm ({bySaleAdmin.length - 5})
-                                                </Button>
-                                            </div>
-                                        )}
-                                        {bySaleAdmin.length > 10 && !showAllSaleAdmins && (
-                                            <div className="mt-4 pt-4 border-t">
-                                                <Button
-                                                    variant="ghost"
-                                                    onClick={() => setShowAllSaleAdmins(!showAllSaleAdmins)}
-                                                    className="w-full text-[#175ead] hover:text-[#175ead] hover:bg-blue-50"
-                                                >
-                                                    Xem thêm 5
-                                                </Button>
-                                            </div>
-                                        )}
-                                        {showAllSaleAdmins && bySaleAdmin.length > 5 && (
-                                            <div className="mt-4 pt-4 border-t">
-                                                <Button
-                                                    variant="ghost"
-                                                    onClick={() => setShowAllSaleAdmins(!showAllSaleAdmins)}
-                                                    className="w-full text-[#175ead] hover:text-[#175ead] hover:bg-blue-50"
-                                                >
-                                                    Thu gọn
-                                                </Button>
-                                            </div>
-                                        )}
-                                    </CardContent>
-                                </Card>
-                            </TabsContent>
-                        </Tabs>
-                    )}
-                </div>
-            </div>
+      <div className="min-h-screen bg-[#f0f9ff] flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-[#175ead] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Đang tải...</p>
         </div>
+      </div>
     )
+  }
+
+  return (
+    <div className="min-h-screen bg-[#f0f9ff]">
+      <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
+        {/* Page Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Báo cáo & Phân tích</h1>
+            <p className="text-sm text-gray-600 mt-1">
+              {isAdmin ? 'Toàn hệ thống' : isSaleAdmin ? 'Nhóm của bạn' : 'Của bạn'}
+            </p>
+          </div>
+          <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+            <BarChart3 className="w-5 h-5 text-[#175ead]" />
+          </div>
+        </div>
+
+        {/* Filter Tabs */}
+        <div className="flex gap-2 overflow-x-auto pb-2">
+          {filterTabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => handleFilterChange(tab.id)}
+              className={cn(
+                'px-3 py-1.5 rounded-2xl text-xs font-semibold whitespace-nowrap border transition-colors flex items-center gap-1',
+                period === tab.id
+                  ? 'bg-[#175ead] text-white border-[#175ead]'
+                  : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
+              )}
+            >
+              {tab.label}
+              {tab.id === 'other' && (
+                <ChevronDown className="w-3 h-3" />
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* Total Revenue Card */}
+        <div className="bg-gradient-to-br from-[#175ead] to-[#1e40af] rounded-2xl p-6 shadow-lg">
+          <div className="flex items-start justify-between mb-2">
+            <p className="text-xs font-bold text-white/90 tracking-wider">TỔNG DOANH THU</p>
+            <Wallet className="w-8 h-8 text-white/30" />
+          </div>
+          <p className="text-3xl font-bold text-white mb-2">{formatCurrency(totalRevenue)}</p>
+          <div className="flex items-center gap-1">
+            <TrendingUp className="w-3 h-3 text-white/80" />
+            <p className="text-xs text-white/80">Dựa trên khoảng thời gian đã chọn</p>
+          </div>
+        </div>
+
+        {/* Trend Chart */}
+        <div className="bg-white rounded-2xl p-4 shadow-sm">
+          <div className="flex items-center gap-2 mb-4">
+            <TrendingUp className="w-4 h-4 text-emerald-600" />
+            <h2 className="text-base font-semibold text-gray-900">Xu hướng doanh thu</h2>
+          </div>
+          <div className="h-40 flex items-end gap-1 px-1">
+            {trend.length > 0 ? (
+              trend.map((t, i) => (
+                <div key={i} className="flex-1 flex flex-col items-center gap-2">
+                  <div 
+                    className="w-full bg-blue-200 rounded-t-lg min-h-[4px]"
+                    style={{ height: `${(t.revenue / maxRevenue) * 100}%` }}
+                  />
+                  <p className="text-[9px] font-bold text-gray-400 uppercase">{t.label}</p>
+                </div>
+              ))
+            ) : (
+              <p className="flex-1 text-center text-xs text-gray-400 italic">Chưa có đủ dữ liệu</p>
+            )}
+          </div>
+        </div>
+
+        {/* Product/Category Tabs */}
+        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+          <div className="flex gap-1 p-1 bg-gray-50">
+            <button
+              onClick={() => setActiveTab('product')}
+              className={cn(
+                'flex-1 py-3 rounded-xl text-xs font-bold tracking-wide transition-colors',
+                activeTab === 'product'
+                  ? 'bg-[#175ead] text-white'
+                  : 'text-gray-600'
+              )}
+            >
+              SẢN PHẨM
+            </button>
+            <button
+              onClick={() => setActiveTab('category')}
+              className={cn(
+                'flex-1 py-3 rounded-xl text-xs font-bold tracking-wide transition-colors',
+                activeTab === 'category'
+                  ? 'bg-[#175ead] text-white'
+                  : 'text-gray-600'
+              )}
+            >
+              DANH MỤC
+            </button>
+          </div>
+
+          <div className="p-4 space-y-4">
+            {displayData.length > 0 ? (
+              displayData.map((item, idx) => (
+                <div key={idx} className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-900">{item.name}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <div className="w-24 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-blue-400 rounded-full"
+                          style={{ width: `${(item.revenue / maxDisplayRevenue) * 100}%` }}
+                        />
+                      </div>
+                      <p className="text-xs text-gray-500">{item.quantity} units</p>
+                    </div>
+                  </div>
+                  <p className="text-sm font-bold text-gray-900">{formatCurrency(item.revenue)}</p>
+                </div>
+              ))
+            ) : (
+              <div className="py-10 text-center">
+                <Package className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                <p className="text-sm text-gray-400">Không có dữ liệu</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Admin Only: Role-based Reports */}
+        {isAdmin && (
+          <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <div className="flex gap-1 p-1 bg-gray-50">
+              <button
+                onClick={() => setRoleTab('customer')}
+                className={cn(
+                  'flex-1 py-3 rounded-xl text-[10px] font-bold tracking-wide transition-colors',
+                  roleTab === 'customer'
+                    ? 'bg-emerald-500 text-white'
+                    : 'text-gray-600'
+                )}
+              >
+                KHÁCH HÀNG
+              </button>
+              <button
+                onClick={() => setRoleTab('sale')}
+                className={cn(
+                  'flex-1 py-3 rounded-xl text-[10px] font-bold tracking-wide transition-colors',
+                  roleTab === 'sale'
+                    ? 'bg-purple-500 text-white'
+                    : 'text-gray-600'
+                )}
+              >
+                SALE
+              </button>
+              <button
+                onClick={() => setRoleTab('saleadmin')}
+                className={cn(
+                  'flex-1 py-3 rounded-xl text-[10px] font-bold tracking-wide transition-colors',
+                  roleTab === 'saleadmin'
+                    ? 'bg-[#175ead] text-white'
+                    : 'text-gray-600'
+                )}
+              >
+                SALE ADMIN
+              </button>
+            </div>
+
+            <div className="p-4 space-y-4">
+              {roleData.length > 0 ? (
+                roleData.map((item: any, idx) => (
+                  <div key={idx} className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-900">{item.name}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <div className="w-24 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                          <div 
+                            className={cn(
+                              'h-full rounded-full',
+                              roleTab === 'customer' && 'bg-emerald-400',
+                              roleTab === 'sale' && 'bg-purple-400',
+                              roleTab === 'saleadmin' && 'bg-blue-400'
+                            )}
+                            style={{ width: `${(item.revenue / maxRoleRevenue) * 100}%` }}
+                          />
+                        </div>
+                        <p className="text-xs text-gray-500">{item.orderCount} đơn</p>
+                      </div>
+                    </div>
+                    <p className="text-sm font-bold text-gray-900">{formatCurrency(item.revenue)}</p>
+                  </div>
+                ))
+              ) : (
+                <div className="py-10 text-center">
+                  <Users className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                  <p className="text-sm text-gray-400">Không có dữ liệu</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Time Range Modal */}
+      {showTimeRangeModal && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center sm:justify-center"
+          onClick={() => setShowTimeRangeModal(false)}
+        >
+          <div 
+            className="bg-white rounded-t-3xl sm:rounded-3xl w-full sm:max-w-md max-h-[80vh] overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between p-5 border-b border-gray-100">
+              <h3 className="text-lg font-bold text-gray-900">Chọn thời gian</h3>
+              <button
+                onClick={() => setShowTimeRangeModal(false)}
+                className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-lg"
+              >
+                <X className="w-5 h-5 text-gray-600" />
+              </button>
+            </div>
+            <div className="overflow-y-auto max-h-[500px]">
+              {timeRangeOptions.map((option) => (
+                <button
+                  key={option.id}
+                  onClick={() => handleTimeRangeSelect(option.id)}
+                  className={cn(
+                    'w-full flex items-center justify-between px-5 py-4 border-b border-gray-100 hover:bg-gray-50 transition-colors',
+                    period === option.id && 'bg-blue-50'
+                  )}
+                >
+                  <span className={cn(
+                    'text-base',
+                    period === option.id ? 'text-[#175ead] font-semibold' : 'text-gray-700'
+                  )}>
+                    {option.label}
+                  </span>
+                  {period === option.id && (
+                    <div className="w-5 h-5 bg-[#175ead] rounded-full flex items-center justify-center">
+                      <div className="w-2 h-2 bg-white rounded-full" />
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
 }

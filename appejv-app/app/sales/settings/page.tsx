@@ -1,283 +1,360 @@
 'use client'
 
-import { createClient } from '@/lib/supabase/client'
-import { Card, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { 
-    Settings, 
-    HelpCircle, 
-    Shield, 
-    Bell, 
-    User,
-    LogOut,
-    ChevronRight,
-    FileText,
-    Users
-} from 'lucide-react'
-import { HeaderMenu } from '@/components/layout/HeaderMenu'
-import { NotificationModal } from '@/components/layout/NotificationModal'
-import { cn } from '@/lib/utils'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useScrollHeader } from '@/hooks/useScrollHeader'
-import { logout } from '@/app/auth/actions'
+import { useAuth } from '@/contexts/AuthContext'
+import { createClient } from '@/lib/supabase/client'
+import { toast } from 'sonner'
+import { 
+  ChevronLeft, 
+  Building2, 
+  DollarSign, 
+  Bell, 
+  Shield,
+  Save,
+  RefreshCw
+} from 'lucide-react'
 
-const menuSections = [
-    {
-        title: 'Cài đặt',
-        items: [
-            {
-                icon: User,
-                label: 'Thông tin cá nhân',
-                href: '/profile',
-                color: 'text-blue-600',
-                bgColor: 'bg-blue-50'
-            },
-            {
-                icon: Bell,
-                label: 'Thông báo',
-                href: '#',
-                color: 'text-amber-600',
-                bgColor: 'bg-amber-50'
-            },
-            {
-                icon: Settings,
-                label: 'Cài đặt hệ thống',
-                href: '#',
-                color: 'text-gray-600',
-                bgColor: 'bg-gray-50'
-            }
-        ]
-    },
-    {
-        title: 'Quản lý',
-        items: [
-            {
-                icon: Users,
-                label: 'Quản lý người dùng',
-                href: '/sales/users',
-                color: 'text-purple-600',
-                bgColor: 'bg-purple-50',
-                adminOnly: true
-            },
-            {
-                icon: FileText,
-                label: 'Báo cáo',
-                href: '/sales/reports',
-                color: 'text-emerald-600',
-                bgColor: 'bg-emerald-50'
-            }
-        ]
-    },
-    {
-        title: 'Hỗ trợ',
-        items: [
-            {
-                icon: HelpCircle,
-                label: 'Trợ giúp & Hỗ trợ',
-                href: '#',
-                color: 'text-cyan-600',
-                bgColor: 'bg-cyan-50'
-            },
-            {
-                icon: Shield,
-                label: 'Chính sách bảo mật',
-                href: '#',
-                color: 'text-rose-600',
-                bgColor: 'bg-rose-50'
-            }
-        ]
+interface CompanySettings {
+  company_name: string
+  company_address: string
+  company_phone: string
+  company_email: string
+  tax_rate: number
+  currency: string
+  low_stock_threshold: number
+}
+
+export default function SettingsPage() {
+  const { user } = useAuth()
+  const router = useRouter()
+  const [profile, setProfile] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [settings, setSettings] = useState<CompanySettings>({
+    company_name: 'APPE JV',
+    company_address: '',
+    company_phone: '',
+    company_email: '',
+    tax_rate: 10,
+    currency: 'VND',
+    low_stock_threshold: 10
+  })
+
+  useEffect(() => {
+    if (!user) {
+      router.push('/auth/login')
+      return
     }
-]
+    fetchProfile()
+  }, [user])
 
-export default function SalesSettingsPage() {
-    const [user, setUser] = useState<any>(null)
-    const [profile, setProfile] = useState<any>(null)
-    const [loading, setLoading] = useState(true)
-    const router = useRouter()
-    const { isHeaderVisible } = useScrollHeader()
+  const fetchProfile = async () => {
+    try {
+      const supabase = createClient()
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('role, full_name')
+        .eq('id', user!.id)
+        .single()
 
-    useEffect(() => {
-        fetchUserData()
-    }, [])
+      if (!profileData || profileData.role !== 'admin') {
+        toast.error('Bạn không có quyền truy cập trang này')
+        router.push('/sales')
+        return
+      }
 
-    const fetchUserData = async () => {
-        try {
-            setLoading(true)
-            const supabase = createClient()
-            const { data: { user } } = await supabase.auth.getUser()
-
-            if (!user) {
-                router.push('/auth/login')
-                return
-            }
-
-            setUser(user)
-
-            const { data: profileData } = await supabase
-                .from('profiles')
-                .select('role, full_name')
-                .eq('id', user.id)
-                .single()
-
-            if (!profileData || !['sale', 'admin', 'sale_admin'].includes((profileData as any).role)) {
-                router.push('/')
-                return
-            }
-
-            setProfile(profileData)
-        } catch (error) {
-            console.error('Error fetching user data:', error)
-        } finally {
-            setLoading(false)
-        }
+      setProfile(profileData)
+      
+      // Load settings from localStorage (in production, this would be from database)
+      const savedSettings = localStorage.getItem('company_settings')
+      if (savedSettings) {
+        setSettings(JSON.parse(savedSettings))
+      }
+    } catch (error: any) {
+      console.error('Error fetching profile:', error)
+      toast.error('Không thể tải thông tin người dùng')
+    } finally {
+      setLoading(false)
     }
+  }
 
-    const handleLogout = async () => {
-        if (!confirm('Bạn có chắc chắn muốn đăng xuất?')) return
-        
-        try {
-            await logout()
-            // Redirect to appejv.app website
-            window.location.href = 'https://appejv.app'
-        } catch (error) {
-            console.error('Error logging out:', error)
-        }
+  const handleSave = async () => {
+    try {
+      setSaving(true)
+      
+      // In production, save to database
+      // For now, save to localStorage
+      localStorage.setItem('company_settings', JSON.stringify(settings))
+      
+      toast.success('Đã lưu cài đặt thành công')
+    } catch (error: any) {
+      console.error('Error saving settings:', error)
+      toast.error('Không thể lưu cài đặt')
+    } finally {
+      setSaving(false)
     }
+  }
 
-    const MenuSection = ({ title, items }: { title: string, items: any[] }) => {
-        const isAdmin = profile?.role === 'admin'
-        const filteredItems = items.filter(item => !item.adminOnly || isAdmin)
-
-        if (filteredItems.length === 0) return null
-
-        return (
-            <div className="space-y-3">
-                <h3 className="text-sm font-bold text-gray-500 px-2 uppercase tracking-wider">{title}</h3>
-                <Card className="bg-white rounded-2xl shadow-sm border-0">
-                    <CardContent className="p-0">
-                        {filteredItems.map((item, index) => (
-                            <div key={index}>
-                                <button 
-                                    className="w-full flex items-center gap-4 p-4 hover:bg-gray-50 active:bg-gray-100 transition-colors"
-                                    onClick={() => item.href !== '#' && router.push(item.href)}
-                                >
-                                    <div className={cn("p-2.5 rounded-xl", item.bgColor)}>
-                                        <item.icon className={cn("w-5 h-5", item.color)} />
-                                    </div>
-                                    <div className="flex-1 text-left">
-                                        <p className="font-semibold text-gray-900">{item.label}</p>
-                                    </div>
-                                    <ChevronRight className="w-5 h-5 text-gray-400" />
-                                </button>
-                                {index < filteredItems.length - 1 && (
-                                    <div className="border-t border-gray-100 mx-4" />
-                                )}
-                            </div>
-                        ))}
-                    </CardContent>
-                </Card>
-            </div>
-        )
+  const handleReset = () => {
+    const defaultSettings: CompanySettings = {
+      company_name: 'APPE JV',
+      company_address: '',
+      company_phone: '',
+      company_email: '',
+      tax_rate: 10,
+      currency: 'VND',
+      low_stock_threshold: 10
     }
+    setSettings(defaultSettings)
+    toast.info('Đã khôi phục cài đặt mặc định')
+  }
 
-    if (loading) {
-        return (
-            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 min-h-screen flex items-center justify-center">
-                <div className="text-gray-500">Đang tải...</div>
-            </div>
-        )
-    }
-
-    if (!user || !profile) {
-        return (
-            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 min-h-screen flex items-center justify-center">
-                <div className="text-center">
-                    <p className="text-gray-600 mb-4">Vui lòng đăng nhập</p>
-                    <Button onClick={() => router.push('/auth/login')}>
-                        Đăng nhập
-                    </Button>
-                </div>
-            </div>
-        )
-    }
-
+  if (loading) {
     return (
-        <div className="bg-gradient-to-br from-blue-50 to-cyan-50 min-h-screen">
-            {/* Fixed Header */}
-            <div className={cn(
-                "fixed top-0 left-0 right-0 z-50 bg-gradient-to-br from-blue-50 to-cyan-50 transition-transform duration-300",
-                isHeaderVisible ? "translate-y-0" : "-translate-y-full"
-            )}>
-                {/* Logo and Menu Row */}
-                <div className="flex items-center justify-between p-4 pt-6">
-                    <div className="flex items-center gap-2">
-                        <img 
-                            src="/appejv-logo.png" 
-                            alt="APPE JV Logo" 
-                            className="w-8 h-8 object-contain"
-                        />
-                        <span className="text-xl font-bold text-gray-900">APPE JV</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <NotificationModal user={user} role={profile.role} />
-                        <HeaderMenu user={user} role={profile.role} />
-                    </div>
-                </div>
-            </div>
-
-            {/* Sticky Title Section */}
-            <div className={cn(
-                "sticky left-0 right-0 z-40 bg-gradient-to-br from-blue-50 to-cyan-50 px-4 pb-2 pt-2 transition-all duration-300",
-                !isHeaderVisible ? "top-0" : "top-20"
-            )}>
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Cài đặt</h1>
-                    <p className="text-sm text-gray-600">
-                        {profile.full_name || user.email}
-                        {profile.role === 'admin' && (
-                            <span className="ml-2 text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded">
-                                ADMIN
-                            </span>
-                        )}
-                        {profile.role === 'sale_admin' && (
-                            <span className="ml-2 text-xs bg-purple-100 text-purple-600 px-2 py-1 rounded">
-                                SALE ADMIN
-                            </span>
-                        )}
-                    </p>
-                </div>
-            </div>
-
-            {/* Main Content */}
-            <div className="pt-44 pb-20">
-                <div className="p-4 flex flex-col gap-6">
-                    {/* Menu Sections */}
-                    {menuSections.map((section, index) => (
-                        <MenuSection key={index} title={section.title} items={section.items} />
-                    ))}
-
-                    {/* Logout Button */}
-                    <Card className="bg-white rounded-2xl shadow-sm border-0">
-                        <CardContent className="p-4">
-                            <Button 
-                                variant="destructive" 
-                                className="w-full bg-red-500 hover:bg-red-600 rounded-full font-bold"
-                                onClick={handleLogout}
-                            >
-                                <LogOut className="mr-2 h-5 w-5" />
-                                Đăng xuất
-                            </Button>
-                        </CardContent>
-                    </Card>
-
-                    {/* Footer Info */}
-                    <div className="text-center text-xs text-gray-400 mt-4">
-                        <p className="font-semibold">APPE JV Sales - Phiên bản 1.2.0</p>
-                        <p className="mt-1">{user.email}</p>
-                    </div>
-                </div>
-            </div>
+      <div className="min-h-screen bg-[#f0f9ff] flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-[#175ead] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Đang tải...</p>
         </div>
+      </div>
     )
+  }
+
+  return (
+    <div className="min-h-screen bg-[#f0f9ff] pb-20">
+      {/* Header */}
+      <div className="sticky top-0 z-40 bg-[#f0f9ff] border-b border-gray-200">
+        <div className="flex items-center justify-between px-4 py-3">
+          <button
+            onClick={() => router.back()}
+            className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors"
+          >
+            <ChevronLeft className="w-6 h-6 text-gray-900" />
+          </button>
+          <h1 className="text-lg font-bold text-gray-900 flex-1 text-center">Cài đặt hệ thống</h1>
+          <div className="w-10"></div>
+        </div>
+      </div>
+
+      <div className="max-w-4xl mx-auto p-4 space-y-4">
+        {/* Company Information */}
+        <div className="bg-white rounded-xl p-4 shadow-sm">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+              <Building2 className="w-5 h-5 text-[#175ead]" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-gray-900">Thông tin công ty</h2>
+              <p className="text-xs text-gray-500">Cấu hình thông tin doanh nghiệp</p>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Tên công ty
+              </label>
+              <input
+                type="text"
+                value={settings.company_name}
+                onChange={(e) => setSettings({ ...settings, company_name: e.target.value })}
+                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#175ead] text-sm"
+                placeholder="Nhập tên công ty"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Địa chỉ
+              </label>
+              <input
+                type="text"
+                value={settings.company_address}
+                onChange={(e) => setSettings({ ...settings, company_address: e.target.value })}
+                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#175ead] text-sm"
+                placeholder="Nhập địa chỉ công ty"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Số điện thoại
+                </label>
+                <input
+                  type="tel"
+                  value={settings.company_phone}
+                  onChange={(e) => setSettings({ ...settings, company_phone: e.target.value })}
+                  className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#175ead] text-sm"
+                  placeholder="0123456789"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={settings.company_email}
+                  onChange={(e) => setSettings({ ...settings, company_email: e.target.value })}
+                  className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#175ead] text-sm"
+                  placeholder="contact@company.com"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Business Settings */}
+        <div className="bg-white rounded-xl p-4 shadow-sm">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+              <DollarSign className="w-5 h-5 text-emerald-600" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-gray-900">Cài đặt kinh doanh</h2>
+              <p className="text-xs text-gray-500">Thuế, tiền tệ và các tham số</p>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Thuế VAT (%)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.1"
+                  value={settings.tax_rate}
+                  onChange={(e) => setSettings({ ...settings, tax_rate: parseFloat(e.target.value) || 0 })}
+                  className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#175ead] text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Đơn vị tiền tệ
+                </label>
+                <select
+                  value={settings.currency}
+                  onChange={(e) => setSettings({ ...settings, currency: e.target.value })}
+                  className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#175ead] text-sm"
+                >
+                  <option value="VND">VND (₫)</option>
+                  <option value="USD">USD ($)</option>
+                  <option value="EUR">EUR (€)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Inventory Settings */}
+        <div className="bg-white rounded-xl p-4 shadow-sm">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
+              <Bell className="w-5 h-5 text-amber-600" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-gray-900">Cảnh báo tồn kho</h2>
+              <p className="text-xs text-gray-500">Ngưỡng cảnh báo hàng sắp hết</p>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Ngưỡng tồn kho thấp
+            </label>
+            <input
+              type="number"
+              min="0"
+              value={settings.low_stock_threshold}
+              onChange={(e) => setSettings({ ...settings, low_stock_threshold: parseInt(e.target.value) || 0 })}
+              className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#175ead] text-sm"
+              placeholder="10"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Hệ thống sẽ cảnh báo khi số lượng tồn kho thấp hơn giá trị này
+            </p>
+          </div>
+        </div>
+
+        {/* System Info */}
+        <div className="bg-white rounded-xl p-4 shadow-sm">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+              <Shield className="w-5 h-5 text-purple-600" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-gray-900">Thông tin hệ thống</h2>
+              <p className="text-xs text-gray-500">Phiên bản và trạng thái</p>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex justify-between items-center py-2 border-b border-gray-100">
+              <span className="text-sm text-gray-600">Phiên bản</span>
+              <span className="text-sm font-semibold text-gray-900">1.1.0</span>
+            </div>
+            <div className="flex justify-between items-center py-2 border-b border-gray-100">
+              <span className="text-sm text-gray-600">Framework</span>
+              <span className="text-sm font-semibold text-gray-900">Next.js 15</span>
+            </div>
+            <div className="flex justify-between items-center py-2 border-b border-gray-100">
+              <span className="text-sm text-gray-600">Database</span>
+              <span className="text-sm font-semibold text-gray-900">Supabase</span>
+            </div>
+            <div className="flex justify-between items-center py-2">
+              <span className="text-sm text-gray-600">Trạng thái</span>
+              <span className="inline-flex items-center gap-1 text-sm font-semibold text-emerald-600">
+                <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
+                Hoạt động
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex gap-3">
+          <button
+            onClick={handleReset}
+            className="flex-1 flex items-center justify-center gap-2 bg-gray-100 text-gray-700 py-3 rounded-xl text-sm font-semibold hover:bg-gray-200 transition-colors"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Khôi phục mặc định
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="flex-1 flex items-center justify-center gap-2 bg-[#175ead] text-white py-3 rounded-xl text-sm font-semibold hover:bg-[#134a8a] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {saving ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                Đang lưu...
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4" />
+                Lưu cài đặt
+              </>
+            )}
+          </button>
+        </div>
+
+        {/* Info Box */}
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
+          <p className="text-xs text-blue-900">
+            <strong>Lưu ý:</strong> Các cài đặt này áp dụng cho toàn bộ hệ thống. 
+            Chỉ admin mới có quyền thay đổi. Một số thay đổi có thể yêu cầu khởi động lại ứng dụng.
+          </p>
+        </div>
+      </div>
+    </div>
+  )
 }

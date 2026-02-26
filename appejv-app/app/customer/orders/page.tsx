@@ -1,280 +1,193 @@
 'use client'
 
-import { createClient } from '@/lib/supabase/client'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { formatCurrency, cn } from '@/lib/utils'
-import { Sparkles } from 'lucide-react'
-import Link from 'next/link'
-import { Database } from '@/types/database.types'
 import { useState, useEffect } from 'react'
-import { HeaderMenu } from '@/components/layout/HeaderMenu'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '@/contexts/AuthContext'
+import { createClient } from '@/lib/supabase/client'
+import { formatCurrency } from '@/lib/utils'
+import { toast } from 'sonner'
+import { Search, ShoppingCart, X } from 'lucide-react'
+import Link from 'next/link'
 
-type Order = Database['public']['Tables']['orders']['Row']
+export default function CustomerOrdersPage() {
+  const { user } = useAuth()
+  const router = useRouter()
+  const [orders, setOrders] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [activeStatus, setActiveStatus] = useState('all')
 
-const statusTabs = [
-    { id: 'all', label: 'Tất cả' },
-    { id: 'pending', label: 'Chờ xử lý' },
-    { id: 'processing', label: 'Đang xử lý' },
-    { id: 'completed', label: 'Hoàn thành' },
-    { id: 'cancelled', label: 'Đã hủy' },
-]
-
-export default function OrdersPage() {
-    const [orders, setOrders] = useState<Order[]>([])
-    const [activeStatus, setActiveStatus] = useState('all')
-    const [isHeaderVisible, setIsHeaderVisible] = useState(true)
-    const [lastScrollY, setLastScrollY] = useState(0)
-    const [loading, setLoading] = useState(true)
-    const [user, setUser] = useState<any>(null)
-    const [role, setRole] = useState('customer')
-    const [mounted, setMounted] = useState(false)
-
-    useEffect(() => {
-        setMounted(true)
-    }, [])
-
-    useEffect(() => {
-        const controlHeader = () => {
-            if (typeof window !== 'undefined') {
-                if (window.scrollY > lastScrollY && window.scrollY > 50) {
-                    setIsHeaderVisible(false)
-                } else {
-                    setIsHeaderVisible(true)
-                }
-                setLastScrollY(window.scrollY)
-            }
-        }
-
-        if (typeof window !== 'undefined') {
-            window.addEventListener('scroll', controlHeader)
-            return () => {
-                window.removeEventListener('scroll', controlHeader)
-            }
-        }
-    }, [lastScrollY])
-
-    useEffect(() => {
-        fetchOrders()
-        fetchUserRole()
-    }, [activeStatus])
-
-    const fetchUserRole = async () => {
-        const supabase = createClient()
-        const { data: { user } } = await supabase.auth.getUser()
-        
-        if (user) {
-            const { data: profile } = await supabase
-                .from('profiles')
-                .select('role')
-                .eq('id', user.id)
-                .single()
-            if (profile && (profile as any).role) {
-                setRole((profile as any).role)
-            }
-        }
-    }
-
-    const fetchOrders = async () => {
-        try {
-            setLoading(true)
-            const supabase = createClient()
-            const { data: { user } } = await supabase.auth.getUser()
-
-            if (!user) {
-                setLoading(false)
-                return
-            }
-
-            setUser(user)
-            const phone = user.phone
-
-            if (!phone) {
-                setLoading(false)
-                return
-            }
-
-            const { data: customerData } = await supabase
-                .from('customers')
-                .select('id')
-                .eq('phone', phone)
-                .single()
-
-            if (customerData) {
-                let query = supabase
-                    .from('orders')
-                    .select('*')
-                    .eq('customer_id', (customerData as any).id)
-                    .order('created_at', { ascending: false })
-
-                if (activeStatus !== 'all') {
-                    query = query.eq('status', activeStatus)
-                }
-
-                const { data } = await query
-                setOrders(data || [])
-            }
-        } catch (error) {
-            console.error('Error fetching orders:', error)
-        } finally {
-            setLoading(false)
-        }
-    }
-
-    const getStatusBadgeVariant = (status: string) => {
-        switch (status) {
-            case 'completed':
-                return 'default'
-            case 'cancelled':
-                return 'destructive'
-            case 'processing':
-                return 'secondary'
-            default:
-                return 'outline'
-        }
-    }
-
-    const getStatusLabel = (status: string) => {
-        switch (status) {
-            case 'pending':
-                return 'Chờ xử lý'
-            case 'processing':
-                return 'Đang xử lý'
-            case 'shipping':
-                return 'Đang giao'
-            case 'completed':
-                return 'Hoàn thành'
-            case 'cancelled':
-                return 'Đã hủy'
-            default:
-                return status
-        }
-    }
-
+  useEffect(() => {
     if (!user) {
-        return (
-            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 min-h-screen flex items-center justify-center">
-                <div className="text-center">
-                    <p className="text-gray-600 mb-4">Vui lòng đăng nhập để xem đơn hàng</p>
-                    <Link href="/auth/login">
-                        <Button>Đăng nhập</Button>
-                    </Link>
-                </div>
-            </div>
-        )
+      router.push('/auth/login')
+      return
     }
+    fetchOrders()
+  }, [user])
 
+  const fetchOrders = async () => {
+    try {
+      const supabase = createClient()
+
+      // Get customer ID
+      const { data: customerData } = await supabase
+        .from('customers')
+        .select('id')
+        .eq('user_id', user!.id)
+        .single()
+
+      if (!customerData) {
+        toast.error('Không tìm thấy thông tin khách hàng')
+        return
+      }
+
+      // Fetch orders
+      const { data: ordersData } = await supabase
+        .from('orders')
+        .select(`
+          *,
+          customer:customers(full_name, phone),
+          sale:profiles!orders_sale_id_fkey(full_name)
+        `)
+        .eq('customer_id', customerData.id)
+        .order('created_at', { ascending: false })
+
+      setOrders(ordersData || [])
+    } catch (error: any) {
+      console.error('Error fetching orders:', error)
+      toast.error('Không thể tải đơn hàng')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const getStatusBadge = (status: string) => {
+    const badges: any = {
+      draft: { label: 'Nháp', color: 'bg-gray-100 text-gray-700' },
+      ordered: { label: 'Đã đặt', color: 'bg-blue-100 text-blue-700' },
+      shipping: { label: 'Đang giao', color: 'bg-amber-100 text-amber-700' },
+      paid: { label: 'Đã thanh toán', color: 'bg-emerald-100 text-emerald-700' },
+      completed: { label: 'Hoàn thành', color: 'bg-green-100 text-green-700' },
+    }
+    const badge = badges[status] || badges.draft
     return (
-        <div className="bg-gradient-to-br from-blue-50 to-cyan-50 min-h-screen">
-            {/* Fixed Header */}
-            <div className={cn(
-                "fixed top-0 left-0 right-0 z-50 bg-gradient-to-br from-blue-50 to-cyan-50 transition-transform duration-300",
-                isHeaderVisible ? "translate-y-0" : "-translate-y-full"
-            )}>
-                {/* Logo and AI Assistant Row */}
-                <div className="flex items-center justify-between p-4 pt-6">
-                    <div className="flex items-center gap-2">
-                        <img 
-                            src="/appejv-logo.png" 
-                            alt="APPE JV Logo" 
-                            className="w-10 h-10 object-contain"
-                        />
-                        <span className="text-xl font-bold text-gray-900">APPE JV</span>
-                    </div>
-                    {mounted && (
-                        <div className="flex items-center gap-2">
-                            <Button 
-                                size="sm" 
-                                className="bg-gradient-to-r from-[#175ead] to-[#2575be] text-white rounded-full px-4 py-2 text-sm font-medium"
-                            >
-                                <Sparkles className="w-4 h-4 mr-1" />
-                                Trợ lý AI
-                            </Button>
-                            <HeaderMenu user={user} role={role} />
-                        </div>
-                    )}
-                </div>
-            </div>
-
-            {/* Fixed Status Filter */}
-            <div className="fixed top-20 left-0 right-0 z-40 bg-gradient-to-br from-blue-50 to-cyan-50 px-4 pb-2">
-                <div className="flex flex-col gap-3">
-                    <h1 className="text-2xl font-bold text-gray-900">Đơn hàng của tôi</h1>
-                    
-                    {/* Status Filter */}
-                    <div className="flex gap-2 overflow-x-auto pb-2">
-                        {statusTabs.map((tab) => (
-                            <Button
-                                key={tab.id}
-                                variant={activeStatus === tab.id ? "default" : "outline"}
-                                size="sm"
-                                onClick={() => setActiveStatus(tab.id)}
-                                className={cn(
-                                    "rounded-full whitespace-nowrap text-sm font-medium",
-                                    activeStatus === tab.id 
-                                        ? "bg-[#175ead] text-white" 
-                                        : "bg-white text-gray-600 border-gray-200"
-                                )}
-                            >
-                                {tab.label}
-                            </Button>
-                        ))}
-                    </div>
-                </div>
-            </div>
-
-            {/* Main Content with top padding */}
-            <div className="pt-36 pb-20">
-                <div className="p-4">
-                    {loading ? (
-                        <div className="text-center py-8 text-gray-500">Đang tải...</div>
-                    ) : orders.length === 0 ? (
-                        <div className="text-center py-8">
-                            <p className="text-gray-500 mb-4">Không có đơn hàng nào.</p>
-                            <Link href="/catalog">
-                                <Button>Mua sắm ngay</Button>
-                            </Link>
-                        </div>
-                    ) : (
-                        <div className="grid gap-4">
-                            {orders.map((order) => (
-                                <Card key={order.id} className="bg-white rounded-2xl shadow-sm border-0">
-                                    <CardHeader className="p-4 pb-2">
-                                        <div className="flex justify-between items-start">
-                                            <div>
-                                                <CardTitle className="text-base text-gray-900">
-                                                    Đơn hàng #{order.id}
-                                                </CardTitle>
-                                                <CardDescription className="text-xs text-gray-500">
-                                                    {new Date(order.created_at).toLocaleDateString('vi-VN')}
-                                                </CardDescription>
-                                                <Link 
-                                                    href={`/customer/orders/${order.id}`} 
-                                                    className="text-xs text-[#175ead] underline mt-1 block"
-                                                >
-                                                    Xem chi tiết
-                                                </Link>
-                                            </div>
-                                            <Badge variant={getStatusBadgeVariant(order.status)}>
-                                                {getStatusLabel(order.status)}
-                                            </Badge>
-                                        </div>
-                                    </CardHeader>
-                                    <CardContent className="p-4 pt-0">
-                                        <div className="flex justify-between items-center text-sm font-medium mt-2">
-                                            <span className="text-gray-600">Tổng tiền</span>
-                                            <span className="text-gray-900 font-semibold">
-                                                {formatCurrency(order.total_amount)}
-                                            </span>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            </div>
-        </div>
+      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${badge.color}`}>
+        {badge.label}
+      </span>
     )
+  }
+
+  const filteredOrders = orders.filter(order => {
+    const matchesStatus = activeStatus === 'all' || order.status === activeStatus
+    const matchesSearch = !searchQuery || 
+      order.id.toLowerCase().includes(searchQuery.toLowerCase())
+    return matchesStatus && matchesSearch
+  })
+
+  const statusTabs = [
+    { value: 'all', label: 'Tất cả', count: orders.length },
+    { value: 'draft', label: 'Nháp', count: orders.filter(o => o.status === 'draft').length },
+    { value: 'ordered', label: 'Đã đặt', count: orders.filter(o => o.status === 'ordered').length },
+    { value: 'shipping', label: 'Đang giao', count: orders.filter(o => o.status === 'shipping').length },
+    { value: 'completed', label: 'Hoàn thành', count: orders.filter(o => o.status === 'completed').length },
+  ]
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#f0f9ff] flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-[#175ead] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Đang tải...</p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-[#f0f9ff]">
+      {/* Header */}
+      <div className="sticky top-0 z-40 bg-white border-b border-gray-200">
+        <div className="p-4">
+          <h1 className="text-xl font-bold text-gray-900 mb-3">Đơn hàng của tôi</h1>
+          
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Tìm đơn hàng..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-10 py-3 bg-gray-50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#175ead]"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2"
+              >
+                <X className="w-5 h-5 text-gray-400" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Status Tabs */}
+        <div className="flex gap-2 px-4 pb-3 overflow-x-auto">
+          {statusTabs.map((tab) => (
+            <button
+              key={tab.value}
+              onClick={() => setActiveStatus(tab.value)}
+              className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${
+                activeStatus === tab.value
+                  ? 'bg-[#175ead] text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              {tab.label} ({tab.count})
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Orders List */}
+      <div className="p-4 space-y-3">
+        {filteredOrders.length === 0 ? (
+          <div className="text-center py-20">
+            <ShoppingCart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <p className="text-gray-500 mb-4">Chưa có đơn hàng nào</p>
+            <Link href="/sales/selling">
+              <button className="px-6 py-3 bg-[#175ead] text-white rounded-xl font-semibold hover:bg-[#134a8a] transition-colors">
+                Đặt hàng ngay
+              </button>
+            </Link>
+          </div>
+        ) : (
+          filteredOrders.map((order) => (
+            <Link key={order.id} href={`/customer/orders/${order.id}`}>
+              <div className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <p className="text-sm font-bold text-gray-900">
+                      Đơn #{order.id.slice(0, 8)}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {new Date(order.created_at).toLocaleString('vi-VN')}
+                    </p>
+                  </div>
+                  {getStatusBadge(order.status)}
+                </div>
+
+                <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                  <span className="text-sm text-gray-600">Tổng tiền</span>
+                  <span className="text-lg font-bold text-[#175ead]">
+                    {formatCurrency(order.total_amount)}
+                  </span>
+                </div>
+              </div>
+            </Link>
+          ))
+        )}
+      </div>
+    </div>
+  )
 }

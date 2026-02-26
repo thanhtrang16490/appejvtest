@@ -1,305 +1,471 @@
 'use client'
 
+import { useState, useEffect } from 'react'
+import { useRouter, useParams } from 'next/navigation'
+import { useAuth } from '@/contexts/AuthContext'
 import { createClient } from '@/lib/supabase/client'
-import Link from 'next/link'
-import { Card, CardContent } from '@/components/ui/card'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import {
-    ChevronLeft,
-    ShoppingBag,
-    Calendar,
-    Phone,
-    MapPin,
-    Clock,
-    ArrowUpRight
-} from 'lucide-react'
 import { formatCurrency, cn } from '@/lib/utils'
-import { CustomerDetailActions } from '@/components/sales/CustomerDetailActions'
-import { HeaderMenu } from '@/components/layout/HeaderMenu'
-import { NotificationModal } from '@/components/layout/NotificationModal'
-import { useScrollHeader } from '@/hooks/useScrollHeader'
-import { useEffect, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { toast } from 'sonner'
+import Link from 'next/link'
+import SalesLayout from '../../layout'
+import { 
+  ChevronLeft, 
+  Phone, 
+  MapPin, 
+  Mail, 
+  Calendar, 
+  ShoppingBag, 
+  User,
+  Edit2,
+  Check,
+  X
+} from 'lucide-react'
+import Input from '@/components/ui/Input'
+import Badge from '@/components/ui/Badge'
+
+interface Customer {
+  id: string
+  full_name: string
+  phone: string
+  address: string
+  email: string
+  created_at: string
+  assigned_to: string | null
+  assigned_sale?: {
+    id: string
+    full_name: string
+    email: string
+  }
+}
+
+interface Order {
+  id: number
+  status: string
+  total_amount: number
+  created_at: string
+}
+
+interface SaleUser {
+  id: string
+  full_name: string
+  email: string
+}
+
+const STATUS_MAP = {
+  draft: { label: 'Đơn nháp', color: 'text-gray-700', bg: 'bg-gray-100' },
+  ordered: { label: 'Đơn đặt hàng', color: 'text-amber-700', bg: 'bg-amber-100' },
+  shipping: { label: 'Giao hàng', color: 'text-blue-700', bg: 'bg-blue-100' },
+  paid: { label: 'Thanh toán', color: 'text-purple-700', bg: 'bg-purple-100' },
+  completed: { label: 'Hoàn thành', color: 'text-emerald-700', bg: 'bg-emerald-100' },
+  cancelled: { label: 'Đã hủy', color: 'text-red-700', bg: 'bg-red-100' },
+} as const
 
 export default function CustomerDetailPage() {
-    const params = useParams()
-    const router = useRouter()
-    const id = params.id as string
-    const { isHeaderVisible } = useScrollHeader()
-    const [user, setUser] = useState<any>(null)
-    const [profile, setProfile] = useState<any>(null)
-    const [customer, setCustomer] = useState<any>(null)
-    const [orders, setOrders] = useState<any[]>([])
-    const [isAdmin, setIsAdmin] = useState(false)
-    const [loading, setLoading] = useState(true)
-    const [avatarKey, setAvatarKey] = useState(Date.now()) // For cache busting
+  const { user, loading: authLoading } = useAuth()
+  const router = useRouter()
+  const params = useParams()
+  const customerId = params.id as string
 
-    const fetchData = async () => {
-            const supabase = createClient()
-            const { data: { user } } = await supabase.auth.getUser()
-            
-            if (!user) {
-                router.push('/auth/login')
-                return
-            }
+  const [customer, setCustomer] = useState<Customer | null>(null)
+  const [orders, setOrders] = useState<Order[]>([])
+  const [saleUsers, setSaleUsers] = useState<SaleUser[]>([])
+  const [loading, setLoading] = useState(true)
+  const [editing, setEditing] = useState(false)
+  const [editedData, setEditedData] = useState({
+    full_name: '',
+    phone: '',
+    address: '',
+    email: '',
+    assigned_to: '',
+  })
 
-            setUser(user)
+  const isAdmin = user?.role === 'admin'
+  const isSaleAdmin = user?.role === 'sale_admin'
 
-            const { data: profileData } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-            
-            if (!profileData || !['sale', 'admin', 'sale_admin'].includes((profileData as any).role)) {
-                router.push('/')
-                return
-            }
+  useEffect(() => {
+    if (authLoading) return
+    if (!user) {
+      router.push('/auth/login')
+      return
+    }
+    fetchData()
+  }, [user, authLoading, customerId])
 
-            setProfile(profileData)
-            const userRole = (profileData as any)?.role
-            setIsAdmin(userRole === 'admin')
+  const fetchData = async () => {
+    try {
+      setLoading(true)
+      const supabase = createClient()
 
-            // Fetch Customer Info
-            const { data: customerData } = await supabase
-                .from('customers')
-                .select('*')
-                .eq('id', id)
-                .is('deleted_at', null) // Filter out soft-deleted customers
-                .single()
+      // Fetch customer
+      const { data: customerData, error: customerError } = await supabase
+        .from('customers')
+        .select(`
+          *,
+          assigned_sale:profiles!customers_assigned_to_fkey(id, full_name, email)
+        `)
+        .eq('id', customerId)
+        .single()
 
-            if (!customerData) {
-                setLoading(false)
-                return
-            }
+      if (customerError) throw customerError
+      setCustomer(customerData)
+      setEditedData({
+        full_name: customerData.full_name || '',
+        phone: customerData.phone || '',
+        address: customerData.address || '',
+        email: customerData.email || '',
+        assigned_to: customerData.assigned_to || '',
+      })
 
-            // Check if user has permission to view this customer
-            if (userRole === 'sale' || userRole === 'sale_admin') {
-                // For Sale Admin, check if customer is assigned to them or their team
-                if (userRole === 'sale_admin') {
-                    const { data: managedSales } = await supabase
-                        .from('profiles')
-                        .select('id')
-                        .eq('manager_id', user.id)
-                    const managedSaleIds = managedSales?.map(s => (s as any).id) || []
-                    const allowedSaleIds = [user.id, ...managedSaleIds]
-                    
-                    if (!(customerData as any).assigned_sale || !allowedSaleIds.includes((customerData as any).assigned_sale)) {
-                        router.push('/sales/customers')
-                        return
-                    }
-                } else {
-                    // For Sale, check if customer is assigned to them
-                    if ((customerData as any).assigned_sale !== user.id) {
-                        router.push('/sales/customers')
-                        return
-                    }
-                }
-            }
+      // Fetch sale users for assignment (only for admin/sale_admin)
+      if (isAdmin || isSaleAdmin) {
+        let saleQuery = supabase
+          .from('profiles')
+          .select('id, full_name, email')
+          .eq('role', 'sale')
+          .order('full_name', { ascending: true })
 
-            setCustomer(customerData)
-            setAvatarKey(Date.now()) // Update avatar key to bust cache
-
-            // Fetch Order History
-            const { data: ordersData } = await supabase
-                .from('orders')
-                .select('*')
-                .eq('customer_id', id)
-                .order('created_at', { ascending: false })
-
-            setOrders((ordersData as any[]) || [])
-            setLoading(false)
+        // If sale_admin, only show their team
+        if (isSaleAdmin && user?.id) {
+          saleQuery = saleQuery.eq('manager_id', user.id)
         }
-    
-    useEffect(() => {
-        fetchData()
-    }, [id, router])
 
-    if (loading) {
-        return (
-            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 min-h-screen flex items-center justify-center">
-                <div className="text-gray-500">Đang tải...</div>
-            </div>
-        )
+        const { data: saleData } = await saleQuery
+        setSaleUsers(saleData || [])
+      }
+
+      // Fetch customer orders
+      const { data: ordersData, error: ordersError } = await supabase
+        .from('orders')
+        .select('id, status, total_amount, created_at')
+        .eq('customer_id', customerId)
+        .order('created_at', { ascending: false })
+        .limit(5)
+
+      if (ordersError) throw ordersError
+      setOrders(ordersData || [])
+    } catch (error: any) {
+      console.error('Error fetching data:', error)
+      toast.error(error.message || 'Không thể tải thông tin khách hàng')
+    } finally {
+      setLoading(false)
     }
+  }
 
-    if (!customer || !user || !profile) {
-        return (
-            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 min-h-screen flex items-center justify-center">
-                <div className="text-gray-500">Không tìm thấy khách hàng</div>
-            </div>
-        )
+  const handleSave = async () => {
+    try {
+      const supabase = createClient()
+
+      const updateData: any = {
+        full_name: editedData.full_name,
+        phone: editedData.phone,
+        address: editedData.address,
+        email: editedData.email,
+        assigned_to: editedData.assigned_to || null,
+      }
+
+      const { error } = await supabase
+        .from('customers')
+        .update(updateData)
+        .eq('id', customerId)
+
+      if (error) throw error
+
+      toast.success('Đã cập nhật thông tin khách hàng')
+      setEditing(false)
+      fetchData()
+    } catch (error: any) {
+      console.error('Error updating customer:', error)
+      toast.error('Không thể cập nhật thông tin')
     }
+  }
 
-    const totalSpent = orders.reduce((acc, order) => acc + order.total_amount, 0)
-    const totalDebt = orders
-        .filter(order => order.payment_status === 'unpaid' && order.status !== 'cancelled')
-        .reduce((acc, order) => acc + order.total_amount, 0)
-
-    const statusConfig = {
-        pending: { label: 'Chờ xử lý', class: 'bg-amber-100 text-amber-700 border-amber-200' },
-        processing: { label: 'Đang xử lý', class: 'bg-blue-100 text-blue-700 border-blue-200' },
-        shipping: { label: 'Đang giao', class: 'bg-purple-100 text-purple-700 border-purple-200' },
-        completed: { label: 'Hoàn thành', class: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
-        cancelled: { label: 'Đã hủy', class: 'bg-rose-100 text-rose-700 border-rose-200' }
+  const handleCancel = () => {
+    setEditing(false)
+    if (customer) {
+      setEditedData({
+        full_name: customer.full_name || '',
+        phone: customer.phone || '',
+        address: customer.address || '',
+        email: customer.email || '',
+        assigned_to: customer.assigned_to || '',
+      })
     }
+  }
 
+  if (authLoading || loading) {
     return (
-        <div className="bg-gradient-to-br from-blue-50 to-cyan-50 min-h-screen">
-            {/* Fixed Header */}
-            <div className={cn(
-                "fixed top-0 left-0 right-0 z-50 bg-gradient-to-br from-blue-50 to-cyan-50 transition-transform duration-300",
-                isHeaderVisible ? "translate-y-0" : "-translate-y-full"
-            )}>
-                {/* Logo and Menu Row */}
-                <div className="flex items-center justify-between p-4 pt-6">
-                    <div className="flex items-center gap-2">
-                        <img 
-                            src="/appejv-logo.png" 
-                            alt="APPE JV Logo" 
-                            className="w-8 h-8 object-contain"
-                        />
-                        <span className="text-xl font-bold text-gray-900">APPE JV</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <NotificationModal user={user} role={(profile as any).role} />
-                        <HeaderMenu user={user} role={(profile as any).role} />
-                    </div>
-                </div>
-            </div>
-
-            {/* Sticky Title Section */}
-            <div 
-                className={cn(
-                    "sticky z-40 bg-gradient-to-br from-blue-50 to-cyan-50 px-4 pb-2 pt-2 transition-all duration-300",
-                    !isHeaderVisible ? "top-0" : "top-20"
-                )}
-            >
-                <div className="flex items-center gap-4">
-                    <Link href="/sales/customers" className="p-2 hover:bg-white/50 rounded-full transition-colors">
-                        <ChevronLeft className="w-5 h-5" />
-                    </Link>
-                    <div className="h-6 w-[1px] bg-gray-300" />
-                    <div className="flex-1">
-                        <h1 className="text-xl font-bold text-gray-900">Hồ sơ khách hàng</h1>
-                        <p className="text-[10px] font-bold text-gray-600 uppercase mt-0.5 tracking-widest">{customer.code}</p>
-                    </div>
-                    <CustomerDetailActions customer={customer} isAdmin={isAdmin} onSuccess={fetchData} />
-                </div>
-            </div>
-
-            {/* Main Content */}
-            <div className="pt-44 pb-32 px-4 max-w-4xl mx-auto flex flex-col gap-8">
-                {/* Profile Card */}
-                <Card className="border-none shadow-xl overflow-hidden bg-white rounded-[2rem]">
-                    <div className="h-32 bg-gradient-to-r from-[#175ead]/10 via-[#2575be]/5 to-transparent relative">
-                        <div className="absolute -bottom-12 left-8 border-8 border-white rounded-full shadow-lg">
-                            <Avatar className="h-24 w-24">
-                                <AvatarImage src={customer.avatar_url ? `${customer.avatar_url}?v=${avatarKey}` : undefined} />
-                                <AvatarFallback className="bg-[#175ead] text-white text-2xl font-black">
-                                    {customer.name.substring(0, 2).toUpperCase()}
-                                </AvatarFallback>
-                            </Avatar>
-                        </div>
-                    </div>
-                    <CardContent className="pt-16 pb-8 px-8">
-                        <div className="flex flex-col md:flex-row justify-between gap-6">
-                            <div className="space-y-4 flex-1">
-                                <div>
-                                    <h2 className="text-3xl font-black tracking-tight">{customer.name}</h2>
-                                    <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                                        <div className="flex items-center gap-1.5 bg-muted/50 px-3 py-1 rounded-full">
-                                            <Phone className="w-3.5 h-3.5 text-[#175ead] opacity-60" />
-                                            <span className="font-bold text-foreground">{customer.phone || 'N/A'}</span>
-                                        </div>
-                                        <div className="flex items-center gap-1.5">
-                                            <MapPin className="w-3.5 h-3.5 text-[#175ead] opacity-60" />
-                                            <span className="truncate max-w-[200px]">{customer.address || 'Chưa cập nhật địa chỉ'}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:w-full">
-                                <div className="p-4 bg-[#175ead]/5 rounded-3xl border border-[#175ead]/10 text-center">
-                                    <p className="text-[9px] font-black uppercase text-[#175ead] tracking-widest mb-1.5 opacity-60">Tổng đơn hàng</p>
-                                    <p className="text-2xl font-black tabular-nums">{orders.length}</p>
-                                </div>
-                                <div className="p-4 bg-emerald-500/5 rounded-3xl border border-emerald-500/10 text-center text-emerald-600">
-                                    <p className="text-[9px] font-black uppercase tracking-widest mb-1.5 opacity-60">Đã chi tiêu</p>
-                                    <p className="text-lg font-black tabular-nums">{formatCurrency(totalSpent).replace('VNĐ', '')}</p>
-                                </div>
-                                <div className={cn(
-                                    "p-4 rounded-3xl border text-center col-span-2 md:col-span-1",
-                                    totalDebt > 0 ? "bg-rose-500/10 border-rose-500/20 text-rose-600" : "bg-muted/30 border-muted opacity-40 text-muted-foreground"
-                                )}>
-                                    <p className="text-[9px] font-black uppercase tracking-widest mb-1.5 opacity-60">Dư nợ hiện tại</p>
-                                    <p className="text-lg font-black tabular-nums">{formatCurrency(totalDebt).replace('VNĐ', '')}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                {/* Order History */}
-                <div className="space-y-6">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <div className="p-2 bg-muted rounded-xl">
-                                <ShoppingBag className="w-5 h-5 text-[#175ead]" />
-                            </div>
-                            <h3 className="text-xl font-black">Lịch sử mua hàng</h3>
-                        </div>
-                    </div>
-
-                    <div className="grid gap-3">
-                        {orders.length > 0 ? (
-                            orders.map((order) => {
-                                const config = statusConfig[order.status as keyof typeof statusConfig] || statusConfig.pending
-                                return (
-                                    <Link key={order.id} href={`/sales/orders/${order.id}`}>
-                                        <Card className="hover:shadow-md transition-all active:scale-[0.98] border-none shadow-sm bg-white overflow-hidden group">
-                                            <CardContent className="p-4 flex items-center gap-4">
-                                                <div className={cn(
-                                                    "w-1 h-12 rounded-full",
-                                                    order.payment_status === 'paid' ? 'bg-emerald-500' : 'bg-rose-500'
-                                                )} />
-
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="flex items-center gap-2 mb-1">
-                                                        <span className="text-[10px] font-black text-muted-foreground">#{order.id}</span>
-                                                        <Badge className={cn("text-[9px] px-1.5 py-0 border-none uppercase tracking-tighter", config.class)}>
-                                                            {config.label}
-                                                        </Badge>
-                                                        {order.payment_status === 'unpaid' && order.status !== 'cancelled' && (
-                                                            <Badge variant="outline" className="text-[8px] px-1 py-0 border-rose-200 text-rose-600 bg-rose-50 font-black uppercase tracking-tighter">Nợ</Badge>
-                                                        )}
-                                                    </div>
-                                                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
-                                                        <Calendar className="w-3 h-3 opacity-50" />
-                                                        {new Date(order.created_at).toLocaleDateString()}
-                                                    </div>
-                                                </div>
-
-                                                <div className="text-right flex flex-col items-end gap-1">
-                                                    <p className="font-black text-lg text-[#175ead]">{formatCurrency(order.total_amount)}</p>
-                                                    <div className="flex items-center gap-1 text-[9px] font-bold text-[#175ead] opacity-0 group-hover:opacity-100 transition-opacity">
-                                                        DETAILS <ArrowUpRight className="w-3 h-3" />
-                                                    </div>
-                                                </div>
-                                            </CardContent>
-                                        </Card>
-                                    </Link>
-                                )
-                            })
-                        ) : (
-                            <div className="py-16 flex flex-col items-center justify-center text-muted-foreground bg-muted/10 rounded-[2rem] border-2 border-dashed">
-                                <Clock className="w-10 h-10 mb-3 opacity-20" />
-                                <p className="font-bold">Chưa có lịch sử giao dịch.</p>
-                                <p className="text-xs max-w-[200px] text-center mt-1">Khách hàng này chưa có bất kỳ đơn hàng nào trong hệ thống.</p>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </div>
+      <SalesLayout>
+        <div className="min-h-screen bg-[#f0f9ff] flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-[#175ead] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-600">Đang tải...</p>
+          </div>
         </div>
+      </SalesLayout>
     )
+  }
+
+  if (!customer) {
+    return (
+      <SalesLayout>
+        <div className="min-h-screen bg-[#f0f9ff] flex items-center justify-center">
+          <p className="text-red-600">Không tìm thấy khách hàng</p>
+        </div>
+      </SalesLayout>
+    )
+  }
+
+  return (
+    <SalesLayout>
+      <div className="min-h-screen bg-[#f0f9ff]">
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-3 bg-[#f0f9ff] border-b border-gray-200">
+          <button
+            onClick={() => router.back()}
+            className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors"
+          >
+            <ChevronLeft className="w-6 h-6 text-gray-900" />
+          </button>
+          <h1 className="text-lg font-bold text-gray-900 flex-1 text-center">Chi tiết khách hàng</h1>
+          <div className="w-10">
+            {editing ? (
+              <button
+                onClick={handleSave}
+                className="w-10 h-10 flex items-center justify-center hover:bg-emerald-50 rounded-full transition-colors"
+              >
+                <Check className="w-6 h-6 text-emerald-600" />
+              </button>
+            ) : (
+              isAdmin && (
+                <button
+                  onClick={() => setEditing(true)}
+                  className="w-10 h-10 flex items-center justify-center hover:bg-blue-50 rounded-full transition-colors"
+                >
+                  <Edit2 className="w-6 h-6 text-[#175ead]" />
+                </button>
+              )
+            )}
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="p-4 space-y-4">
+          {/* Customer Card */}
+          <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <div className="h-2 bg-emerald-200"></div>
+            
+            <div className="flex items-start justify-between p-5 pb-3">
+              <div className="w-20 h-20 bg-emerald-200 rounded-full flex items-center justify-center">
+                <User className="w-10 h-10 text-emerald-600" />
+              </div>
+              <Badge variant="success">Khách hàng</Badge>
+            </div>
+
+            <div className="px-5 pb-5">
+              {editing ? (
+                <div className="space-y-4">
+                  <Input
+                    label="Họ và tên"
+                    value={editedData.full_name}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditedData({ ...editedData, full_name: e.target.value })}
+                    placeholder="Nhập họ và tên"
+                  />
+                  
+                  <Input
+                    label="Số điện thoại"
+                    value={editedData.phone}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditedData({ ...editedData, phone: e.target.value })}
+                    placeholder="Nhập số điện thoại"
+                    type="tel"
+                  />
+                  
+                  <Input
+                    label="Email"
+                    value={editedData.email}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditedData({ ...editedData, email: e.target.value })}
+                    placeholder="Nhập email"
+                    type="email"
+                  />
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Địa chỉ
+                    </label>
+                    <textarea
+                      value={editedData.address}
+                      onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setEditedData({ ...editedData, address: e.target.value })}
+                      placeholder="Nhập địa chỉ"
+                      rows={3}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#175ead] focus:border-transparent"
+                    />
+                  </div>
+                  
+                  {/* Sale Assignment - Only for admin/sale_admin */}
+                  {(isAdmin || isSaleAdmin) && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Sale phụ trách
+                      </label>
+                      <select
+                        value={editedData.assigned_to}
+                        onChange={(e) => setEditedData({ ...editedData, assigned_to: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#175ead] focus:border-transparent"
+                      >
+                        <option value="">-- Chưa gán --</option>
+                        {saleUsers.map((sale) => (
+                          <option key={sale.id} value={sale.id}>
+                            {sale.full_name} ({sale.email})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-1">
+                    {customer.full_name || 'No Name'}
+                  </h2>
+                  <p className="text-sm text-gray-600">{customer.email}</p>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Info Section */}
+          {!editing && (
+            <>
+              {/* Contact Info */}
+              <div className="bg-white rounded-2xl shadow-sm p-4">
+                <h3 className="text-base font-bold text-gray-900 mb-4">Thông tin liên hệ</h3>
+                
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <Phone className="w-5 h-5 text-gray-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-gray-600 mb-0.5">Điện thoại</p>
+                      <p className="text-sm font-medium text-gray-900">{customer.phone || '---'}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <Mail className="w-5 h-5 text-gray-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-gray-600 mb-0.5">Email</p>
+                      <p className="text-sm font-medium text-gray-900 break-all">{customer.email || '---'}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <MapPin className="w-5 h-5 text-gray-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-gray-600 mb-0.5">Địa chỉ</p>
+                      <p className="text-sm font-medium text-gray-900">{customer.address || '---'}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <Calendar className="w-5 h-5 text-gray-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-gray-600 mb-0.5">Ngày tham gia</p>
+                      <p className="text-sm font-medium text-gray-900">
+                        {new Date(customer.created_at).toLocaleDateString('vi-VN')}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Sale phụ trách */}
+                  {(isAdmin || isSaleAdmin) && (
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <User className="w-5 h-5 text-gray-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-gray-600 mb-0.5">Sale phụ trách</p>
+                        <p className="text-sm font-medium text-gray-900">
+                          {customer.assigned_sale?.full_name || 'Chưa gán'}
+                        </p>
+                        {customer.assigned_sale?.email && (
+                          <p className="text-xs text-gray-500 mt-0.5">{customer.assigned_sale.email}</p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Recent Orders */}
+              <div className="bg-white rounded-2xl shadow-sm p-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <h3 className="text-base font-bold text-gray-900">Đơn hàng gần đây</h3>
+                  <span className="text-sm text-gray-600">({orders.length})</span>
+                </div>
+                
+                {orders.length > 0 ? (
+                  <div className="space-y-3">
+                    {orders.map((order) => {
+                      const status = STATUS_MAP[order.status as keyof typeof STATUS_MAP] || STATUS_MAP.draft
+                      return (
+                        <Link key={order.id} href={`/sales/orders/${order.id}`}>
+                          <div className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0 hover:bg-gray-50 -mx-2 px-2 rounded-lg transition-colors">
+                            <div className="flex items-center gap-3 flex-1">
+                              <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <ShoppingBag className="w-5 h-5 text-[#175ead]" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-semibold text-gray-900">Đơn #{order.id}</p>
+                                <p className="text-xs text-gray-600">
+                                  {new Date(order.created_at).toLocaleDateString('vi-VN')}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm font-bold text-gray-900 mb-1">
+                                {formatCurrency(order.total_amount)}
+                              </p>
+                              <Badge variant={
+                                order.status === 'completed' ? 'success' :
+                                order.status === 'cancelled' ? 'danger' :
+                                order.status === 'ordered' ? 'warning' :
+                                'default'
+                              }>
+                                {status.label}
+                              </Badge>
+                            </div>
+                          </div>
+                        </Link>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  <div className="py-10 text-center">
+                    <ShoppingBag className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                    <p className="text-sm text-gray-500">Chưa có đơn hàng nào</p>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+
+          {/* Cancel Button when editing */}
+          {editing && (
+            <button
+              onClick={handleCancel}
+              className="w-full py-3.5 border border-gray-300 rounded-xl text-gray-700 font-semibold hover:bg-gray-50 transition-colors"
+            >
+              Hủy
+            </button>
+          )}
+        </div>
+      </div>
+    </SalesLayout>
+  )
 }

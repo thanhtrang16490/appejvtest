@@ -1,316 +1,371 @@
 'use client'
 
-import { createClient } from '@/lib/supabase/client'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { formatCurrency, cn } from '@/lib/utils'
-import { ArrowLeft, Clock, ShoppingBag, User, Phone, MapPin, CheckCircle2, AlertCircle, Printer, Edit2, ChevronLeft } from 'lucide-react'
-import Link from 'next/link'
-import { HeaderMenu } from '@/components/layout/HeaderMenu'
-import { NotificationModal } from '@/components/layout/NotificationModal'
-import { useScrollHeader } from '@/hooks/useScrollHeader'
 import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
-import { updateOrderStatus, updatePaymentStatus } from '../actions'
+import { useRouter, useParams } from 'next/navigation'
+import { useAuth } from '@/contexts/AuthContext'
+import { createClient } from '@/lib/supabase/client'
+import { formatCurrency, cn } from '@/lib/utils'
+import { toast } from 'sonner'
+import { ChevronLeft, MessageSquare, Clock, Send } from 'lucide-react'
+import { formatDistanceToNow } from 'date-fns'
+import { vi } from 'date-fns/locale'
 
-export default function SalesOrderDetailsPage() {
-    const params = useParams()
-    const router = useRouter()
-    const id = params.id as string
-    const { isHeaderVisible } = useScrollHeader()
-    const [user, setUser] = useState<any>(null)
-    const [profile, setProfile] = useState<any>(null)
-    const [order, setOrder] = useState<any>(null)
-    const [loading, setLoading] = useState(true)
+const STATUS_MAP = {
+  draft: { label: 'Đơn nháp', color: 'text-gray-700', bg: 'bg-gray-100' },
+  ordered: { label: 'Đơn đặt hàng', color: 'text-amber-700', bg: 'bg-amber-100' },
+  shipping: { label: 'Giao hàng', color: 'text-blue-700', bg: 'bg-blue-100' },
+  paid: { label: 'Thanh toán', color: 'text-purple-700', bg: 'bg-purple-100' },
+  completed: { label: 'Hoàn thành', color: 'text-emerald-700', bg: 'bg-emerald-100' },
+  cancelled: { label: 'Đã hủy', color: 'text-red-700', bg: 'bg-red-100' },
+} as const
 
-    useEffect(() => {
-        fetchData()
-    }, [id])
+export default function OrderDetailPage() {
+  const { user, loading: authLoading } = useAuth()
+  const router = useRouter()
+  const params = useParams()
+  const orderId = params.id as string
 
-    const fetchData = async () => {
-        try {
-            setLoading(true)
-            const supabase = createClient()
-            const { data: { user } } = await supabase.auth.getUser()
+  const [order, setOrder] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [history, setHistory] = useState<any[]>([])
+  const [newComment, setNewComment] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
-            if (!user) {
-                router.push('/auth/login')
-                return
-            }
+  useEffect(() => {
+    if (authLoading) return
+    if (!user) {
+      router.push('/auth/login')
+      return
+    }
+    fetchOrder()
+  }, [user, authLoading, orderId])
 
-            setUser(user)
+  const fetchOrder = async () => {
+    try {
+      setLoading(true)
+      const supabase = createClient()
 
-            const { data: profileData } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-            
-            if (!profileData || !['sale', 'admin', 'sale_admin'].includes((profileData as any).role)) {
-                router.push('/')
-                return
-            }
+      // Fetch order
+      const { data: orderData, error: orderError } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('id', orderId)
+        .single()
 
-            setProfile(profileData)
+      if (orderError) throw orderError
 
-            // Fetch order with items, products AND customer details
-            const { data: orderData } = await supabase
-                .from('orders')
-                .select(`
-                    *,
-                    customers (*),
-                    order_items (
-                        *,
-                        products ( name, code )
-                    )
-                `)
-                .eq('id', id)
-                .single()
+      // Fetch customer
+      let customer = null
+      if (orderData.customer_id) {
+        const { data: customerData } = await supabase
+          .from('customers')
+          .select('id, full_name, phone, address')
+          .eq('id', orderData.customer_id)
+          .single()
+        customer = customerData
+      }
 
-            setOrder(orderData)
-        } catch (error) {
-            console.error('Error fetching data:', error)
-        } finally {
-            setLoading(false)
-        }
+      // Fetch order items
+      const { data: itemsData, error: itemsError } = await supabase
+        .from('order_items')
+        .select('*, product:products(id, name, code)')
+        .eq('order_id', orderId)
+
+      if (itemsError) throw itemsError
+
+      setOrder({
+        ...orderData,
+        customer,
+        items: itemsData || []
+      })
+
+      // Fetch order history
+      const { data: historyData } = await supabase
+        .from('order_history')
+        .select(`
+          *,
+          user:profiles!order_history_user_id_fkey(full_name)
+        `)
+        .eq('order_id', orderId)
+        .order('created_at', { ascending: false })
+
+      setHistory(historyData || [])
+    } catch (error: any) {
+      console.error('Error fetching order:', error)
+      toast.error(error.message || 'Không thể tải đơn hàng')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleAddComment = async () => {
+    if (!newComment.trim()) {
+      toast.error('Vui lòng nhập nội dung')
+      return
     }
 
-    const handleUpdateStatus = async (newStatus: string) => {
-        await updateOrderStatus(parseInt(id), newStatus)
-        fetchData()
+    try {
+      setSubmitting(true)
+      const supabase = createClient()
+
+      const { error } = await supabase
+        .from('order_history')
+        .insert({
+          order_id: orderId,
+          user_id: user!.id,
+          action_type: 'comment',
+          comment: newComment.trim()
+        })
+
+      if (error) throw error
+
+      toast.success('Đã thêm ghi chú')
+      setNewComment('')
+      fetchOrder() // Refresh to get new comment
+    } catch (error: any) {
+      console.error('Error adding comment:', error)
+      toast.error('Không thể thêm ghi chú')
+    } finally {
+      setSubmitting(false)
     }
+  }
 
-    const handleUpdatePayment = async () => {
-        await updatePaymentStatus(parseInt(id), order.payment_status === 'paid' ? 'unpaid' : 'paid')
-        fetchData()
+  const getActionLabel = (actionType: string, oldValue?: string, newValue?: string) => {
+    switch (actionType) {
+      case 'created':
+        return 'Tạo đơn hàng'
+      case 'status_change':
+        const oldStatus = STATUS_MAP[oldValue as keyof typeof STATUS_MAP]?.label || oldValue
+        const newStatus = STATUS_MAP[newValue as keyof typeof STATUS_MAP]?.label || newValue
+        return `Thay đổi trạng thái: ${oldStatus} → ${newStatus}`
+      case 'comment':
+        return 'Thêm ghi chú'
+      default:
+        return 'Cập nhật'
     }
+  }
 
-    if (loading) {
-        return (
-            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 min-h-screen flex items-center justify-center">
-                <div className="text-gray-500">Đang tải...</div>
-            </div>
-        )
-    }
-
-    if (!order || !user || !profile) {
-        return (
-            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 min-h-screen flex items-center justify-center">
-                <div className="text-gray-500">Không tìm thấy đơn hàng</div>
-            </div>
-        )
-    }
-
-    const statusConfig = {
-        draft: { label: 'Nháp', class: 'bg-gray-100 text-gray-700 border-gray-200', icon: Edit2 },
-        ordered: { label: 'Đã đặt', class: 'bg-blue-100 text-blue-700 border-blue-200', icon: ShoppingBag },
-        shipping: { label: 'Đang giao', class: 'bg-purple-100 text-purple-700 border-purple-200', icon: ShoppingBag },
-        paid: { label: 'Đã thanh toán', class: 'bg-emerald-100 text-emerald-700 border-emerald-200', icon: CheckCircle2 },
-        completed: { label: 'Hoàn thành', class: 'bg-emerald-100 text-emerald-700 border-emerald-200', icon: CheckCircle2 },
-        cancelled: { label: 'Đã hủy', class: 'bg-rose-100 text-rose-700 border-rose-200', icon: AlertCircle }
-    }
-
-    const currentStatus = statusConfig[order.status as keyof typeof statusConfig] || statusConfig.draft
-    const Icon = currentStatus.icon
-
+  if (authLoading || loading) {
     return (
-        <div className="bg-gradient-to-br from-blue-50 to-cyan-50 min-h-screen">
-            {/* Fixed Header */}
-            <div className={cn(
-                "fixed top-0 left-0 right-0 z-50 bg-gradient-to-br from-blue-50 to-cyan-50 transition-transform duration-300",
-                isHeaderVisible ? "translate-y-0" : "-translate-y-full"
-            )}>
-                {/* Logo and Menu Row */}
-                <div className="flex items-center justify-between p-4 pt-6">
-                    <div className="flex items-center gap-2">
-                        <img 
-                            src="/appejv-logo.png" 
-                            alt="APPE JV Logo" 
-                            className="w-8 h-8 object-contain"
-                        />
-                        <span className="text-xl font-bold text-gray-900">APPE JV</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <NotificationModal user={user} role={profile.role} />
-                        <HeaderMenu user={user} role={profile.role} />
-                    </div>
-                </div>
-            </div>
-
-            {/* Sticky Title Section */}
-            <div className={cn(
-                "sticky left-0 right-0 z-40 bg-gradient-to-br from-blue-50 to-cyan-50 px-4 pb-2 pt-2 transition-all duration-300",
-                !isHeaderVisible ? "top-0" : "top-20"
-            )}>
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <Link href="/sales/orders" className="p-2 hover:bg-white/50 rounded-full transition-colors">
-                            <ChevronLeft className="w-5 h-5" />
-                        </Link>
-                        <div className="h-6 w-[1px] bg-gray-300" />
-                        <div>
-                            <h1 className="text-xl font-bold text-gray-900">Chi tiết đơn hàng</h1>
-                            <p className="text-[10px] font-bold text-gray-600 uppercase mt-0.5 tracking-widest">#{order.id}</p>
-                        </div>
-                    </div>
-                    <button className="p-2 bg-white rounded-full shadow-sm hover:bg-gray-50 active:scale-95 transition-all">
-                        <Printer className="w-5 h-5 text-gray-600" />
-                    </button>
-                </div>
-            </div>
-
-            {/* Main Content */}
-            <div className="pt-44 pb-20">
-                <div className="p-4 max-w-4xl mx-auto">
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                        {/* Main Info */}
-                        <div className="lg:col-span-2 space-y-4">
-                            <Card className="border-none shadow-sm overflow-hidden bg-white rounded-2xl">
-                                <CardHeader className="p-4 pb-3 flex-row items-center justify-between gap-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className={cn("p-2.5 rounded-xl", currentStatus.class.split(' ')[0])}>
-                                            <Icon className={cn("w-5 h-5", currentStatus.class.split(' ')[1])} />
-                                        </div>
-                                        <div>
-                                            <p className="text-[9px] font-bold text-gray-500 uppercase tracking-wider leading-none mb-1">Tình trạng</p>
-                                            <p className={cn("text-base font-bold", currentStatus.class.split(' ')[1])}>
-                                                {currentStatus.label}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className="text-right">
-                                        <p className="text-[9px] font-bold text-gray-500 uppercase tracking-wider leading-none mb-1">Ngày tạo</p>
-                                        <p className="text-sm font-bold">{new Date(order.created_at).toLocaleDateString('vi-VN')}</p>
-                                    </div>
-                                </CardHeader>
-                                <CardContent className="p-4 pt-2">
-                                    <div className="space-y-4">
-                                        <div className="flex items-center justify-between">
-                                            <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500">Sản phẩm</h3>
-                                            <span className="text-xs font-bold bg-gray-100 px-2 py-0.5 rounded">{order.order_items.length} món</span>
-                                        </div>
-                                        <div className="space-y-2">
-                                            {order.order_items.map((item: any) => (
-                                                <div key={item.id} className="flex items-center gap-3 py-2">
-                                                    <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center text-[#175ead] font-bold text-sm shrink-0">
-                                                        {item.products?.name?.[0]}
-                                                    </div>
-                                                    <div className="flex-1 min-w-0">
-                                                        <p className="font-bold text-sm truncate">{item.products?.name || 'Sản phẩm không rõ'}</p>
-                                                        <p className="text-[10px] font-medium text-gray-500">
-                                                            {formatCurrency(item.price_at_order)} x {item.quantity}
-                                                        </p>
-                                                    </div>
-                                                    <p className="font-bold text-sm tabular-nums">{formatCurrency(item.price_at_order * item.quantity)}</p>
-                                                </div>
-                                            ))}
-                                        </div>
-                                        <div className="pt-3 border-t space-y-2">
-                                            <div className="flex justify-between items-center bg-[#175ead]/5 p-3 rounded-xl">
-                                                <span className="text-[#175ead] font-bold uppercase tracking-wider text-xs">Tổng cộng</span>
-                                                <span className="text-xl font-black text-[#175ead]">{formatCurrency(order.total_amount)}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-
-                            {/* Actions */}
-                            <Card className="border-none shadow-sm bg-white rounded-2xl p-4">
-                                <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3">Thao tác nhanh</h3>
-                                <div className="grid grid-cols-2 gap-2">
-                                    {order.status === 'draft' && (
-                                        <Button onClick={() => handleUpdateStatus('ordered')} className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold">
-                                            Xác nhận đặt
-                                        </Button>
-                                    )}
-                                    {order.status === 'ordered' && (
-                                        <Button onClick={() => handleUpdateStatus('shipping')} className="bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold">
-                                            Giao hàng
-                                        </Button>
-                                    )}
-                                    {order.status === 'shipping' && (
-                                        <Button onClick={() => handleUpdateStatus('paid')} className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold">
-                                            Đã thanh toán
-                                        </Button>
-                                    )}
-                                    {order.status === 'paid' && (
-                                        <Button onClick={() => handleUpdateStatus('completed')} className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold">
-                                            Hoàn thành
-                                        </Button>
-                                    )}
-                                    {order.status !== 'cancelled' && order.status !== 'completed' && (
-                                        <Button onClick={() => handleUpdateStatus('cancelled')} variant="destructive" className="rounded-xl text-xs font-bold">
-                                            Hủy đơn
-                                        </Button>
-                                    )}
-                                </div>
-                            </Card>
-                        </div>
-
-                        {/* Sidebar Info */}
-                        <div className="space-y-4">
-                            {/* Customer Info */}
-                            <Card className="border-none shadow-sm bg-white rounded-2xl overflow-hidden">
-                                <CardHeader className="p-3 bg-gray-50">
-                                    <CardTitle className="text-xs font-bold uppercase tracking-wider text-gray-500">Khách hàng</CardTitle>
-                                </CardHeader>
-                                <CardContent className="p-3 space-y-3">
-                                    <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-xl">
-                                        <div className="p-1.5 bg-white rounded-lg shadow-sm">
-                                            <User className="w-4 h-4 text-[#175ead]" />
-                                        </div>
-                                        <div className="min-w-0">
-                                            <p className="font-bold text-sm truncate">{order.customers?.name}</p>
-                                            <p className="text-[9px] font-medium text-gray-500">{order.customers?.code}</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-2 px-2">
-                                        <Phone className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-                                        <span className="text-xs font-medium">{order.customers?.phone || 'N/A'}</span>
-                                    </div>
-                                    <div className="flex items-start gap-2 px-2">
-                                        <MapPin className="w-3.5 h-3.5 text-gray-400 shrink-0 mt-0.5" />
-                                        <span className="text-xs font-medium text-gray-600 leading-relaxed line-clamp-2">{order.customers?.address || 'N/A'}</span>
-                                    </div>
-                                    <Link
-                                        href={`/sales/customers/${order.customer_id}`}
-                                        className="flex items-center justify-center w-full py-2 bg-gray-100 text-[10px] font-bold uppercase tracking-wider rounded-xl hover:bg-[#175ead]/10 hover:text-[#175ead] transition-all"
-                                    >
-                                        Xem hồ sơ
-                                    </Link>
-                                </CardContent>
-                            </Card>
-
-                            {/* Payment Control */}
-                            <Card className="border-none shadow-sm bg-white rounded-2xl overflow-hidden">
-                                <CardHeader className="p-3 bg-gray-50">
-                                    <CardTitle className="text-xs font-bold uppercase tracking-wider text-gray-500">Thanh toán</CardTitle>
-                                </CardHeader>
-                                <CardContent className="p-3 space-y-3">
-                                    <div className={cn(
-                                        "p-3 rounded-xl border flex items-center justify-between",
-                                        order.payment_status === 'paid'
-                                            ? "bg-emerald-50 border-emerald-100 text-emerald-700"
-                                            : "bg-amber-50 border-amber-100 text-amber-700"
-                                    )}>
-                                        <div className="flex items-center gap-2">
-                                            <CheckCircle2 className="w-4 h-4" />
-                                            <span className="text-xs font-bold uppercase tracking-wide">
-                                                {order.payment_status === 'paid' ? 'Đã thanh toán' : 'Chưa thanh toán'}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <Button 
-                                        onClick={handleUpdatePayment}
-                                        className="w-full bg-gray-900 hover:bg-gray-800 text-white rounded-xl text-xs font-bold"
-                                    >
-                                        Đánh dấu {order.payment_status === 'paid' ? 'Chưa trả' : 'Đã trả'}
-                                    </Button>
-                                </CardContent>
-                            </Card>
-                        </div>
-                    </div>
-                </div>
-            </div>
+      <div className="min-h-screen bg-[#f0f9ff] flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-[#175ead] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Đang tải...</p>
         </div>
+      </div>
     )
+  }
+
+  if (!order) {
+    return (
+      <div className="min-h-screen bg-[#f0f9ff] flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600">Không tìm thấy đơn hàng</p>
+          <button
+            onClick={() => router.back()}
+            className="mt-4 text-[#175ead] font-medium"
+          >
+            Quay lại
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  const status = STATUS_MAP[order.status as keyof typeof STATUS_MAP] || STATUS_MAP.draft
+
+  return (
+    <div className="min-h-screen bg-[#f0f9ff]">
+      {/* Page Header */}
+      <div className="sticky top-0 z-40 bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => router.back()}
+              className="p-2 hover:bg-gray-100 rounded-lg"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+            <div>
+              <h1 className="text-xl font-bold text-gray-900">Đơn hàng #{order.id}</h1>
+              <p className="text-sm text-gray-600">Chi tiết đơn hàng</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        <div className="grid gap-4">
+          {/* Order Info */}
+          <div className="bg-white rounded-2xl p-6 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-gray-900">Thông tin đơn hàng</h2>
+              <span className={cn('text-sm px-3 py-1 rounded-lg font-medium', status.bg, status.color)}>
+                {status.label}
+              </span>
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600">Mã đơn:</span>
+                <span className="text-sm font-semibold text-gray-900">#{order.id}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600">Ngày tạo:</span>
+                <span className="text-sm font-semibold text-gray-900">
+                  {new Date(order.created_at).toLocaleString('vi-VN')}
+                </span>
+              </div>
+              {order.notes && (
+                <div>
+                  <span className="text-sm text-gray-600">Ghi chú:</span>
+                  <p className="text-sm text-gray-900 mt-1">{order.notes}</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Customer Info */}
+          {order.customer && (
+            <div className="bg-white rounded-2xl p-6 shadow-sm">
+              <h2 className="text-lg font-bold text-gray-900 mb-4">Thông tin khách hàng</h2>
+              <div className="space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-600">Tên:</span>
+                  <span className="text-sm font-semibold text-gray-900">{order.customer.full_name}</span>
+                </div>
+                {order.customer.phone && (
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">SĐT:</span>
+                    <span className="text-sm font-semibold text-gray-900">{order.customer.phone}</span>
+                  </div>
+                )}
+                {order.customer.address && (
+                  <div>
+                    <span className="text-sm text-gray-600">Địa chỉ:</span>
+                    <p className="text-sm text-gray-900 mt-1">{order.customer.address}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Order Items */}
+          <div className="bg-white rounded-2xl p-6 shadow-sm">
+            <h2 className="text-lg font-bold text-gray-900 mb-4">Sản phẩm</h2>
+            <div className="space-y-3">
+              {order.items.map((item: any) => (
+                <div key={item.id} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-gray-900">{item.product?.name || 'Sản phẩm'}</p>
+                    <p className="text-xs text-gray-500">
+                      {formatCurrency(item.price_at_order)} x {item.quantity}
+                    </p>
+                  </div>
+                  <div className="text-sm font-bold text-gray-900">
+                    {formatCurrency(item.price_at_order * item.quantity)}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <div className="flex items-center justify-between">
+                <span className="text-lg font-bold text-gray-900">Tổng cộng</span>
+                <span className="text-2xl font-bold text-[#175ead]">
+                  {formatCurrency(order.total_amount)}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Add Comment */}
+          <div className="bg-white rounded-2xl p-6 shadow-sm">
+            <div className="flex items-center gap-2 mb-4">
+              <MessageSquare className="w-5 h-5 text-[#175ead]" />
+              <h2 className="text-lg font-bold text-gray-900">Thêm ghi chú</h2>
+            </div>
+            <div className="space-y-3">
+              <textarea
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                placeholder="Nhập ghi chú về đơn hàng..."
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-[#175ead] focus:border-transparent"
+                rows={3}
+              />
+              <button
+                onClick={handleAddComment}
+                disabled={submitting || !newComment.trim()}
+                className="flex items-center gap-2 px-4 py-2 bg-[#175ead] text-white rounded-xl font-semibold hover:bg-[#134a8a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {submitting ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  <Send className="w-4 h-4" />
+                )}
+                <span>{submitting ? 'Đang gửi...' : 'Gửi ghi chú'}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Order Timeline */}
+          <div className="bg-white rounded-2xl p-6 shadow-sm">
+            <div className="flex items-center gap-2 mb-4">
+              <Clock className="w-5 h-5 text-[#175ead]" />
+              <h2 className="text-lg font-bold text-gray-900">Lịch sử đơn hàng</h2>
+            </div>
+            {history.length === 0 ? (
+              <p className="text-sm text-gray-500 text-center py-8">Chưa có lịch sử</p>
+            ) : (
+              <div className="space-y-4">
+                {history.map((item, index) => (
+                  <div key={item.id} className="flex gap-4">
+                    <div className="flex flex-col items-center">
+                      <div className={cn(
+                        'w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0',
+                        item.action_type === 'comment' ? 'bg-blue-100' : 'bg-emerald-100'
+                      )}>
+                        {item.action_type === 'comment' ? (
+                          <MessageSquare className="w-4 h-4 text-blue-600" />
+                        ) : (
+                          <Clock className="w-4 h-4 text-emerald-600" />
+                        )}
+                      </div>
+                      {index < history.length - 1 && (
+                        <div className="w-0.5 h-full bg-gray-200 mt-2"></div>
+                      )}
+                    </div>
+                    <div className="flex-1 pb-4">
+                      <div className="flex items-start justify-between mb-1">
+                        <p className="text-sm font-semibold text-gray-900">
+                          {getActionLabel(item.action_type, item.old_value, item.new_value)}
+                        </p>
+                        <span className="text-xs text-gray-500">
+                          {formatDistanceToNow(new Date(item.created_at), {
+                            addSuffix: true,
+                            locale: vi
+                          })}
+                        </span>
+                      </div>
+                      {item.user && (
+                        <p className="text-xs text-gray-500 mb-1">
+                          Bởi: {item.user.full_name}
+                        </p>
+                      )}
+                      {item.comment && (
+                        <p className="text-sm text-gray-700 mt-2 bg-gray-50 p-3 rounded-lg">
+                          {item.comment}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
 }

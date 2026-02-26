@@ -1,345 +1,274 @@
 'use client'
 
-import { createClient } from '@/lib/supabase/client'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { User, LogOut, MapPin, Phone, Sparkles, Settings, Bell, HelpCircle, ShoppingBag, FileText, Package } from 'lucide-react'
-import { logout } from '@/app/auth/actions'
-import { EditProfileSheet } from '@/components/account/EditProfileSheet'
-import { cn, formatCurrency } from '@/lib/utils'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { HeaderMenu } from '@/components/layout/HeaderMenu'
-import Link from 'next/link'
+import { useAuth } from '@/contexts/AuthContext'
+import { createClient } from '@/lib/supabase/client'
+import { toast } from 'sonner'
+import { 
+  User, 
+  Mail, 
+  Phone, 
+  MapPin, 
+  Edit2, 
+  Save, 
+  X,
+  LogOut,
+  Bell,
+  Shield
+} from 'lucide-react'
 
-const menuItems = [
-    { icon: FileText, label: 'Đơn hàng của tôi', href: '/customer/orders', description: 'Xem lịch sử đơn hàng' },
-    { icon: ShoppingBag, label: 'Sản phẩm', href: '/customer/products', description: 'Danh sách sản phẩm' },
-    { icon: Bell, label: 'Thông báo', href: '#', description: 'Thông báo và ưu đãi' },
-    { icon: HelpCircle, label: 'Trợ giúp & Hỗ trợ', href: '#', description: 'Liên hệ hỗ trợ' },
-]
+export default function CustomerAccountPage() {
+  const { user, signOut } = useAuth()
+  const router = useRouter()
+  const [profile, setProfile] = useState<any>(null)
+  const [customer, setCustomer] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [editing, setEditing] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [formData, setFormData] = useState({
+    full_name: '',
+    phone: '',
+    address: ''
+  })
 
-export default function AccountPage() {
-    const [user, setUser] = useState<any>(null)
-    const [customer, setCustomer] = useState<any>(null)
-    const [isHeaderVisible, setIsHeaderVisible] = useState(true)
-    const [lastScrollY, setLastScrollY] = useState(0)
-    const [loading, setLoading] = useState(true)
-    const [avatarKey, setAvatarKey] = useState(Date.now()) // For cache busting
-    const [role, setRole] = useState('customer')
-    const [mounted, setMounted] = useState(false)
-    const [orderStats, setOrderStats] = useState({ total: 0, pending: 0, completed: 0, totalSpent: 0 })
-    const router = useRouter()
-
-    useEffect(() => {
-        setMounted(true)
-    }, [])
-
-    useEffect(() => {
-        const controlHeader = () => {
-            if (typeof window !== 'undefined') {
-                if (window.scrollY > lastScrollY && window.scrollY > 50) {
-                    setIsHeaderVisible(false)
-                } else {
-                    setIsHeaderVisible(true)
-                }
-                setLastScrollY(window.scrollY)
-            }
-        }
-
-        if (typeof window !== 'undefined') {
-            window.addEventListener('scroll', controlHeader)
-            return () => {
-                window.removeEventListener('scroll', controlHeader)
-            }
-        }
-    }, [lastScrollY])
-
-    useEffect(() => {
-        fetchUserData()
-        fetchOrderStats()
-    }, [])
-
-    const fetchUserData = async () => {
-        try {
-            setLoading(true)
-            const supabase = createClient()
-            const { data: { user } } = await supabase.auth.getUser()
-
-            if (!user) {
-                router.push('/auth/login')
-                return
-            }
-
-            setUser(user)
-
-            // Fetch role
-            const { data: profile } = await supabase
-                .from('profiles')
-                .select('role')
-                .eq('id', user.id)
-                .single()
-            if (profile && (profile as any).role) {
-                setRole((profile as any).role)
-            }
-
-            // Fetch customer details
-            const { data: customerData } = await supabase
-                .from('customers')
-                .select('*')
-                .eq('phone', user.phone as string)
-                .single()
-
-            setCustomer(customerData)
-            setAvatarKey(Date.now()) // Update avatar key to bust cache
-        } catch (error) {
-            console.error('Error fetching user data:', error)
-        } finally {
-            setLoading(false)
-        }
-    }
-
-    const fetchOrderStats = async () => {
-        try {
-            const supabase = createClient()
-            const { data: { user } } = await supabase.auth.getUser()
-
-            if (!user || !user.phone) return
-
-            // Get customer ID
-            const { data: customerData } = await supabase
-                .from('customers')
-                .select('id')
-                .eq('phone', user.phone)
-                .single()
-
-            if (!customerData) return
-
-            const customerId = (customerData as any).id
-
-            // Fetch all orders
-            const { data: orders } = await supabase
-                .from('orders')
-                .select('status, total_amount')
-                .eq('customer_id', customerId)
-
-            if (orders && orders.length > 0) {
-                const stats = {
-                    total: orders.length,
-                    pending: orders.filter((o: any) => o.status === 'pending').length,
-                    completed: orders.filter((o: any) => o.status === 'completed').length,
-                    totalSpent: orders.reduce((sum: number, o: any) => sum + o.total_amount, 0)
-                }
-                setOrderStats(stats)
-            }
-        } catch (error) {
-            console.error('Error fetching order stats:', error)
-        }
-    }
-
-    const handleLogout = async () => {
-        try {
-            await logout()
-            // Redirect to appejv.app website
-            window.location.href = 'https://appejv.app'
-        } catch (error) {
-            console.error('Error logging out:', error)
-        }
-    }
-
-    if (loading) {
-        return (
-            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 min-h-screen flex items-center justify-center">
-                <div className="text-gray-500">Đang tải...</div>
-            </div>
-        )
-    }
-
+  useEffect(() => {
     if (!user) {
-        return (
-            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 min-h-screen flex items-center justify-center">
-                <div className="text-center">
-                    <p className="text-gray-600 mb-4">Vui lòng đăng nhập</p>
-                    <Button onClick={() => router.push('/auth/login')}>
-                        Đăng nhập
-                    </Button>
-                </div>
-            </div>
-        )
+      router.push('/auth/login')
+      return
     }
+    fetchData()
+  }, [user])
 
+  const fetchData = async () => {
+    try {
+      const supabase = createClient()
+
+      // Fetch profile
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user!.id)
+        .single()
+
+      setProfile(profileData)
+
+      // Fetch customer
+      const { data: customerData } = await supabase
+        .from('customers')
+        .select('*')
+        .eq('user_id', user!.id)
+        .single()
+
+      setCustomer(customerData)
+      setFormData({
+        full_name: customerData?.full_name || '',
+        phone: customerData?.phone || '',
+        address: customerData?.address || ''
+      })
+    } catch (error: any) {
+      console.error('Error fetching data:', error)
+      toast.error('Không thể tải thông tin')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSave = async () => {
+    try {
+      setSaving(true)
+      const supabase = createClient()
+
+      // Update customer
+      const { error } = await supabase
+        .from('customers')
+        .update({
+          full_name: formData.full_name,
+          phone: formData.phone,
+          address: formData.address
+        })
+        .eq('id', customer.id)
+
+      if (error) throw error
+
+      // Update profile
+      await supabase
+        .from('profiles')
+        .update({ full_name: formData.full_name })
+        .eq('id', user!.id)
+
+      setCustomer({ ...customer, ...formData })
+      setEditing(false)
+      toast.success('Đã cập nhật thông tin')
+    } catch (error: any) {
+      console.error('Error saving:', error)
+      toast.error('Không thể lưu thông tin')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleLogout = async () => {
+    if (confirm('Bạn có chắc chắn muốn đăng xuất?')) {
+      await signOut()
+      router.push('/auth/login')
+    }
+  }
+
+  if (loading) {
     return (
-        <div className="bg-gradient-to-br from-blue-50 to-cyan-50 min-h-screen">
-            {/* Fixed Header */}
-            <div className={cn(
-                "fixed top-0 left-0 right-0 z-50 bg-gradient-to-br from-blue-50 to-cyan-50 transition-transform duration-300",
-                isHeaderVisible ? "translate-y-0" : "-translate-y-full"
-            )}>
-                {/* Logo and AI Assistant Row */}
-                <div className="flex items-center justify-between p-4 pt-6">
-                    <div className="flex items-center gap-2">
-                        <img 
-                            src="/appejv-logo.png" 
-                            alt="APPE JV Logo" 
-                            className="w-10 h-10 object-contain"
-                        />
-                        <span className="text-xl font-bold text-gray-900">APPE JV</span>
-                    </div>
-                    {mounted && (
-                        <div className="flex items-center gap-2">
-                            <Button 
-                                size="sm" 
-                                className="bg-gradient-to-r from-[#175ead] to-[#2575be] text-white rounded-full px-4 py-2 text-sm font-medium"
-                            >
-                                <Sparkles className="w-4 h-4 mr-1" />
-                                Trợ lý AI
-                            </Button>
-                            <HeaderMenu user={user} role={role} />
-                        </div>
-                    )}
-                </div>
-
-                {/* Page Title */}
-                <div className="px-4 pb-2">
-                    <h1 className="text-2xl font-bold text-gray-900">Tài khoản</h1>
-                </div>
-            </div>
-
-            {/* Main Content with top padding */}
-            <div className="pt-28 pb-20">
-                <div className="p-4 flex flex-col gap-6">
-                    {/* Profile Card */}
-                    <Card className="bg-white rounded-2xl shadow-sm border-0">
-                        <CardHeader className="flex flex-row items-center gap-4 space-y-0 pb-2">
-                            <Avatar className="h-16 w-16 border-2 border-gray-100">
-                                <AvatarImage 
-                                    src={customer?.avatar_url ? `${customer.avatar_url}?v=${avatarKey}` : undefined} 
-                                    alt={customer?.name || 'Avatar'} 
-                                />
-                                <AvatarFallback className="bg-gradient-to-r from-[#175ead] to-[#2575be] text-2xl font-bold text-white">
-                                    {customer?.name?.[0] || user.phone?.[0] || 'U'}
-                                </AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1">
-                                <CardTitle className="text-xl text-gray-900">
-                                    {customer?.name || 'Người dùng'}
-                                </CardTitle>
-                                <CardDescription className="text-gray-500">
-                                    {user.phone}
-                                </CardDescription>
-                            </div>
-                            <EditProfileSheet
-                                currentName={customer?.name || ''}
-                                currentAddress={customer?.address || ''}
-                                currentAvatar={customer?.avatar_url}
-                                onSuccess={fetchUserData}
-                            />
-                        </CardHeader>
-                        <CardContent className="grid gap-4 pt-4">
-                            <div className="flex items-center gap-2 text-sm">
-                                <User className="h-4 w-4 text-gray-400" />
-                                <span className="font-medium text-gray-600">Mã KH:</span>
-                                <span className="text-gray-900">{customer?.code || 'N/A'}</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-sm">
-                                <Phone className="h-4 w-4 text-gray-400" />
-                                <span className="font-medium text-gray-600">Điện thoại:</span>
-                                <span className="text-gray-900">{customer?.phone || user.phone}</span>
-                            </div>
-                            <div className="flex items-start gap-2 text-sm">
-                                <MapPin className="h-4 w-4 text-gray-400 mt-0.5" />
-                                <span className="font-medium text-gray-600">Địa chỉ:</span>
-                                <span className="flex-1 text-gray-900">
-                                    {customer?.address || 'Chưa cập nhật địa chỉ'}
-                                </span>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    {/* Order Statistics */}
-                    <div className="grid grid-cols-2 gap-3">
-                        <Card className="bg-white rounded-2xl shadow-sm border-0">
-                            <CardContent className="p-4">
-                                <div className="flex flex-col">
-                                    <span className="text-sm text-gray-500 mb-1">Tổng đơn hàng</span>
-                                    <span className="text-2xl font-bold text-gray-900">{orderStats.total}</span>
-                                </div>
-                            </CardContent>
-                        </Card>
-                        <Card className="bg-white rounded-2xl shadow-sm border-0">
-                            <CardContent className="p-4">
-                                <div className="flex flex-col">
-                                    <span className="text-sm text-gray-500 mb-1">Đang xử lý</span>
-                                    <span className="text-2xl font-bold text-orange-500">{orderStats.pending}</span>
-                                </div>
-                            </CardContent>
-                        </Card>
-                        <Card className="bg-white rounded-2xl shadow-sm border-0">
-                            <CardContent className="p-4">
-                                <div className="flex flex-col">
-                                    <span className="text-sm text-gray-500 mb-1">Hoàn thành</span>
-                                    <span className="text-2xl font-bold text-green-500">{orderStats.completed}</span>
-                                </div>
-                            </CardContent>
-                        </Card>
-                        <Card className="bg-white rounded-2xl shadow-sm border-0">
-                            <CardContent className="p-4">
-                                <div className="flex flex-col">
-                                    <span className="text-sm text-gray-500 mb-1">Tổng chi tiêu</span>
-                                    <span className="text-lg font-bold text-blue-600">
-                                        {formatCurrency(orderStats.totalSpent)}
-                                    </span>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-
-                    {/* Menu Items */}
-                    <div className="grid gap-3">
-                        {menuItems.map((item, index) => (
-                            <Link key={index} href={item.href}>
-                                <Card className="bg-white rounded-2xl shadow-sm border-0 hover:shadow-md transition-shadow">
-                                    <CardContent className="p-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-                                                <item.icon className="h-5 w-5 text-gray-600" />
-                                            </div>
-                                            <div className="flex-1">
-                                                <div className="font-medium text-gray-900">{item.label}</div>
-                                                <div className="text-xs text-gray-500">{item.description}</div>
-                                            </div>
-                                            <div className="w-5 h-5 text-gray-400">
-                                                →
-                                            </div>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </Link>
-                        ))}
-                    </div>
-
-                    {/* Logout Button */}
-                    <Card className="bg-white rounded-2xl shadow-sm border-0">
-                        <CardContent className="p-4">
-                            <Button 
-                                variant="destructive" 
-                                className="w-full bg-red-500 hover:bg-red-600 rounded-full"
-                                onClick={handleLogout}
-                            >
-                                <LogOut className="mr-2 h-4 w-4" />
-                                Đăng xuất
-                            </Button>
-                        </CardContent>
-                    </Card>
-
-                    {/* Footer Info */}
-                    <div className="text-center text-xs text-gray-400 mt-4">
-                        <p>Đăng nhập với {user.phone}</p>
-                        <p className="mt-1">Phiên bản 1.0.0</p>
-                    </div>
-                </div>
-            </div>
+      <div className="min-h-screen bg-[#f0f9ff] flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-[#175ead] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Đang tải...</p>
         </div>
+      </div>
     )
+  }
+
+  return (
+    <div className="min-h-screen bg-[#f0f9ff]">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-[#175ead] to-[#0891b2] text-white p-6">
+        <div className="text-center">
+          <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3">
+            <User className="w-10 h-10" />
+          </div>
+          <h1 className="text-xl font-bold">{customer?.full_name || 'Khách hàng'}</h1>
+          <p className="text-sm opacity-90">{profile?.email}</p>
+        </div>
+      </div>
+
+      <div className="p-4 space-y-4">
+        {/* Profile Information */}
+        <div className="bg-white rounded-xl p-4 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-base font-bold text-gray-900">Thông tin cá nhân</h2>
+            {!editing ? (
+              <button
+                onClick={() => setEditing(true)}
+                className="flex items-center gap-2 text-[#175ead] text-sm font-semibold"
+              >
+                <Edit2 className="w-4 h-4" />
+                Chỉnh sửa
+              </button>
+            ) : (
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    setEditing(false)
+                    setFormData({
+                      full_name: customer?.full_name || '',
+                      phone: customer?.phone || '',
+                      address: customer?.address || ''
+                    })
+                  }}
+                  className="flex items-center gap-1 text-gray-600 text-sm font-semibold"
+                >
+                  <X className="w-4 h-4" />
+                  Hủy
+                </button>
+                <button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="flex items-center gap-1 text-emerald-600 text-sm font-semibold disabled:opacity-50"
+                >
+                  <Save className="w-4 h-4" />
+                  {saving ? 'Đang lưu...' : 'Lưu'}
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex items-start gap-3">
+              <User className="w-5 h-5 text-gray-400 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-xs text-gray-500 mb-1">Họ tên</p>
+                {editing ? (
+                  <input
+                    type="text"
+                    value={formData.full_name}
+                    onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#175ead]"
+                  />
+                ) : (
+                  <p className="text-sm font-semibold text-gray-900">{customer?.full_name || '-'}</p>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <Mail className="w-5 h-5 text-gray-400 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-xs text-gray-500 mb-1">Email</p>
+                <p className="text-sm font-semibold text-gray-900">{customer?.email || profile?.email || '-'}</p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <Phone className="w-5 h-5 text-gray-400 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-xs text-gray-500 mb-1">Số điện thoại</p>
+                {editing ? (
+                  <input
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#175ead]"
+                  />
+                ) : (
+                  <p className="text-sm font-semibold text-gray-900">{customer?.phone || '-'}</p>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <MapPin className="w-5 h-5 text-gray-400 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-xs text-gray-500 mb-1">Địa chỉ</p>
+                {editing ? (
+                  <textarea
+                    value={formData.address}
+                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                    rows={2}
+                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#175ead]"
+                  />
+                ) : (
+                  <p className="text-sm font-semibold text-gray-900">{customer?.address || '-'}</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Settings */}
+        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+          <button className="w-full flex items-center gap-3 p-4 hover:bg-gray-50 transition-colors">
+            <Bell className="w-5 h-5 text-gray-600" />
+            <span className="flex-1 text-left text-sm font-semibold text-gray-900">Cài đặt thông báo</span>
+          </button>
+          <button className="w-full flex items-center gap-3 p-4 hover:bg-gray-50 transition-colors border-t border-gray-100">
+            <Shield className="w-5 h-5 text-gray-600" />
+            <span className="flex-1 text-left text-sm font-semibold text-gray-900">Bảo mật</span>
+          </button>
+        </div>
+
+        {/* Logout */}
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center justify-center gap-2 bg-red-500 text-white py-4 rounded-xl font-semibold hover:bg-red-600 transition-colors"
+        >
+          <LogOut className="w-5 h-5" />
+          Đăng xuất
+        </button>
+
+        {/* App Info */}
+        <div className="text-center text-xs text-gray-400 py-4">
+          <p>APPE JV Customer Portal</p>
+          <p>Version 1.1.0</p>
+        </div>
+      </div>
+    </div>
+  )
 }
