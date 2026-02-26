@@ -1,777 +1,294 @@
 'use client'
 
 import { createClient } from '@/lib/supabase/client'
-import { Card, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { 
-    ChevronLeft, 
-    X, 
-    Plus, 
-    Minus, 
-    Grid3x3, 
-    Mic,
-    ArrowUp
-} from 'lucide-react'
+import { ChevronLeft, X, Plus, Minus, Grid3x3, FileText, CheckCircle } from 'lucide-react'
 import { cn, formatCurrency } from '@/lib/utils'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
+import { QuantityModal, SuccessModal } from '@/components/sales/SellingModals'
+import { ProductSheet } from '@/components/sales/ProductSheet'
+import { QuickSearch } from '@/components/sales/QuickSearch'
 
 export default function SellingPage() {
     const [user, setUser] = useState<any>(null)
-    const [profile, setProfile] = useState<any>(null)
     const [products, setProducts] = useState<any[]>([])
-    const [filteredProducts, setFilteredProducts] = useState<any[]>([])
-    const [cart, setCart] = useState<any[]>([])
-    const [loading, setLoading] = useState(true)
-    const [showProductSheet, setShowProductSheet] = useState(false)
-    const [activeTab, setActiveTab] = useState<string>('all')
     const [categories, setCategories] = useState<any[]>([])
-    const [inputText, setInputText] = useState('')
-    const [searchResults, setSearchResults] = useState<any[]>([])
-    const [showSearchResults, setShowSearchResults] = useState(false)
-    const [showAddProductSheet, setShowAddProductSheet] = useState(false)
-    const [newProduct, setNewProduct] = useState({ name: '', price: '', stock: '' })
-    const [selectedCustomer, setSelectedCustomer] = useState<any>(null)
     const [customers, setCustomers] = useState<any[]>([])
-    const [customerSearchQuery, setCustomerSearchQuery] = useState('')
-    const [showCustomerResults, setShowCustomerResults] = useState(false)
-    const [customerSearchResults, setCustomerSearchResults] = useState<any[]>([])
+    const [cart, setCart] = useState<any[]>([])
+    const [selectedCustomer, setSelectedCustomer] = useState<any>(null)
+    const [customerSearch, setCustomerSearch] = useState('')
+    const [quickSearch, setQuickSearch] = useState('')
+    const [activeCategory, setActiveCategory] = useState('all')
+    const [sheetSearch, setSheetSearch] = useState('')
+    const [showProductSheet, setShowProductSheet] = useState(false)
+    const [showQuantityModal, setShowQuantityModal] = useState(false)
+    const [editingItem, setEditingItem] = useState<any>(null)
+    const [tempQty, setTempQty] = useState('')
+    const [showSuccessModal, setShowSuccessModal] = useState(false)
+    const [createdOrderId, setCreatedOrderId] = useState<any>(null)
+    const [orderNotes, setOrderNotes] = useState('')
     const [isCreatingOrder, setIsCreatingOrder] = useState(false)
+    const [loading, setLoading] = useState(true)
+    const [toasts, setToasts] = useState<{ id: number; msg: string }[]>([])
+    const toastId = useRef(0)
     const router = useRouter()
 
-    useEffect(() => {
-        fetchData()
+    useEffect(() => { fetchData() }, [])
+
+    const addToast = useCallback((msg: string) => {
+        const id = toastId.current++
+        setToasts(p => [...p, { id, msg }])
+        setTimeout(() => setToasts(p => p.filter(t => t.id !== id)), 2500)
     }, [])
-
-    useEffect(() => {
-        if (inputText.trim()) {
-            searchProducts(inputText)
-        } else {
-            setSearchResults([])
-            setShowSearchResults(false)
-        }
-    }, [inputText])
-
-    useEffect(() => {
-        if (customerSearchQuery.trim()) {
-            searchCustomers(customerSearchQuery)
-        } else {
-            setCustomerSearchResults([])
-            setShowCustomerResults(false)
-        }
-    }, [customerSearchQuery])
-
-    useEffect(() => {
-        // Filter products based on active tab
-        if (activeTab === 'all') {
-            setFilteredProducts(products)
-        } else {
-            // activeTab is now category_id
-            setFilteredProducts(products.filter(p => p.category_id === parseInt(activeTab)))
-        }
-    }, [activeTab, products])
 
     const fetchData = async () => {
         try {
-            setLoading(true)
-            const supabase = createClient()
-            const { data: { user } } = await supabase.auth.getUser()
-
-            if (!user) {
-                router.push('/auth/login')
-                return
-            }
-
+            const sb = createClient()
+            const { data: { user } } = await sb.auth.getUser()
+            if (!user) { router.push('/auth/login'); return }
             setUser(user)
-
-            const { data: profileData } = await supabase
-                .from('profiles')
-                .select('role')
-                .eq('id', user.id)
-                .single()
-
-            if (!profileData || !['sale', 'admin', 'sale_admin'].includes((profileData as any).role)) {
-                router.push('/')
-                return
-            }
-
-            setProfile(profileData)
-
-            const { data: productsData } = await supabase
-                .from('products')
-                .select('*')
-                .is('deleted_at', null)
-                .gt('stock', 0)
-                .order('name')
-
-            setProducts(productsData || [])
-            setFilteredProducts(productsData || [])
-
-            // Fetch categories
-            const { data: categoriesData } = await supabase
-                .from('categories')
-                .select('*')
-                .order('display_order')
-            
-            setCategories(categoriesData || [])
-
-            // Fetch customers
-            const { data: customersData } = await supabase
-                .from('customers')
-                .select('*')
-                .is('deleted_at', null)
-                .order('name')
-
-            setCustomers(customersData || [])
-        } catch (error) {
-            console.error('Error fetching data:', error)
-        } finally {
-            setLoading(false)
-        }
+            const { data: pd } = await sb.from('profiles').select('role').eq('id', user.id).single()
+            if (!pd || !['sale', 'admin', 'sale_admin'].includes((pd as any).role)) { router.push('/'); return }
+            const [{ data: prods }, { data: cats }, { data: custs }] = await Promise.all([
+                sb.from('products').select('*').gt('stock', 0).order('name'),
+                sb.from('categories').select('*').order('name'),
+                sb.from('customers').select('id, name, phone, code').order('name'),
+            ])
+            setProducts(prods || [])
+            setCategories(cats || [])
+            setCustomers(custs || [])
+        } catch (e) { console.error(e) } finally { setLoading(false) }
     }
 
-    const addToCart = (product: any) => {
-        const existingItem = cart.find(item => item.id === product.id)
-        if (existingItem) {
-            setCart(cart.map(item =>
-                item.id === product.id
-                    ? { ...item, quantity: Math.min(item.quantity + 1, product.stock) }
-                    : item
-            ))
-        } else {
-            setCart([...cart, { ...product, quantity: 1, note: '' }])
-        }
+    const addToCart = useCallback((product: any) => {
+        setCart(prev => {
+            const ex = prev.find(i => i.id === product.id)
+            if (ex) { addToast(`Tăng SL: "${product.name}"`); return prev.map(i => i.id === product.id ? { ...i, quantity: Math.min(i.quantity + 1, product.stock) } : i) }
+            addToast(`Thêm: "${product.name}"`)
+            return [...prev, { ...product, quantity: 1 }]
+        })
+    }, [addToast])
+
+    const updateQty = useCallback((id: number, delta: number) => {
+        setCart(prev => prev.map(i => { if (i.id !== id) return i; const nq = i.quantity + delta; if (nq <= 0) return null; return { ...i, quantity: Math.min(nq, i.stock) } }).filter(Boolean) as any[])
+    }, [])
+
+    const handleQtyEdit = (item: any) => { setEditingItem(item); setTempQty(item.quantity.toString()); setShowQuantityModal(true) }
+
+    const handleQtySubmit = () => {
+        if (!editingItem) return
+        const q = parseInt(tempQty)
+        if (!isNaN(q) && q > 0) setCart(prev => prev.map(i => i.id === editingItem.id ? { ...i, quantity: Math.min(q, i.stock) } : i))
+        setShowQuantityModal(false); setEditingItem(null); setTempQty('')
     }
 
-    const updateQuantity = (productId: number, delta: number) => {
-        setCart(cart.map(item => {
-            if (item.id === productId) {
-                const newQuantity = item.quantity + delta
-                if (newQuantity <= 0) return null
-                if (newQuantity > item.stock) return item
-                return { ...item, quantity: newQuantity }
-            }
-            return item
-        }).filter(Boolean) as any[])
+    const handleDeleteItem = () => {
+        if (!editingItem) return
+        setCart(prev => prev.filter(i => i.id !== editingItem.id))
+        setShowQuantityModal(false); setEditingItem(null)
     }
 
-    const updateNote = (productId: number, note: string) => {
-        setCart(cart.map(item =>
-            item.id === productId ? { ...item, note } : item
-        ))
-    }
-
-    const getTotalAmount = () => {
-        return cart.reduce((total, item) => total + (item.price * item.quantity), 0)
-    }
-
-    const getProductInitials = (name: string) => {
-        const words = name.split(' ')
-        if (words.length >= 2) {
-            return (words[0][0] + words[1][0]).toUpperCase()
-        }
-        return name.substring(0, 2).toUpperCase()
-    }
-
-    const getInitialsColor = (name: string) => {
-        const colors = [
-            'bg-blue-100 text-blue-600',
-            'bg-purple-100 text-purple-600',
-            'bg-emerald-100 text-emerald-600',
-            'bg-amber-100 text-amber-600',
-            'bg-rose-100 text-rose-600',
-            'bg-cyan-100 text-cyan-600',
-        ]
-        const hash = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
-        return colors[hash % colors.length]
-    }
-
-    const ProductImage = ({ product, size = 'md' }: { product: any, size?: 'sm' | 'md' | 'lg' }) => {
-        const sizeClasses = {
-            sm: 'w-12 h-12 text-sm',
-            md: 'w-16 h-16 text-xl',
-            lg: 'w-20 h-20 text-2xl'
-        }
-        
-        if (product.image_url) {
-            return (
-                <div className={cn("rounded-2xl overflow-hidden flex-shrink-0 bg-gray-100", sizeClasses[size])}>
-                    <img 
-                        src={product.image_url} 
-                        alt={product.name}
-                        className="w-full h-full object-cover"
-                    />
-                </div>
-            )
-        }
-        
-        const initials = getProductInitials(product.name)
-        const colorClass = getInitialsColor(product.name)
-        
-        return (
-            <div className={cn(
-                "rounded-2xl flex items-center justify-center font-bold flex-shrink-0",
-                sizeClasses[size],
-                colorClass
-            )}>
-                {initials}
-            </div>
-        )
-    }
-
-    const searchProducts = (query: string) => {
-        const lowerQuery = query.toLowerCase()
-        const results = products.filter(product =>
-            product.name.toLowerCase().includes(lowerQuery) ||
-            product.code.toLowerCase().includes(lowerQuery)
-        ).slice(0, 5) // Limit to 5 results
-        
-        setSearchResults(results)
-        setShowSearchResults(results.length > 0)
-    }
-
-    const selectSearchResult = (product: any) => {
-        addToCart(product)
-        setInputText('')
-        setSearchResults([])
-        setShowSearchResults(false)
-    }
-
-    const searchCustomers = (query: string) => {
-        const lowerQuery = query.toLowerCase()
-        const results = customers.filter(customer =>
-            customer.name.toLowerCase().includes(lowerQuery) ||
-            customer.code.toLowerCase().includes(lowerQuery) ||
-            customer.phone?.includes(lowerQuery)
-        ).slice(0, 5)
-        
-        setCustomerSearchResults(results)
-        setShowCustomerResults(results.length > 0)
-    }
-
-    const selectCustomer = (customer: any) => {
-        setSelectedCustomer(customer)
-        setCustomerSearchQuery('')
-        setCustomerSearchResults([])
-        setShowCustomerResults(false)
-    }
-
-    const handleAddNewProduct = async () => {
-        if (!newProduct.name || !newProduct.price) {
-            alert('Vui lòng nhập tên và giá sản phẩm')
-            return
-        }
-
-        try {
-            const supabase = createClient()
-            
-            // Generate product code
-            const code = `SP${Date.now().toString().slice(-6)}`
-            
-            const { data, error } = await (supabase as any).from('products').insert([{
-                code,
-                name: newProduct.name,
-                price: parseFloat(newProduct.price),
-                stock: parseInt(newProduct.stock) || 0,
-                category: null
-            }]).select().single()
-
-            if (error) throw error
-
-            // Add to products list and cart
-            const product = data
-            setProducts([...products, product])
-            addToCart(product)
-            
-            // Reset and close
-            setNewProduct({ name: '', price: '', stock: '' })
-            setShowAddProductSheet(false)
-        } catch (error) {
-            console.error('Error adding product:', error)
-            alert('Có lỗi khi thêm sản phẩm')
-        }
-    }
+    const getTotal = () => cart.reduce((s, i) => s + i.price * i.quantity, 0)
 
     const handleCompleteOrder = async () => {
-        if (cart.length === 0) {
-            toast.error('Vui lòng thêm sản phẩm vào đơn hàng')
-            return
-        }
-
+        if (cart.length === 0) return
         try {
             setIsCreatingOrder(true)
-            const supabase = createClient()
-            
-            // Calculate total
-            const totalAmount = getTotalAmount()
-            
-            console.log('Creating order with data:', {
-                customer_id: selectedCustomer?.id || null,
-                sale_id: user.id,
-                status: 'draft',
-                total_amount: totalAmount
-            })
-            
-            // Create draft order
-            const { data: orderData, error: orderError } = await (supabase as any)
-                .from('orders')
-                .insert([{
-                    customer_id: selectedCustomer?.id || null,
-                    sale_id: user.id,
-                    status: 'draft',
-                    total_amount: totalAmount
-                }])
-                .select()
-                .single()
-
-            if (orderError) {
-                console.error('Order creation error:', orderError)
-                throw new Error(orderError.message || 'Lỗi khi tạo đơn hàng')
-            }
-
-            console.log('Order created:', orderData)
-
-            // Create order items
-            const orderItems = cart.map(item => ({
-                order_id: orderData.id,
-                product_id: item.id,
-                quantity: item.quantity,
-                price_at_order: item.price
-            }))
-
-            console.log('Creating order items:', orderItems)
-
-            const { error: itemsError } = await (supabase as any)
-                .from('order_items')
-                .insert(orderItems)
-
-            if (itemsError) {
-                console.error('Order items creation error:', itemsError)
-                throw new Error(itemsError.message || 'Lỗi khi tạo chi tiết đơn hàng')
-            }
-
-            // Success - show toast and redirect
-            toast.success('Đã tạo đơn hàng nháp thành công!')
-            
-            // Reset cart and customer
-            setCart([])
-            setSelectedCustomer(null)
-            
-            // Redirect to orders page with draft tab
-            setTimeout(() => {
-                router.push('/sales/orders?tab=draft')
-            }, 500)
-        } catch (error: any) {
-            console.error('Error creating order:', error)
-            const errorMessage = error?.message || 'Có lỗi khi tạo đơn hàng'
-            toast.error(errorMessage)
-        } finally {
-            setIsCreatingOrder(false)
-        }
+            const sb = createClient()
+            const { data: od, error: oErr } = await (sb as any).from('orders').insert([{
+                customer_id: selectedCustomer?.id || null, sale_id: user.id, status: 'draft',
+                total_amount: getTotal(), ...(orderNotes.trim() ? { notes: orderNotes.trim() } : {}),
+            }]).select().single()
+            if (oErr) throw oErr
+            const { error: iErr } = await (sb as any).from('order_items').insert(
+                cart.map(i => ({ order_id: od.id, product_id: i.id, quantity: i.quantity, price_at_order: i.price }))
+            )
+            if (iErr) throw iErr
+            setCreatedOrderId(od.id); setShowSuccessModal(true)
+        } catch (e: any) { addToast('Lỗi: ' + (e.message || 'Không thể tạo đơn')) } finally { setIsCreatingOrder(false) }
     }
 
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-gradient-to-br from-orange-100 via-pink-100 to-blue-100 flex items-center justify-center">
-                <div className="text-gray-500">Đang tải...</div>
-            </div>
-        )
-    }
+    const resetOrder = () => { setCart([]); setSelectedCustomer(null); setOrderNotes(''); setCreatedOrderId(null) }
 
-    if (!user || !profile) {
-        return null
-    }
+    const filteredProducts = useMemo(() => {
+        let f = products
+        if (activeCategory !== 'all') f = f.filter(p => p.category_id === parseInt(activeCategory))
+        if (sheetSearch.trim()) { const q = sheetSearch.toLowerCase(); f = f.filter(p => p.name?.toLowerCase().includes(q) || p.code?.toLowerCase().includes(q)) }
+        return f
+    }, [products, activeCategory, sheetSearch])
+
+    const quickResults = useMemo(() => {
+        if (quickSearch.trim().length < 2) return []
+        const q = quickSearch.toLowerCase()
+        return products.filter(p => (p.name?.toLowerCase().includes(q) || p.code?.toLowerCase().includes(q)) && p.stock > 0).slice(0, 5)
+    }, [products, quickSearch])
+
+    const filteredCustomers = useMemo(() => {
+        if (customerSearch.trim().length < 2) return []
+        const q = customerSearch.toLowerCase()
+        return customers.filter(c => c.name?.toLowerCase().includes(q) || c.phone?.includes(q)).slice(0, 8)
+    }, [customers, customerSearch])
+
+    const catsWithCount = useMemo(() => [
+        { id: 'all', name: 'Tất cả', count: products.length },
+        ...categories.map(c => ({ ...c, count: products.filter(p => p.category_id === c.id).length })).filter(c => c.count > 0)
+    ], [categories, products])
+
+    if (loading) return <div className="min-h-screen bg-[#f0f9ff] flex items-center justify-center"><div className="text-gray-500">Đang tải...</div></div>
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-orange-100 via-pink-100 to-blue-100 relative">
-            {/* Header */}
-            <div className="sticky top-0 z-50 bg-gradient-to-br from-orange-100/95 via-pink-100/95 to-blue-100/95 backdrop-blur-sm">
-                <div className="flex items-center justify-between p-4">
-                    <button 
-                        onClick={() => router.back()}
-                        className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm"
-                    >
-                        <ChevronLeft className="w-5 h-5 text-gray-700" />
-                    </button>
-                    <h1 className="text-lg font-semibold text-gray-900">Bán hàng</h1>
-                    <button 
-                        onClick={handleCompleteOrder}
-                        className="text-blue-500 font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                        disabled={cart.length === 0 || isCreatingOrder}
-                    >
-                        {isCreatingOrder ? 'Đang tạo...' : 'Xong'}
-                    </button>
-                </div>
+        <div className="min-h-screen bg-[#f0f9ff] relative">
+            {/* Toasts */}
+            <div className="fixed top-4 left-4 right-4 z-[100] flex flex-col gap-2 pointer-events-none">
+                {toasts.map(t => (
+                    <div key={t.id} className="bg-emerald-500 text-white rounded-xl px-4 py-3 flex items-center gap-2 shadow-lg">
+                        <CheckCircle className="w-4 h-4 flex-shrink-0" />
+                        <span className="text-sm font-medium">{t.msg}</span>
+                    </div>
+                ))}
             </div>
 
-            {/* Main Content */}
-            <div className="px-4 pt-4 pb-32">
-                {/* Customer Search Input */}
-                <div className="mb-4 relative">
+            {/* Header */}
+            <div className="sticky top-0 z-50 bg-[#f0f9ff] flex items-center justify-between p-4">
+                <button onClick={() => router.back()} className="w-10 h-10 flex items-center justify-center">
+                    <ChevronLeft className="w-6 h-6 text-gray-700" />
+                </button>
+                <h1 className="text-lg font-bold text-gray-900">Bán hàng</h1>
+                <button onClick={handleCompleteOrder} disabled={cart.length === 0 || isCreatingOrder}
+                    className={cn("text-sm font-semibold px-3 py-1.5 rounded-lg", cart.length === 0 || isCreatingOrder ? "text-gray-400" : "text-[#175ead]")}>
+                    {isCreatingOrder ? 'Đang tạo...' : 'Xong'}
+                </button>
+            </div>
+
+            {/* Content */}
+            <div className="px-4 pb-32 flex flex-col gap-3">
+                {/* Customer Selector */}
+                <div className="relative">
                     {selectedCustomer ? (
-                        <div className="h-12 bg-white rounded-2xl border-none shadow-sm flex items-center justify-between px-4">
-                            <div className="flex items-center gap-2">
-                                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                                    <span className="text-blue-600 font-bold text-sm">
-                                        {selectedCustomer.name[0]}
-                                    </span>
-                                </div>
-                                <div>
-                                    <p className="font-semibold text-sm text-gray-900">
-                                        {selectedCustomer.name}
-                                    </p>
-                                    <p className="text-xs text-gray-500">
-                                        {selectedCustomer.code}
-                                    </p>
-                                </div>
+                        <div className="bg-white rounded-xl p-3 flex items-center gap-3 shadow-sm">
+                            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                <span className="text-[#175ead] font-bold text-sm">{selectedCustomer.name?.[0]?.toUpperCase()}</span>
                             </div>
-                            <button
-                                onClick={() => setSelectedCustomer(null)}
-                                className="text-gray-400 hover:text-gray-600"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
+                            <div className="flex-1 min-w-0">
+                                <p className="text-sm font-semibold text-gray-900 truncate">{selectedCustomer.name}</p>
+                                <p className="text-xs text-gray-500">{selectedCustomer.phone || selectedCustomer.code}</p>
+                            </div>
+                            <button onClick={() => setSelectedCustomer(null)}><X className="w-4 h-4 text-gray-400" /></button>
                         </div>
                     ) : (
-                        <Input
-                            placeholder="Khách hàng"
-                            value={customerSearchQuery}
-                            onChange={(e) => setCustomerSearchQuery(e.target.value)}
-                            className="h-12 bg-white rounded-2xl border-none shadow-sm"
-                        />
-                    )}
-                    
-                    {/* Customer Search Results */}
-                    {showCustomerResults && (
-                        <>
-                            <div 
-                                className="fixed inset-0 z-40"
-                                onClick={() => {
-                                    setShowCustomerResults(false)
-                                    setCustomerSearchQuery('')
-                                }}
-                            />
-                            <div className="absolute top-14 left-0 right-0 bg-white rounded-2xl shadow-xl z-50 max-h-60 overflow-y-auto">
-                                {customerSearchResults.map((customer) => (
-                                    <button
-                                        key={customer.id}
-                                        onClick={() => selectCustomer(customer)}
-                                        className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors border-b last:border-b-0"
-                                    >
-                                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                                            <span className="text-blue-600 font-bold">
-                                                {customer.name[0]}
-                                            </span>
-                                        </div>
-                                        <div className="flex-1 text-left min-w-0">
-                                            <p className="font-semibold text-gray-900 truncate">
-                                                {customer.name}
-                                            </p>
-                                            <p className="text-sm text-gray-500">
-                                                {customer.code} • {customer.phone || 'N/A'}
-                                            </p>
-                                        </div>
-                                    </button>
-                                ))}
-                            </div>
-                        </>
+                        <div className="relative">
+                            <Input placeholder="Tìm khách hàng..." value={customerSearch} onChange={e => setCustomerSearch(e.target.value)} className="bg-white rounded-xl border-gray-200 h-11" />
+                            {filteredCustomers.length > 0 && (
+                                <>
+                                    <div className="fixed inset-0 z-30" onClick={() => setCustomerSearch('')} />
+                                    <div className="absolute top-12 left-0 right-0 bg-white rounded-xl shadow-xl z-40 max-h-56 overflow-y-auto border border-gray-100">
+                                        {filteredCustomers.map((c: any) => (
+                                            <button key={c.id} onClick={() => { setSelectedCustomer(c); setCustomerSearch('') }}
+                                                className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 border-b border-gray-50 last:border-0 text-left">
+                                                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                                    <span className="text-[#175ead] font-bold text-xs">{c.name?.[0]?.toUpperCase()}</span>
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm font-semibold text-gray-900 truncate">{c.name}</p>
+                                                    <p className="text-xs text-gray-500">{c.code} • {c.phone || 'N/A'}</p>
+                                                </div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </>
+                            )}
+                        </div>
                     )}
                 </div>
 
-                {/* Cart Items or Empty State */}
+                {/* Cart or Empty State */}
                 {cart.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-20 text-center">
-                        <p className="text-xl font-semibold text-gray-900 mb-2">
-                            Đơn này bạn bán hàng gì?
-                        </p>
-                        <p className="text-sm text-gray-500">
-                            Chat tên hàng hoặc đọc tên hàng<br />
-                            để Knote tính tiền nhanh.
-                        </p>
+                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                            <Grid3x3 className="w-8 h-8 text-gray-300" />
+                        </div>
+                        <p className="text-lg font-bold text-gray-900 mb-2">Đơn này bạn bán hàng gì?</p>
+                        <p className="text-sm text-gray-500">Nhấn nút bên dưới để chọn sản phẩm</p>
                     </div>
                 ) : (
-                    <div className="space-y-3">
-                        {cart.map((item) => (
-                            <Card key={item.id} className="bg-white rounded-2xl border-none shadow-sm">
-                                <CardContent className="p-4">
-                                    <div className="flex items-start justify-between mb-3">
-                                        <div className="flex-1">
-                                            <h3 className="font-semibold text-gray-900 mb-1">
-                                                {item.name}
-                                            </h3>
-                                            <p className="text-sm text-gray-500">
-                                                {item.stock}
-                                            </p>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <button
-                                                onClick={() => updateQuantity(item.id, -1)}
-                                                className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center"
-                                            >
-                                                <Minus className="w-4 h-4 text-gray-600" />
-                                            </button>
-                                            <span className="w-8 text-center font-semibold">
-                                                {item.quantity}
-                                            </span>
-                                            <button
-                                                onClick={() => updateQuantity(item.id, 1)}
-                                                className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center"
-                                            >
-                                                <Plus className="w-4 h-4 text-gray-600" />
-                                            </button>
-                                        </div>
+                    <div className="flex flex-col gap-3">
+                        {cart.map(item => (
+                            <button key={item.id} onClick={() => handleQtyEdit(item)} className="bg-white rounded-xl p-4 shadow-sm text-left w-full">
+                                <div className="flex items-start justify-between mb-2">
+                                    <div className="flex-1 min-w-0 pr-3">
+                                        <p className="text-sm font-semibold text-gray-900 truncate">{item.name}</p>
+                                        <p className="text-xs text-gray-500">{formatCurrency(item.price)} / cái</p>
                                     </div>
-                                    <Input
-                                        placeholder="Ghi chú..."
-                                        value={item.note}
-                                        onChange={(e) => updateNote(item.id, e.target.value)}
-                                        className="h-10 bg-gray-50 border-none text-sm"
-                                    />
-                                </CardContent>
-                            </Card>
+                                    <div className="flex items-center gap-2 flex-shrink-0" onClick={e => e.stopPropagation()}>
+                                        <button onClick={() => updateQty(item.id, -1)} className="w-7 h-7 bg-gray-100 rounded-full flex items-center justify-center"><Minus className="w-3 h-3 text-gray-600" /></button>
+                                        <span className="w-8 text-center text-sm font-bold">{item.quantity}</span>
+                                        <button onClick={() => updateQty(item.id, 1)} className="w-7 h-7 bg-gray-100 rounded-full flex items-center justify-center"><Plus className="w-3 h-3 text-gray-600" /></button>
+                                    </div>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <span className="text-xs text-gray-400">Còn: {item.stock}</span>
+                                    <span className="text-sm font-bold text-[#175ead]">{formatCurrency(item.price * item.quantity)}</span>
+                                </div>
+                            </button>
                         ))}
-
-                        {/* Total */}
-                        <Card className="bg-white rounded-2xl border-none shadow-sm">
-                            <CardContent className="p-4 flex items-center justify-between">
-                                <span className="font-semibold text-gray-900">Tổng cộng</span>
-                                <span className="text-2xl font-bold text-gray-900">
-                                    {formatCurrency(getTotalAmount())}
-                                </span>
-                            </CardContent>
-                        </Card>
+                        <div className="bg-white rounded-xl p-4 shadow-sm">
+                            <div className="flex items-center gap-2 mb-2">
+                                <FileText className="w-4 h-4 text-gray-500" />
+                                <span className="text-sm font-semibold text-gray-700">Ghi chú đơn hàng</span>
+                            </div>
+                            <textarea className="w-full text-sm bg-gray-50 rounded-lg border border-gray-200 p-3 resize-none focus:outline-none focus:ring-2 focus:ring-[#175ead]/30"
+                                placeholder="Thêm ghi chú (tùy chọn)..." value={orderNotes} onChange={e => setOrderNotes(e.target.value)} rows={3} maxLength={500} />
+                            {orderNotes.length > 0 && <p className="text-xs text-gray-400 text-right mt-1">{orderNotes.length}/500</p>}
+                        </div>
+                        <div className="bg-white rounded-xl p-4 shadow-sm flex items-center justify-between">
+                            <span className="text-base font-semibold text-gray-900">Tổng cộng</span>
+                            <span className="text-2xl font-bold text-gray-900">{formatCurrency(getTotal())}</span>
+                        </div>
                     </div>
                 )}
             </div>
 
-            {/* Search Results Dropdown */}
-            {showSearchResults && (
-                <>
-                    <div 
-                        className="fixed inset-0 z-[70]"
-                        onClick={() => {
-                            setShowSearchResults(false)
-                            setInputText('')
-                        }}
-                    />
-                    <div className="fixed bottom-20 left-4 right-4 bg-white rounded-2xl shadow-xl z-[80] max-h-80 overflow-y-auto">
-                        {searchResults.map((product) => {
-                            return (
-                                <button
-                                    key={product.id}
-                                    onClick={() => selectSearchResult(product)}
-                                    className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors border-b last:border-b-0"
-                                >
-                                    <ProductImage product={product} size="sm" />
-                                    <div className="flex-1 text-left min-w-0">
-                                        <p className="font-semibold text-gray-900 truncate">
-                                            {product.name}
-                                        </p>
-                                        <p className="text-sm text-gray-500">
-                                            {formatCurrency(product.price)} • Còn {product.stock}
-                                        </p>
-                                    </div>
-                                    <Plus className="w-5 h-5 text-blue-500 flex-shrink-0" />
-                                </button>
-                            )
-                        })}
-                    </div>
-                </>
-            )}
+            {/* Bottom Quick Search Bar */}
+            <QuickSearch
+                value={quickSearch}
+                onChange={setQuickSearch}
+                results={quickResults}
+                onAddToCart={addToCart}
+                onOpenSheet={() => setShowProductSheet(true)}
+            />
 
-            {/* Bottom Input Bar */}
-            <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 safe-area-bottom z-30">
-                <div className="flex items-center gap-2">
-                    <button
-                        onClick={() => setShowProductSheet(true)}
-                        className="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center text-white"
-                    >
-                        <Grid3x3 className="w-5 h-5" />
-                    </button>
-                    
-                    <div className="flex-1 relative">
-                        <Input
-                            placeholder="Tìm sản phẩm"
-                            value={inputText}
-                            onChange={(e) => setInputText(e.target.value)}
-                            className="h-12 bg-gray-100 border-none rounded-2xl pr-12"
-                        />
-                        <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                            <button className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white">
-                                <Mic className="w-4 h-4" />
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Product Sheet */}
+            {/* Modals */}
             {showProductSheet && (
-                <>
-                    <div 
-                        className="fixed inset-0 bg-black/20 z-40"
-                        onClick={() => setShowProductSheet(false)}
-                    />
-                    <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-50 max-h-[80vh] flex flex-col">
-                        {/* Sheet Header */}
-                        <div className="flex items-center justify-between p-4 border-b">
-                            <h2 className="text-lg font-semibold">Hàng hóa ({products.length})</h2>
-                            <button
-                                onClick={() => setShowProductSheet(false)}
-                                className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center"
-                            >
-                                <X className="w-5 h-5 text-gray-600" />
-                            </button>
-                        </div>
-
-                        {/* Tabs */}
-                        <div className="flex items-center gap-2 px-4 py-3 border-b overflow-x-auto">
-                            <button
-                                onClick={() => setActiveTab('all')}
-                                className={cn(
-                                    "px-4 py-1.5 rounded-full text-sm font-medium transition-colors whitespace-nowrap flex-shrink-0",
-                                    activeTab === 'all'
-                                        ? "bg-blue-500 text-white"
-                                        : "bg-gray-100 text-gray-600"
-                                )}
-                            >
-                                Tất cả
-                            </button>
-                            {categories.map((category) => (
-                                <button
-                                    key={category.id}
-                                    onClick={() => setActiveTab(category.id.toString())}
-                                    className={cn(
-                                        "px-4 py-1.5 rounded-full text-sm font-medium transition-colors whitespace-nowrap flex-shrink-0",
-                                        activeTab === category.id.toString()
-                                            ? "bg-blue-500 text-white"
-                                            : "bg-gray-100 text-gray-600"
-                                    )}
-                                >
-                                    {category.name}
-                                </button>
-                            ))}
-                        </div>
-
-                        {/* Products Grid */}
-                        <div className="flex-1 overflow-y-auto p-4">
-                            <div className="grid grid-cols-3 gap-4">
-                                {/* Add Product Button */}
-                                <button 
-                                    onClick={() => {
-                                        setShowProductSheet(false)
-                                        setShowAddProductSheet(true)
-                                    }}
-                                    className="flex flex-col items-center justify-start gap-2"
-                                >
-                                    <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center">
-                                        <Plus className="w-6 h-6 text-gray-400" />
-                                    </div>
-                                    <span className="text-xs text-gray-600 text-center">
-                                        Thêm hàng
-                                    </span>
-                                </button>
-
-                                {/* Product Items */}
-                                {filteredProducts.map((product) => {
-                                    return (
-                                        <button
-                                            key={product.id}
-                                            onClick={() => {
-                                                addToCart(product)
-                                                setShowProductSheet(false)
-                                            }}
-                                            className="flex flex-col items-center justify-start gap-2"
-                                        >
-                                            <ProductImage product={product} size="md" />
-                                            <span className="text-xs text-gray-900 text-center line-clamp-2 font-medium">
-                                                {product.name}
-                                            </span>
-                                        </button>
-                                    )
-                                })}
-                            </div>
-                        </div>
-                    </div>
-                </>
+                <ProductSheet
+                    products={products}
+                    filteredProducts={filteredProducts}
+                    categories={catsWithCount}
+                    activeCategory={activeCategory}
+                    sheetSearch={sheetSearch}
+                    onCategoryChange={setActiveCategory}
+                    onSearchChange={setSheetSearch}
+                    onAddToCart={addToCart}
+                    onClose={() => setShowProductSheet(false)}
+                />
             )}
-
-            {/* Add Product Sheet */}
-            {showAddProductSheet && (
-                <>
-                    <div 
-                        className="fixed inset-0 bg-black/20 z-40"
-                        onClick={() => {
-                            setShowAddProductSheet(false)
-                            setNewProduct({ name: '', price: '', stock: '' })
-                        }}
-                    />
-                    <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-50 p-6">
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-xl font-bold">Thêm hàng mới</h2>
-                            <button
-                                onClick={() => {
-                                    setShowAddProductSheet(false)
-                                    setNewProduct({ name: '', price: '', stock: '' })
-                                }}
-                                className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center"
-                            >
-                                <X className="w-5 h-5 text-gray-600" />
-                            </button>
-                        </div>
-
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Tên sản phẩm *
-                                </label>
-                                <Input
-                                    placeholder="Nhập tên sản phẩm"
-                                    value={newProduct.name}
-                                    onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
-                                    className="h-12 bg-gray-50 border-gray-200"
-                                />
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Giá bán *
-                                    </label>
-                                    <Input
-                                        type="number"
-                                        placeholder="0"
-                                        value={newProduct.price}
-                                        onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
-                                        className="h-12 bg-gray-50 border-gray-200"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Số lượng
-                                    </label>
-                                    <Input
-                                        type="number"
-                                        placeholder="0"
-                                        value={newProduct.stock}
-                                        onChange={(e) => setNewProduct({ ...newProduct, stock: e.target.value })}
-                                        className="h-12 bg-gray-50 border-gray-200"
-                                    />
-                                </div>
-                            </div>
-
-                            <Button
-                                onClick={handleAddNewProduct}
-                                className="w-full h-12 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-semibold"
-                            >
-                                Thêm vào đơn hàng
-                            </Button>
-                        </div>
-                    </div>
-                </>
+            {showQuantityModal && (
+                <QuantityModal
+                    item={editingItem}
+                    tempQty={tempQty}
+                    onTempQtyChange={setTempQty}
+                    onSubmit={handleQtySubmit}
+                    onDelete={handleDeleteItem}
+                    onClose={() => { setShowQuantityModal(false); setEditingItem(null) }}
+                />
+            )}
+            {showSuccessModal && (
+                <SuccessModal
+                    orderId={createdOrderId}
+                    total={getTotal()}
+                    onCreateAnother={() => { setShowSuccessModal(false); resetOrder() }}
+                    onViewOrders={() => { setShowSuccessModal(false); resetOrder(); router.push('/sales/orders') }}
+                />
             )}
         </div>
     )
