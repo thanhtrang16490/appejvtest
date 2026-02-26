@@ -7,7 +7,6 @@ import { createClient } from '@/lib/supabase/client'
 import { formatCurrency, cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import Link from 'next/link'
-import SalesLayout from '../../layout'
 import { 
   ChevronLeft, 
   Phone, 
@@ -194,32 +193,27 @@ export default function CustomerDetailPage() {
 
   if (authLoading || loading) {
     return (
-      <SalesLayout>
-        <div className="min-h-screen bg-[#f0f9ff] flex items-center justify-center">
-          <div className="text-center">
-            <div className="w-16 h-16 border-4 border-[#175ead] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-600">Đang tải...</p>
-          </div>
+      <div className="flex items-center justify-center py-20">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-[#175ead] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Đang tải...</p>
         </div>
-      </SalesLayout>
+      </div>
     )
   }
 
   if (!customer) {
     return (
-      <SalesLayout>
-        <div className="min-h-screen bg-[#f0f9ff] flex items-center justify-center">
-          <p className="text-red-600">Không tìm thấy khách hàng</p>
-        </div>
-      </SalesLayout>
+      <div className="flex items-center justify-center py-20">
+        <p className="text-red-600">Không tìm thấy khách hàng</p>
+      </div>
     )
   }
 
   return (
-    <SalesLayout>
-      <div className="min-h-screen bg-[#f0f9ff]">
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 bg-[#f0f9ff] border-b border-gray-200">
+    <div>
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-3 bg-[#f0f9ff] border-b border-gray-200">
           <button
             onClick={() => router.back()}
             className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors"
@@ -466,6 +460,6 @@ export default function CustomerDetailPage() {
           )}
         </div>
       </div>
-    </SalesLayout>
+    </div>
   )
 }
