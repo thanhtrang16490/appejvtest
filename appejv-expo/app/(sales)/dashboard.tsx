@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { View, Text, ScrollView, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native'
+import { View, Text, ScrollView, TouchableOpacity, Modal, StyleSheet, RefreshControl } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { supabase } from '../../src/lib/supabase'
 import { useRouter, useFocusEffect } from 'expo-router'
@@ -8,7 +8,6 @@ import { emitScrollVisibility } from './_layout'
 import { useTabBarHeight } from '../../src/hooks/useTabBarHeight'
 import AppHeader from '../../src/components/AppHeader'
 import { hasSaleAdminDashboard } from '../../src/lib/feature-flags'
-import { useDashboardData } from '../../src/hooks/useDashboardData'
 import {
   DashboardStats,
   QuickActions,
@@ -16,6 +15,9 @@ import {
   TimeRangeFilter,
   TimeRangeModal,
 } from '../../src/components/dashboard'
+import { DashboardSkeleton } from '../../src/components/SkeletonLoader'
+import RevenueChart from '../../src/components/dashboard/RevenueChart'
+import type { RevenueDataPoint } from '../../src/components/dashboard/RevenueChart'
 import { COLORS } from '../../src/constants/colors'
 
 const timeRangeOptions = [
@@ -27,6 +29,14 @@ const timeRangeOptions = [
   { id: 'thisQuarter', label: 'Quý này' },
   { id: 'thisYear', label: 'Năm nay' },
   { id: 'all', label: 'Tất cả' },
+]
+
+const filterTabs = [
+  { id: 'today', label: 'Hôm nay' },
+  { id: 'thisMonth', label: 'Tháng này' },
+  { id: 'lastMonth', label: 'Tháng trước' },
+  { id: 'thisYear', label: 'Năm nay' },
+  { id: 'other', label: 'Khác' },
 ]
 
 export default function SalesDashboard() {
@@ -47,6 +57,7 @@ export default function SalesDashboard() {
   })
   const [topPerformers, setTopPerformers] = useState<any[]>([])
   const [recentOrders, setRecentOrders] = useState<any[]>([])
+  const [revenueChartData, setRevenueChartData] = useState<RevenueDataPoint[]>([])
   const [activeFilter, setActiveFilter] = useState('thisMonth')
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -305,11 +316,67 @@ export default function SalesDashboard() {
         totalRevenue
       })
       setRecentOrders(recentOrdersData || [])
+
+      // Build revenue chart data from completed orders
+      buildRevenueChart(completedOrders || [])
     } catch (error) {
       console.error('Error fetching data:', error)
     } finally {
       setLoading(false)
     }
+  }
+
+  const buildRevenueChart = (orders: any[]) => {
+    const now = new Date()
+    const grouped: Record<string, number> = {}
+
+    orders.forEach((order: any) => {
+      const date = new Date(order.created_at || order.updated_at || now)
+      let key: string
+
+      if (activeFilter === 'today' || activeFilter === 'yesterday') {
+        const h = Math.floor(date.getHours() / 3) * 3
+        key = `${h}h`
+      } else if (activeFilter === 'last7days') {
+        key = `${date.getDate()}/${date.getMonth() + 1}`
+      } else if (activeFilter === 'thisYear' || activeFilter === 'all') {
+        key = `T${date.getMonth() + 1}`
+      } else {
+        key = `T${Math.ceil(date.getDate() / 7)}`
+      }
+
+      grouped[key] = (grouped[key] || 0) + (order.total_amount || 0)
+    })
+
+    const result: RevenueDataPoint[] = []
+
+    if (activeFilter === 'today' || activeFilter === 'yesterday') {
+      for (let h = 0; h < 24; h += 3) {
+        const key = `${h}h`
+        result.push({ label: key, value: grouped[key] || 0, isHighlight: activeFilter === 'today' && now.getHours() >= h && now.getHours() < h + 3 })
+      }
+    } else if (activeFilter === 'last7days') {
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(now); d.setDate(now.getDate() - i)
+        const key = `${d.getDate()}/${d.getMonth() + 1}`
+        result.push({ label: key, value: grouped[key] || 0, isHighlight: i === 0 })
+      }
+    } else if (activeFilter === 'thisMonth' || activeFilter === 'lastMonth') {
+      for (let w = 1; w <= 4; w++) {
+        result.push({ label: `T${w}`, value: grouped[`T${w}`] || 0, isHighlight: false })
+      }
+    } else if (activeFilter === 'thisQuarter') {
+      const q = Math.floor(now.getMonth() / 3)
+      for (let m = q * 3; m < q * 3 + 3; m++) {
+        result.push({ label: `T${m + 1}`, value: grouped[`T${m + 1}`] || 0, isHighlight: m === now.getMonth() })
+      }
+    } else {
+      for (let m = 1; m <= 12; m++) {
+        result.push({ label: `T${m}`, value: grouped[`T${m}`] || 0, isHighlight: m === now.getMonth() + 1 })
+      }
+    }
+
+    setRevenueChartData(result)
   }
 
   const getDateRange = () => {
@@ -383,8 +450,7 @@ export default function SalesDashboard() {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#175ead" />
-        <Text style={styles.loadingText}>Đang tải...</Text>
+        <DashboardSkeleton />
       </View>
     )
   }
@@ -460,6 +526,16 @@ export default function SalesDashboard() {
               </TouchableOpacity>
             ))}
           </ScrollView>
+        </View>
+
+        {/* Revenue Chart */}
+        <View style={{ paddingHorizontal: 16, paddingTop: 16 }}>
+          <RevenueChart
+            data={revenueChartData}
+            title="Biểu đồ doanh thu"
+            subtitle={timeRangeOptions.find(o => o.id === activeFilter)?.label}
+            color="#175ead"
+          />
         </View>
 
         {/* Stats Cards */}

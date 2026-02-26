@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { errorTracker } from '../lib/error-tracking'
 import type { DashboardStats, TeamStats } from '../types'
+import type { RevenueDataPoint } from '../components/dashboard/RevenueChart'
 
 // ─── Query Key Factory ────────────────────────────────────────────────────────
 
@@ -15,6 +16,8 @@ export const dashboardKeys = {
     ['dashboard', 'stats', filter, profileId] as const,
   recentOrders: (profileId: string) =>
     ['dashboard', 'recentOrders', profileId] as const,
+  revenueChart: (filter: string, profileId: string) =>
+    ['dashboard', 'revenueChart', filter, profileId] as const,
 }
 
 // ─── Utility: Date Range ──────────────────────────────────────────────────────
@@ -163,6 +166,120 @@ async function fetchDashboardStats(
 }
 
 /**
+ * Fetch revenue chart data - nhóm doanh thu theo ngày/tuần/tháng
+ */
+async function fetchRevenueChartData(
+  filter: string,
+  profile: any
+): Promise<RevenueDataPoint[]> {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const { startDate, endDate } = getDateRange(filter)
+  const isSale = profile?.role === 'sale'
+  const isSaleAdmin = profile?.role === 'sale_admin'
+
+  let managedSaleIds: string[] = []
+  if (isSaleAdmin) {
+    const { data: managedSales } = await supabase
+      .from('profiles').select('id').eq('manager_id', user.id)
+    managedSaleIds = managedSales?.map((s: any) => s.id) || []
+  }
+
+  // Fetch completed orders trong khoảng thời gian
+  let query = supabase
+    .from('orders')
+    .select('total_amount, created_at')
+    .eq('status', 'completed')
+    .gte('created_at', startDate)
+    .lt('created_at', endDate)
+    .order('created_at', { ascending: true })
+
+  if (isSale) query = query.eq('sale_id', user.id)
+  else if (isSaleAdmin) query = query.in('sale_id', [user.id, ...managedSaleIds])
+
+  const { data: orders, error } = await query
+  if (error) throw error
+  if (!orders || orders.length === 0) return []
+
+  // Xác định cách nhóm dữ liệu dựa trên filter
+  const groupByDay = ['today', 'yesterday', 'last7days'].includes(filter)
+  const groupByMonth = ['thisYear', 'all'].includes(filter)
+  // Còn lại (thisMonth, lastMonth, thisQuarter) → nhóm theo tuần
+
+  const grouped: Record<string, number> = {}
+
+  orders.forEach((order: any) => {
+    const date = new Date(order.created_at)
+    let key: string
+
+    if (groupByDay) {
+      // Nhóm theo giờ (hôm nay) hoặc ngày trong tuần
+      if (filter === 'today' || filter === 'yesterday') {
+        const hour = date.getHours()
+        key = `${hour}h`
+      } else {
+        // last7days - nhóm theo ngày
+        key = `${date.getDate()}/${date.getMonth() + 1}`
+      }
+    } else if (groupByMonth) {
+      // Nhóm theo tháng
+      key = `T${date.getMonth() + 1}`
+    } else {
+      // Nhóm theo tuần trong tháng
+      const weekOfMonth = Math.ceil(date.getDate() / 7)
+      key = `T${weekOfMonth}`
+    }
+
+    grouped[key] = (grouped[key] || 0) + (order.total_amount || 0)
+  })
+
+  // Tạo đầy đủ các kỳ (kể cả kỳ không có doanh thu)
+  const result: RevenueDataPoint[] = []
+  const now = new Date()
+
+  if (filter === 'today' || filter === 'yesterday') {
+    // 24 giờ
+    for (let h = 0; h < 24; h += 3) {
+      const key = `${h}h`
+      const isNow = filter === 'today' && now.getHours() >= h && now.getHours() < h + 3
+      result.push({ label: key, value: grouped[key] || 0, isHighlight: isNow })
+    }
+  } else if (filter === 'last7days') {
+    // 7 ngày
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now)
+      d.setDate(now.getDate() - i)
+      const key = `${d.getDate()}/${d.getMonth() + 1}`
+      result.push({ label: key, value: grouped[key] || 0, isHighlight: i === 0 })
+    }
+  } else if (filter === 'thisMonth' || filter === 'lastMonth') {
+    // 4-5 tuần
+    for (let w = 1; w <= 5; w++) {
+      const key = `T${w}`
+      if (grouped[key] !== undefined || w <= 4) {
+        result.push({ label: key, value: grouped[key] || 0, isHighlight: false })
+      }
+    }
+  } else if (filter === 'thisQuarter') {
+    // 3 tháng
+    const quarter = Math.floor(now.getMonth() / 3)
+    for (let m = quarter * 3; m < quarter * 3 + 3; m++) {
+      const key = `T${m + 1}`
+      result.push({ label: key, value: grouped[key] || 0, isHighlight: m === now.getMonth() })
+    }
+  } else {
+    // thisYear / all - 12 tháng
+    for (let m = 1; m <= 12; m++) {
+      const key = `T${m}`
+      result.push({ label: key, value: grouped[key] || 0, isHighlight: m === now.getMonth() + 1 })
+    }
+  }
+
+  return result
+}
+
+/**
  * Fetch recent orders từ Supabase.
  * Được dùng làm queryFn cho useQuery.
  */
@@ -243,6 +360,21 @@ export function useDashboardData(activeFilter: string, profile: any) {
     },
   } as any)
 
+  // ── Revenue chart query ──────────────────────────────────────────────────
+  const {
+    data: revenueChartData = [],
+    isLoading: chartLoading,
+    refetch: refetchChart,
+  } = useQuery<RevenueDataPoint[]>({
+    queryKey: dashboardKeys.revenueChart(activeFilter, profileId),
+    queryFn: () => fetchRevenueChartData(activeFilter, profile),
+    enabled: !!profile,
+    staleTime: 3 * 60 * 1_000,
+    onError: (error: Error) => {
+      errorTracker.logError(error, { action: 'useDashboardData.fetchRevenueChart' })
+    },
+  } as any)
+
   // ── Recent orders query ──────────────────────────────────────────────────
   const {
     data: recentOrders = [],
@@ -261,7 +393,7 @@ export function useDashboardData(activeFilter: string, profile: any) {
 
   // ── Combined refetch ─────────────────────────────────────────────────────
   const refetch = async () => {
-    await Promise.all([refetchStats(), refetchOrders()])
+    await Promise.all([refetchStats(), refetchOrders(), refetchChart()])
   }
 
   // ── Placeholder team stats (for backward compat) ─────────────────────────
@@ -276,6 +408,7 @@ export function useDashboardData(activeFilter: string, profile: any) {
     stats,
     teamStats,
     recentOrders,
+    revenueChartData,
     topPerformers: [] as any[],
     loading: statsLoading || ordersLoading,
     error: statsError || ordersError,

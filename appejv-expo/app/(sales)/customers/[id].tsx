@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet, Alert, TextInput } from 'react-native'
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet, Alert, TextInput, Modal, KeyboardAvoidingView, Platform } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Picker } from '@react-native-picker/picker'
 import { useAuth } from '../../../src/contexts/AuthContext'
@@ -16,6 +16,9 @@ export default function CustomerDetailScreen() {
   const [saleUsers, setSaleUsers] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
+  const [showPasswordModal, setShowPasswordModal] = useState(false)
+  const [newAccountPassword, setNewAccountPassword] = useState('')
+  const [creatingAccount, setCreatingAccount] = useState(false)
   const [editedData, setEditedData] = useState({
     full_name: '',
     phone: '',
@@ -169,78 +172,62 @@ export default function CustomerDetailScreen() {
     }
   }
 
-  const handleCreateAccount = async () => {
-    // Validate email first
+  const handleCreateAccount = () => {
     if (!customer.email) {
       Alert.alert('Lỗi', 'Khách hàng chưa có email. Vui lòng cập nhật email trước.')
       return
     }
+    setNewAccountPassword('')
+    setShowPasswordModal(true)
+  }
 
-    // Prompt for password
-    Alert.prompt(
-      'Tạo tài khoản đăng nhập',
-      'Nhập mật khẩu cho khách hàng (tối thiểu 6 ký tự):',
-      [
-        {
-          text: 'Hủy',
-          style: 'cancel'
-        },
-        {
-          text: 'Tạo',
-          onPress: async (password: string | undefined) => {
-            if (!password || password.length < 6) {
-              Alert.alert('Lỗi', 'Mật khẩu phải có ít nhất 6 ký tự')
-              return
-            }
+  const handleConfirmCreateAccount = async () => {
+    if (!newAccountPassword || newAccountPassword.length < 6) {
+      Alert.alert('Lỗi', 'Mật khẩu phải có ít nhất 6 ký tự')
+      return
+    }
 
-            try {
-              setLoading(true)
+    try {
+      setCreatingAccount(true)
 
-              // Create auth account
-              const { data: authData, error: authError } = await supabase.auth.signUp({
-                email: customer.email,
-                password: password,
-                options: {
-                  data: {
-                    full_name: customer.full_name,
-                    phone: customer.phone,
-                  }
-                }
-              })
-
-              if (authError) {
-                if (authError.message.includes('already registered')) {
-                  Alert.alert('Lỗi', 'Email này đã được sử dụng cho tài khoản khác.')
-                } else {
-                  Alert.alert('Lỗi', authError.message)
-                }
-                return
-              }
-
-              // Update customer with user_id
-              const { error: updateError } = await supabase
-                .from('customers')
-                .update({ user_id: authData.user?.id })
-                .eq('id', id)
-
-              if (updateError) throw updateError
-
-              Alert.alert(
-                'Thành công',
-                `Đã tạo tài khoản đăng nhập cho khách hàng.\n\nEmail: ${customer.email}\nMật khẩu: ${password}\n\nVui lòng gửi thông tin này cho khách hàng.`,
-                [{ text: 'OK', onPress: () => fetchData() }]
-              )
-            } catch (error: any) {
-              console.error('Error creating account:', error)
-              Alert.alert('Lỗi', error.message || 'Không thể tạo tài khoản')
-            } finally {
-              setLoading(false)
-            }
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: customer.email,
+        password: newAccountPassword,
+        options: {
+          data: {
+            full_name: customer.full_name,
+            phone: customer.phone,
           }
         }
-      ],
-      'secure-text'
-    )
+      })
+
+      if (authError) {
+        if (authError.message.includes('already registered')) {
+          Alert.alert('Lỗi', 'Email này đã được sử dụng cho tài khoản khác.')
+        } else {
+          Alert.alert('Lỗi', authError.message)
+        }
+        return
+      }
+
+      const { error: updateError } = await supabase
+        .from('customers')
+        .update({ user_id: authData.user?.id })
+        .eq('id', id)
+
+      if (updateError) throw updateError
+
+      setShowPasswordModal(false)
+      Alert.alert(
+        'Thành công',
+        `Đã tạo tài khoản đăng nhập.\n\nEmail: ${customer.email}\nMật khẩu: ${newAccountPassword}\n\nVui lòng gửi thông tin này cho khách hàng.`,
+        [{ text: 'OK', onPress: () => fetchData() }]
+      )
+    } catch (error: any) {
+      Alert.alert('Lỗi', error.message || 'Không thể tạo tài khoản')
+    } finally {
+      setCreatingAccount(false)
+    }
   }
 
   const formatCurrency = (amount: number) => {
@@ -547,6 +534,63 @@ export default function CustomerDetailScreen() {
           </TouchableOpacity>
         )}
       </ScrollView>
+
+      {/* Password Modal - thay thế Alert.prompt (không hoạt động trên Android) */}
+      <Modal
+        visible={showPasswordModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowPasswordModal(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalOverlay}
+        >
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <Ionicons name="person-add" size={24} color="#175ead" />
+              <Text style={styles.modalTitle}>Tạo tài khoản đăng nhập</Text>
+            </View>
+
+            <Text style={styles.modalSubtitle}>
+              Email: <Text style={styles.modalEmail}>{customer?.email}</Text>
+            </Text>
+
+            <Text style={styles.modalLabel}>Mật khẩu (tối thiểu 6 ký tự)</Text>
+            <TextInput
+              style={styles.modalInput}
+              value={newAccountPassword}
+              onChangeText={setNewAccountPassword}
+              placeholder="Nhập mật khẩu..."
+              secureTextEntry
+              autoCapitalize="none"
+              autoFocus
+            />
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={styles.modalCancelBtn}
+                onPress={() => setShowPasswordModal(false)}
+                disabled={creatingAccount}
+              >
+                <Text style={styles.modalCancelText}>Hủy</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.modalConfirmBtn, creatingAccount && { opacity: 0.6 }]}
+                onPress={handleConfirmCreateAccount}
+                disabled={creatingAccount}
+              >
+                {creatingAccount ? (
+                  <ActivityIndicator size="small" color="white" />
+                ) : (
+                  <Text style={styles.modalConfirmText}>Tạo tài khoản</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </SafeAreaView>
   )
 }
@@ -840,5 +884,92 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#6b7280',
+  },
+  // Password Modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  modalContainer: {
+    backgroundColor: 'white',
+    borderRadius: 16,
+    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 12,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#111827',
+  },
+  modalSubtitle: {
+    fontSize: 13,
+    color: '#6b7280',
+    marginBottom: 16,
+  },
+  modalEmail: {
+    color: '#175ead',
+    fontWeight: '600',
+  },
+  modalLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 8,
+  },
+  modalInput: {
+    backgroundColor: '#f9fafb',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 15,
+    color: '#111827',
+    marginBottom: 20,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  modalCancelBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    alignItems: 'center',
+  },
+  modalCancelText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#6b7280',
+  },
+  modalConfirmBtn: {
+    flex: 2,
+    paddingVertical: 12,
+    borderRadius: 10,
+    backgroundColor: '#175ead',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalConfirmText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: 'white',
   },
 })

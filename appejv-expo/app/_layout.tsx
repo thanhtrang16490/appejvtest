@@ -1,13 +1,16 @@
-import { Stack } from 'expo-router'
+import { Stack, router } from 'expo-router'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { StatusBar } from 'expo-status-bar'
-import { AuthProvider } from '../src/contexts/AuthContext'
+import { View } from 'react-native'
+import { AuthProvider, useAuth } from '../src/contexts/AuthContext'
 import ErrorBoundary from '../src/components/ErrorBoundary'
+import OfflineBanner from '../src/components/OfflineBanner'
 import { useEffect } from 'react'
 import { OfflineManager } from '../src/lib/offline-manager'
 import { Analytics } from '../src/lib/analytics'
 import { initDeepLinking } from '../src/lib/deep-linking'
 import { errorTracker } from '../src/lib/error-tracking'
+import { usePushNotifications } from '../src/hooks/usePushNotifications'
 
 /**
  * React Query client configuration.
@@ -27,6 +30,43 @@ const queryClient = new QueryClient({
     },
   },
 })
+
+/**
+ * Inner component có thể dùng hooks (cần nằm trong AuthProvider)
+ */
+function AppContent() {
+  const { user } = useAuth()
+
+  // Khởi tạo push notifications khi user đăng nhập
+  usePushNotifications({
+    userId: user?.id,
+    onNotificationTap: (data) => {
+      // Điều hướng dựa trên notification data
+      if (data?.screen) {
+        try {
+          router.push(data.screen as any)
+        } catch {
+          // Silently fail nếu route không hợp lệ
+        }
+      }
+    },
+  })
+
+  return (
+    <View style={{ flex: 1 }}>
+      <StatusBar style="dark" />
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="index" />
+        <Stack.Screen name="(auth)" />
+        <Stack.Screen name="(admin)" />
+        <Stack.Screen name="(customer)" />
+        <Stack.Screen name="(sales)" />
+        <Stack.Screen name="(warehouse)" />
+      </Stack>
+      <OfflineBanner />
+    </View>
+  )
+}
 
 export default function RootLayout() {
   useEffect(() => {
@@ -51,15 +91,7 @@ export default function RootLayout() {
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <StatusBar style="dark" />
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="index" />
-            <Stack.Screen name="(auth)" />
-            <Stack.Screen name="(admin)" />
-            <Stack.Screen name="(customer)" />
-            <Stack.Screen name="(sales)" />
-            <Stack.Screen name="(warehouse)" />
-          </Stack>
+          <AppContent />
         </AuthProvider>
       </QueryClientProvider>
     </ErrorBoundary>

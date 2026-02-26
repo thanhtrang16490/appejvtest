@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl, Image, Platform } from 'react-native'
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl, Image, TextInput } from 'react-native'
+import { OrdersListSkeleton } from '../../../src/components/SkeletonLoader'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useAuth } from '../../../src/contexts/AuthContext'
 import { supabase } from '../../../src/lib/supabase'
@@ -9,6 +10,7 @@ import SuccessModal from '../../../src/components/SuccessModal'
 import { emitScrollVisibility } from '../_layout'
 import { useTabBarHeight } from '../../../src/hooks/useTabBarHeight'
 import { hasTeamFeatures } from '../../../src/lib/feature-flags'
+import { useOrdersList, useUpdateOrderStatus } from '../../../src/hooks/useOrdersQuery'
 
 const statusMap: Record<string, { label: string; color: string; bg: string }> = {
   draft: { label: 'Đơn nháp', color: '#374151', bg: '#f3f4f6' },
@@ -37,17 +39,39 @@ export default function OrdersScreen() {
   const router = useRouter()
   const { contentPaddingBottom } = useTabBarHeight()
   const [profile, setProfile] = useState<any>(null)
-  const [orders, setOrders] = useState<any[]>([])
+  const [profileLoading, setProfileLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('draft')
   const [scopeTab, setScopeTab] = useState<'my' | 'team'>('my')
   const [teamMemberIds, setTeamMemberIds] = useState<string[]>([])
-  const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
-  const [updating, setUpdating] = useState<number | null>(null)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
   const lastScrollY = useRef(0)
   const scrollTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // ── React Query ────────────────────────────────────────────────────────────
+  const {
+    data: orders = [],
+    isLoading: ordersLoading,
+    refetch: refetchOrders,
+  } = useOrdersList({
+    userId: user?.id ?? '',
+    role: profile?.role ?? '',
+    scope: scopeTab,
+    teamMemberIds,
+    enabled: !!user && !!profile,
+  })
+
+  // Kết hợp loading: profile đang tải HOẶC orders đang tải
+  const loading = profileLoading || ordersLoading
+
+  const updateStatusMutation = useUpdateOrderStatus(user?.id ?? '', scopeTab)
+
+  // Refetch khi scopeTab thay đổi
+  useEffect(() => {
+    if (profile) refetchOrders()
+  }, [scopeTab])
 
   const handleScroll = (event: any) => {
     const currentScrollY = event.nativeEvent.contentOffset.y
@@ -71,14 +95,14 @@ export default function OrdersScreen() {
     }, 2000)
   }
 
-  useEffect(() => {
-    fetchData()
-  }, [scopeTab])
-
   // Fetch profile and team members
   useEffect(() => {
     const fetchProfile = async () => {
-      if (user) {
+      if (!user) {
+        setProfileLoading(false)
+        return
+      }
+      try {
         const { data } = await supabase
           .from('profiles')
           .select('*')
@@ -105,147 +129,38 @@ export default function OrdersScreen() {
             setTeamMemberIds(membersData?.map(m => m.sale_id) || [])
           }
         }
+      } finally {
+        setProfileLoading(false)
       }
     }
     fetchProfile()
   }, [user])
 
-  // Auto refresh when screen is focused
+  // Auto refresh khi screen được focus
   useFocusEffect(
     useCallback(() => {
-      if (!loading && !refreshing) {
-        fetchData()
-      }
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [])
+      if (profile) refetchOrders()
+    }, [profile, refetchOrders])
   )
 
-  const fetchData = async () => {
-    try {
-      const { data: { user: authUser } } = await supabase.auth.getUser()
-
-      if (!authUser) {
-        router.replace('/(auth)/login')
-        return
-      }
-
-      // Fetch profile
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('role, full_name')
-        .eq('id', authUser.id)
-        .single()
-
-      if (!profileData || !['sale', 'admin', 'sale_admin'].includes(profileData.role)) {
-        router.replace('/(auth)/login')
-        return
-      }
-
-      setProfile(profileData)
-
-      // Fetch orders
-      await fetchOrders(authUser.id, profileData.role)
-    } catch (error) {
-      console.error('Error fetching data:', error)
-    } finally {
-      setLoading(false)
-      setRefreshing(false)
-    }
-  }
-
-  const fetchOrders = async (userId: string, role: string) => {
-    try {
-      const isSale = role === 'sale'
-      const isSaleAdmin = role === 'sale_admin'
-
-      // Build query - fetch orders only
-      let query = supabase
-        .from('orders')
-        .select('*')
-        .order('created_at', { ascending: false })
-
-      // Filter based on scope tab
-      if (scopeTab === 'my') {
-        query = query.eq('sale_id', userId)
-      } else if (scopeTab === 'team' && teamMemberIds.length > 0) {
-        query = query.in('sale_id', teamMemberIds)
-      }
-
-      const { data, error } = await query
-
-      if (error) throw error
-
-      // Fetch customer and sale info from profiles
-      if (data && data.length > 0) {
-        const customerIds = [...new Set(data.map((o: any) => o.customer_id).filter(Boolean))]
-        const saleIds = [...new Set(data.map((o: any) => o.sale_id).filter(Boolean))]
-        const allProfileIds = [...new Set([...customerIds, ...saleIds])]
-
-        // Fetch all profiles at once
-        let profilesMap: any = {}
-        if (allProfileIds.length > 0) {
-          const { data: profiles } = await supabase
-            .from('profiles')
-            .select('id, full_name, phone, role')
-            .in('id', allProfileIds)
-          
-          profiles?.forEach((p: any) => {
-            profilesMap[p.id] = p
-          })
-        }
-
-        // Merge data
-        const ordersWithRelations = data.map((order: any) => ({
-          ...order,
-          customer: order.customer_id ? {
-            name: profilesMap[order.customer_id]?.full_name,
-            phone: profilesMap[order.customer_id]?.phone,
-          } : null,
-          sale: order.sale_id ? {
-            full_name: profilesMap[order.sale_id]?.full_name,
-          } : null,
-        }))
-
-        setOrders(ordersWithRelations)
-      } else {
-        setOrders([])
-      }
-    } catch (error) {
-      console.error('Error fetching orders:', error)
-      setOrders([])
-    }
-  }
 
   const handleUpdateStatus = async (orderId: number, newStatus: string) => {
     try {
-      setUpdating(orderId)
-      
-      const { error } = await supabase
-        .from('orders')
-        .update({ status: newStatus })
-        .eq('id', orderId)
-
-      if (error) throw error
-
-      // Show success message
+      // Optimistic update - UI cập nhật ngay lập tức
+      await updateStatusMutation.mutateAsync({ orderId, newStatus })
       const statusLabel = statusMap[newStatus]?.label || newStatus
       setSuccessMessage(`Đã cập nhật trạng thái: ${statusLabel}`)
       setShowSuccessModal(true)
-
-      // Refresh orders
-      if (user && profile) {
-        await fetchOrders(user.id, profile.role)
-      }
     } catch (error) {
-      console.error('Error updating order:', error)
-    } finally {
-      setUpdating(null)
+      // Rollback đã được xử lý trong useUpdateOrderStatus.onError
     }
   }
 
-  const onRefresh = () => {
+
+  const onRefresh = async () => {
     setRefreshing(true)
-    fetchData()
+    await refetchOrders()
+    setRefreshing(false)
   }
 
   const formatCurrency = (amount: number) => {
@@ -257,7 +172,16 @@ export default function OrdersScreen() {
   }
 
   const getFilteredOrders = () => {
-    return orders.filter(order => order.status === activeTab)
+    const byStatus = orders.filter(order => order.status === activeTab)
+    if (!searchQuery.trim()) return byStatus
+
+    const q = searchQuery.toLowerCase().trim()
+    return byStatus.filter(order => {
+      const idMatch = String(order.id).includes(q)
+      const customerName = (order.customer?.name || '').toLowerCase()
+      const customerPhone = (order.customer?.phone || '').toLowerCase()
+      return idMatch || customerName.includes(q) || customerPhone.includes(q)
+    })
   }
 
   const getNextStatus = (currentStatus: string) => {
@@ -273,8 +197,7 @@ export default function OrdersScreen() {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#175ead" />
-        <Text style={styles.loadingText}>Đang tải...</Text>
+        <OrdersListSkeleton />
       </View>
     )
   }
@@ -319,6 +242,25 @@ export default function OrdersScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* Search Bar */}
+        <View style={styles.searchContainer}>
+          <Ionicons name="search" size={18} color="#9ca3af" style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Tìm theo mã đơn, tên, SĐT khách..."
+            placeholderTextColor="#9ca3af"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            returnKeyType="search"
+            clearButtonMode="while-editing"
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchQuery('')} style={styles.searchClear}>
+              <Ionicons name="close-circle" size={18} color="#9ca3af" />
+            </TouchableOpacity>
+          )}
+        </View>
+
         {/* Tabs */}
         <ScrollView 
           horizontal 
@@ -326,23 +268,27 @@ export default function OrdersScreen() {
           style={styles.tabsContainer}
           contentContainerStyle={styles.tabsContent}
         >
-          {tabs.map((tab) => (
-            <TouchableOpacity
-              key={tab.id}
-              style={[
-                styles.tab,
-                activeTab === tab.id && styles.tabActive
-              ]}
-              onPress={() => setActiveTab(tab.id)}
-            >
-              <Text style={[
-                styles.tabText,
-                activeTab === tab.id && styles.tabTextActive
-              ]}>
-                {tab.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
+          {tabs.map((tab) => {
+            const count = orders.filter(o => o.status === tab.id).length
+            return (
+              <TouchableOpacity
+                key={tab.id}
+                style={[
+                  styles.tab,
+                  activeTab === tab.id && styles.tabActive
+                ]}
+                onPress={() => setActiveTab(tab.id)}
+              >
+                <Text style={[
+                  styles.tabText,
+                  activeTab === tab.id && styles.tabTextActive
+                ]}>
+                  {tab.label}
+                  {count > 0 ? ` (${count})` : ''}
+                </Text>
+              </TouchableOpacity>
+            )
+          })}
         </ScrollView>
       </View>
 
@@ -381,8 +327,15 @@ export default function OrdersScreen() {
       >
         {filteredOrders.length === 0 ? (
           <View style={styles.emptyState}>
-            <Ionicons name="bag-handle-outline" size={48} color="#d1d5db" />
-            <Text style={styles.emptyText}>Không có đơn hàng nào</Text>
+            <Ionicons name={searchQuery ? 'search-outline' : 'bag-handle-outline'} size={48} color="#d1d5db" />
+            <Text style={styles.emptyText}>
+              {searchQuery ? `Không tìm thấy "${searchQuery}"` : 'Không có đơn hàng nào'}
+            </Text>
+            {searchQuery ? (
+              <TouchableOpacity onPress={() => setSearchQuery('')} style={styles.clearSearchBtn}>
+                <Text style={styles.clearSearchText}>Xóa tìm kiếm</Text>
+              </TouchableOpacity>
+            ) : null}
           </View>
         ) : (
           filteredOrders.map((order) => {
@@ -434,17 +387,18 @@ export default function OrdersScreen() {
                     <Text style={styles.actionButtonOutlineText}>Chi tiết</Text>
                   </TouchableOpacity>
                   
+                  
                   {nextStatus && (
-                    <TouchableOpacity 
+                    <TouchableOpacity
                       style={[
                         styles.actionButton,
                         { backgroundColor: nextStatus.color },
-                        updating === order.id && styles.actionButtonDisabled
+                        updateStatusMutation.isPending && styles.actionButtonDisabled
                       ]}
                       onPress={() => handleUpdateStatus(order.id, nextStatus.status)}
-                      disabled={updating === order.id}
+                      disabled={updateStatusMutation.isPending}
                     >
-                      {updating === order.id ? (
+                      {updateStatusMutation.isPending && updateStatusMutation.variables?.orderId === order.id ? (
                         <ActivityIndicator size="small" color="white" />
                       ) : (
                         <Text style={styles.actionButtonText}>{nextStatus.label}</Text>
@@ -484,6 +438,41 @@ const styles = StyleSheet.create({
     marginTop: 12,
     color: '#666',
     fontSize: 14,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'white',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    height: 44,
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 14,
+    color: '#111827',
+    height: 44,
+  },
+  searchClear: {
+    padding: 4,
+  },
+  clearSearchBtn: {
+    marginTop: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 8,
+  },
+  clearSearchText: {
+    fontSize: 13,
+    color: '#374151',
+    fontWeight: '500',
   },
   topHeader: {
     flexDirection: 'row',

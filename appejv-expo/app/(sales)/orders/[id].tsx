@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router'
 import ConfirmModal from '../../../src/components/ConfirmModal'
 import SuccessModal from '../../../src/components/SuccessModal'
+import { exportInvoicePDF } from '../../../src/lib/pdf-invoice'
 
 const statusMap: Record<string, { label: string; color: string; bg: string; icon: string }> = {
   draft: { label: 'Đơn nháp', color: '#374151', bg: '#f3f4f6', icon: 'document-outline' },
@@ -40,6 +41,7 @@ export default function OrderDetailScreen() {
   const [showCancelModal, setShowCancelModal] = useState(false)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
+  const [exportingPDF, setExportingPDF] = useState(false)
 
   useEffect(() => {
     fetchData()
@@ -182,6 +184,19 @@ export default function OrderDetailScreen() {
     }
   }
 
+  const handleExportPDF = async () => {
+    if (!order) return
+    try {
+      setExportingPDF(true)
+      const success = await exportInvoicePDF(order, orderItems)
+      if (!success) {
+        Alert.alert('Lỗi', 'Không thể xuất PDF trên thiết bị này')
+      }
+    } finally {
+      setExportingPDF(false)
+    }
+  }
+
   const handleCancelOrder = () => {
     setShowCancelModal(true)
   }
@@ -248,7 +263,17 @@ export default function OrderDetailScreen() {
           <Ionicons name="arrow-back" size={24} color="#111827" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Chi tiết đơn hàng</Text>
-        <View style={styles.headerRight} />
+        <TouchableOpacity
+          style={styles.exportButton}
+          onPress={handleExportPDF}
+          disabled={exportingPDF || !order}
+        >
+          {exportingPDF ? (
+            <ActivityIndicator size="small" color="#175ead" />
+          ) : (
+            <Ionicons name="share-outline" size={22} color="#175ead" />
+          )}
+        </TouchableOpacity>
       </View>
 
       <ScrollView 
@@ -501,8 +526,11 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: 'center',
   },
-  headerRight: {
+  exportButton: {
     width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   scrollView: {
     flex: 1,

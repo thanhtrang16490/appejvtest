@@ -114,6 +114,73 @@ export function ListSkeleton({ count = 3, type = 'order' }: { count?: number; ty
   )
 }
 
+/**
+ * Skeleton cho toàn bộ màn hình Dashboard
+ */
+export function DashboardSkeleton() {
+  return (
+    <View style={styles.dashboardContainer}>
+      {/* Filter tabs skeleton */}
+      <View style={styles.filterRow}>
+        {[80, 90, 100, 80, 60].map((w, i) => (
+          <Skeleton key={i} width={w} height={32} borderRadius={16} />
+        ))}
+      </View>
+
+      {/* Stats cards skeleton */}
+      <View style={styles.statsSection}>
+        <Skeleton width={80} height={18} style={{ marginBottom: 12 }} />
+        <View style={styles.statsRow}>
+          {[1, 2, 3, 4].map((i) => (
+            <View key={i} style={styles.statCardSkeleton}>
+              <Skeleton width={40} height={40} borderRadius={10} style={{ marginBottom: 10 }} />
+              <Skeleton width="70%" height={20} style={{ marginBottom: 6 }} />
+              <Skeleton width="90%" height={13} />
+            </View>
+          ))}
+        </View>
+      </View>
+
+      {/* Quick actions skeleton */}
+      <View style={styles.actionsSection}>
+        <Skeleton width={100} height={18} style={{ marginBottom: 12 }} />
+        <View style={styles.actionsRow}>
+          {[1, 2, 3, 4].map((i) => (
+            <View key={i} style={styles.actionCardSkeleton}>
+              <Skeleton width={48} height={48} borderRadius={24} style={{ marginBottom: 8 }} />
+              <Skeleton width="80%" height={12} />
+            </View>
+          ))}
+        </View>
+      </View>
+
+      {/* Recent orders skeleton */}
+      <View style={styles.ordersSection}>
+        <Skeleton width={120} height={18} style={{ marginBottom: 12 }} />
+        <ListSkeleton count={3} type="order" />
+      </View>
+    </View>
+  )
+}
+
+/**
+ * Skeleton cho màn hình Orders list
+ */
+export function OrdersListSkeleton() {
+  return (
+    <View style={styles.dashboardContainer}>
+      {/* Tab bar skeleton */}
+      <View style={styles.filterRow}>
+        {[60, 80, 80, 80, 90].map((w, i) => (
+          <Skeleton key={i} width={w} height={36} borderRadius={8} />
+        ))}
+      </View>
+      {/* Order cards */}
+      <ListSkeleton count={5} type="order" />
+    </View>
+  )
+}
+
 const styles = StyleSheet.create({
   skeleton: {
     backgroundColor: '#e5e7eb',
@@ -179,5 +246,56 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 2,
     elevation: 2,
+  },
+  // Dashboard skeleton styles
+  dashboardContainer: {
+    padding: 16,
+    gap: 24,
+  },
+  filterRow: {
+    flexDirection: 'row',
+    gap: 8,
+    flexWrap: 'wrap',
+  },
+  statsSection: {
+    gap: 0,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  statCardSkeleton: {
+    flex: 1,
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'flex-start',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  actionsSection: {
+    gap: 0,
+  },
+  actionsRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  actionCardSkeleton: {
+    flex: 1,
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  ordersSection: {
+    gap: 0,
   },
 })

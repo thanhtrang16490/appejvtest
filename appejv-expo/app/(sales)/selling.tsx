@@ -7,6 +7,7 @@ import { supabase } from '../../src/lib/supabase'
 import { useAuth } from '../../src/contexts/AuthContext'
 import SuccessModal from '../../src/components/SuccessModal'
 import { useDebounce } from '../../src/hooks/useDebounce'
+import { sendLocalNotification } from '../../src/hooks/usePushNotifications'
 
 // Import selling components
 import { CartItem } from '../../src/components/selling'
@@ -43,6 +44,7 @@ export default function SellingScreen() {
   const [tempQuantity, setTempQuantity] = useState('')
   const [showQuantityModal, setShowQuantityModal] = useState(false)
   const [editingItem, setEditingItem] = useState<any>(null)
+  const [orderNotes, setOrderNotes] = useState('')
   const [toasts, setToasts] = useState<Array<{ id: number; message: string; translateY: Animated.Value; opacity: Animated.Value }>>([])
   const toastIdCounter = useRef(0)
 
@@ -143,11 +145,6 @@ export default function SellingScreen() {
         .gt('stock', 0)
         .order('name')
       
-      console.log('=== PRODUCTS DEBUG ===')
-      console.log('Products loaded:', productsData?.length)
-      console.log('Sample product:', productsData?.[0])
-      console.log('All products:', productsData?.map(p => ({ id: p.id, name: p.name, stock: p.stock })))
-      console.log('======================')
       setProducts(productsData || [])
 
       // Fetch categories
@@ -156,8 +153,6 @@ export default function SellingScreen() {
         .select('*')
         .order('name')
       
-      console.log('Categories loaded:', categoriesData?.length)
-      console.log('Categories:', categoriesData)
       setCategories(categoriesData || [])
 
       // Fetch customers (profiles with role=customer)
@@ -177,12 +172,6 @@ export default function SellingScreen() {
         console.error('Error loading customers:', customersError)
       }
       
-      console.log('=== CUSTOMERS DEBUG ===')
-      console.log('User role:', userRole)
-      console.log('User ID:', authUser.id)
-      console.log('Customers loaded:', customersData?.length)
-      console.log('All customers:', JSON.stringify(customersData, null, 2))
-      console.log('======================')
       
       setCustomers(customersData || [])
     } catch (error) {
@@ -283,7 +272,8 @@ export default function SellingScreen() {
           customer_id: selectedCustomer?.id || null,
           sale_id: user?.id,
           status: 'draft',
-          total_amount: totalAmount
+          total_amount: totalAmount,
+          ...(orderNotes.trim() ? { notes: orderNotes.trim() } : {}),
         }])
         .select()
         .single()
@@ -304,6 +294,13 @@ export default function SellingScreen() {
 
       if (itemsError) throw itemsError
 
+      // Gửi local notification
+      await sendLocalNotification(
+        '✅ Đơn hàng đã tạo!',
+        `Đơn #${orderData.id}${selectedCustomer ? ` - ${selectedCustomer.full_name}` : ''} · ${formatCurrency(totalAmount)}`,
+        { screen: '/(sales)/orders', orderId: orderData.id }
+      )
+
       // Show success modal
       setCreatedOrderId(orderData.id)
       setShowSuccessModal(true)
@@ -317,9 +314,9 @@ export default function SellingScreen() {
 
   const handleViewOrder = () => {
     setShowSuccessModal(false)
-    // Reset form before navigating
     setCart([])
     setSelectedCustomer(null)
+    setOrderNotes('')
     setCreatedOrderId(null)
     router.push('/(sales)/orders')
   }
@@ -328,14 +325,15 @@ export default function SellingScreen() {
     setShowSuccessModal(false)
     setCart([])
     setSelectedCustomer(null)
+    setOrderNotes('')
     setCreatedOrderId(null)
   }
 
   const handleCloseSuccessModal = () => {
     setShowSuccessModal(false)
-    // Auto reset when closing modal
     setCart([])
     setSelectedCustomer(null)
+    setOrderNotes('')
     setCreatedOrderId(null)
   }
 
@@ -538,6 +536,28 @@ export default function SellingScreen() {
               />
             ))}
 
+            {/* Notes */}
+            <View style={styles.notesCard}>
+              <View style={styles.notesHeader}>
+                <Ionicons name="document-text-outline" size={18} color="#6b7280" />
+                <Text style={styles.notesLabel}>Ghi chú đơn hàng</Text>
+              </View>
+              <TextInput
+                style={styles.notesInput}
+                placeholder="Thêm ghi chú cho đơn hàng (tùy chọn)..."
+                placeholderTextColor="#9ca3af"
+                value={orderNotes}
+                onChangeText={setOrderNotes}
+                multiline
+                numberOfLines={3}
+                textAlignVertical="top"
+                maxLength={500}
+              />
+              {orderNotes.length > 0 && (
+                <Text style={styles.notesCount}>{orderNotes.length}/500</Text>
+              )}
+            </View>
+
             {/* Total */}
             <View style={styles.totalCard}>
               <Text style={styles.totalLabel}>Tổng cộng</Text>
@@ -590,7 +610,6 @@ export default function SellingScreen() {
                     key={product.id}
                     style={styles.quickSearchResultItem}
                     onPress={() => {
-                      console.log('Adding product:', product.name)
                       addToCart(product)
                       // Don't close - keep search open for multiple selections
                     }}
@@ -971,6 +990,45 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#175ead',
+  },
+  notesCard: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  notesHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 10,
+  },
+  notesLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  notesInput: {
+    fontSize: 14,
+    color: '#111827',
+    minHeight: 72,
+    backgroundColor: '#f9fafb',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    lineHeight: 20,
+  },
+  notesCount: {
+    fontSize: 11,
+    color: '#9ca3af',
+    textAlign: 'right',
+    marginTop: 4,
   },
   totalCard: {
     backgroundColor: 'white',
