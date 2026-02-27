@@ -185,6 +185,20 @@ const products = [
     ],
     image: "/fish-feed.svg",
     color: "#175ead"
+  },
+  {
+    name: "Veterinary Medicine",
+    title: "Thuốc thú y",
+    subtitle: "THUỐC THÚ Y CHUYÊN DỤNG",
+    description: "Dược phẩm thú y chất lượng cao, giúp phòng và trị bệnh hiệu quả, đảm bảo sức khỏe đàn vật nuôi",
+    features: [
+      "Thành phần an toàn, hiệu quả cao",
+      "Phòng và trị bệnh chuyên biệt",
+      "Tăng cường miễn dịch tự nhiên",
+      "Đạt tiêu chuẩn GMP quốc tế"
+    ],
+    image: "/veterinary-medicine.svg",
+    color: "#10b981"
   }
 ]
 
@@ -556,7 +570,7 @@ const values = [
       </div>
 
       <!-- Product Category Cards -->
-      <div class="grid md:grid-cols-3 gap-6 md:gap-8 mb-16 scroll-reveal">
+      <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 mb-16 scroll-reveal">
         {products.map((product, index) => (
           <a 
             href="/san-pham"
