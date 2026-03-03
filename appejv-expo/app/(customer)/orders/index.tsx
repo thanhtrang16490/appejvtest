@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons'
 import CustomerHeader from '../../../src/components/CustomerHeader'
 import SuccessModal from '../../../src/components/SuccessModal'
 import { emitScrollVisibility } from '../_layout'
+import { getOrCreateCustomer } from '../../../src/lib/customer-helper'
 
 const statusMap: Record<string, { label: string; color: string; bg: string }> = {
   draft: { label: 'Đơn nháp', color: '#374151', bg: '#f3f4f6' },
@@ -96,11 +97,37 @@ export default function OrdersScreen() {
 
   const fetchOrders = async (userId: string) => {
     try {
-      // Fetch orders - only customer's own orders
+      // Get or create customer record
+      const { data: userData } = await supabase.auth.getUser()
+      if (!userData.user) return
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userData.user.id)
+        .single()
+
+      if (!profile) return
+
+      const customerId = await getOrCreateCustomer({
+        id: userData.user.id,
+        email: userData.user.email,
+        phone: userData.user.phone,
+        full_name: profile.full_name,
+        role: profile.role,
+      })
+
+      if (!customerId) {
+        console.error('Failed to get/create customer')
+        setOrders([])
+        return
+      }
+
+      // Fetch orders using customer.id
       const { data, error } = await supabase
         .from('orders')
         .select('*')
-        .eq('customer_id', userId)
+        .eq('customer_id', customerId)
         .order('created_at', { ascending: false })
 
       if (error) throw error
@@ -160,11 +187,20 @@ export default function OrdersScreen() {
     try {
       setUpdating(orderId)
       
+      if (!user?.id) return
+
+      // Get or create customer record
+      const customerId = await getOrCreateCustomer(user)
+      if (!customerId) {
+        Alert.alert('Lỗi', 'Không thể xác định thông tin khách hàng')
+        return
+      }
+
       const { error } = await supabase
         .from('orders')
         .update({ status: 'ordered' })
         .eq('id', orderId)
-        .eq('customer_id', user?.id) // Security: only update own orders
+        .eq('customer_id', customerId) // Security: only update own orders
 
       if (error) throw error
 

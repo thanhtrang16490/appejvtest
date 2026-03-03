@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router'
 import ConfirmModal from '../../../src/components/ConfirmModal'
 import SuccessModal from '../../../src/components/SuccessModal'
+import { getOrCreateCustomer } from '../../../src/lib/customer-helper'
 
 const statusMap: Record<string, { label: string; color: string; bg: string; icon: string }> = {
   draft: { label: 'Đơn nháp', color: '#374151', bg: '#f3f4f6', icon: 'document-outline' },
@@ -54,12 +55,40 @@ export default function OrderDetailScreen() {
         return
       }
 
-      // Fetch order - only customer's own orders
+      // Get profile for full user data
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', authUser.id)
+        .single()
+
+      if (!profile) {
+        Alert.alert('Lỗi', 'Không tìm thấy thông tin người dùng')
+        router.back()
+        return
+      }
+
+      // Get or create customer record
+      const customerId = await getOrCreateCustomer({
+        id: authUser.id,
+        email: authUser.email,
+        phone: authUser.phone,
+        full_name: profile.full_name,
+        role: profile.role,
+      })
+
+      if (!customerId) {
+        Alert.alert('Lỗi', 'Không thể xác định thông tin khách hàng')
+        router.back()
+        return
+      }
+
+      // Fetch order using customer.id
       const { data: orderData, error: orderError } = await supabase
         .from('orders')
         .select('*')
         .eq('id', id)
-        .eq('customer_id', authUser.id) // Only fetch customer's own orders
+        .eq('customer_id', customerId) // Only fetch customer's own orders
         .single()
 
       if (orderError || !orderData) {
@@ -131,11 +160,20 @@ export default function OrderDetailScreen() {
     try {
       setUpdating(true)
       
+      if (!user?.id) return
+
+      // Get or create customer record
+      const customerId = await getOrCreateCustomer(user)
+      if (!customerId) {
+        Alert.alert('Lỗi', 'Không thể xác định thông tin khách hàng')
+        return
+      }
+
       const { error } = await supabase
         .from('orders')
         .update({ status: 'ordered' })
         .eq('id', id)
-        .eq('customer_id', user?.id) // Ensure customer can only confirm their own orders
+        .eq('customer_id', customerId) // Ensure customer can only confirm their own orders
 
       if (error) throw error
 
@@ -155,11 +193,20 @@ export default function OrderDetailScreen() {
     try {
       setUpdating(true)
       
+      if (!user?.id) return
+
+      // Get or create customer record
+      const customerId = await getOrCreateCustomer(user)
+      if (!customerId) {
+        Alert.alert('Lỗi', 'Không thể xác định thông tin khách hàng')
+        return
+      }
+
       const { error } = await supabase
         .from('orders')
         .update({ status: 'cancelled' })
         .eq('id', id)
-        .eq('customer_id', user?.id) // Ensure customer can only cancel their own orders
+        .eq('customer_id', customerId) // Ensure customer can only cancel their own orders
 
       if (error) throw error
 

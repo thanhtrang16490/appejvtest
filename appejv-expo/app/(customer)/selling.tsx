@@ -8,6 +8,7 @@ import { useAuth } from '../../src/contexts/AuthContext'
 import SuccessModal from '../../src/components/SuccessModal'
 import { useDebounce } from '../../src/hooks/useDebounce'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { getOrCreateCustomer } from '../../src/lib/customer-helper'
 
 const CART_STORAGE_KEY = '@customer_cart'
 
@@ -310,13 +311,26 @@ export default function SellingScreen() {
 
     try {
       setIsCreatingOrder(true)
+      
+      if (!user?.id) {
+        Alert.alert('Lỗi', 'Vui lòng đăng nhập lại')
+        return
+      }
+
+      // Get or create customer record
+      const customerId = await getOrCreateCustomer(user)
+      if (!customerId) {
+        Alert.alert('Lỗi', 'Không thể xác định thông tin khách hàng. Vui lòng liên hệ nhân viên.')
+        return
+      }
+
       const totalAmount = getTotalAmount()
 
-      // Create draft order - customer orders for themselves
+      // Create draft order using customer.id
       const { data: orderData, error: orderError } = await supabase
         .from('orders')
         .insert([{
-          customer_id: user?.id, // Customer orders for themselves
+          customer_id: customerId, // Use customer.id from customers table
           sale_id: null, // No sale person for customer orders
           status: 'draft',
           total_amount: totalAmount

@@ -10,6 +10,7 @@ import { useTabBarHeight } from '../../src/hooks/useTabBarHeight'
 import CustomerHeader from '../../src/components/CustomerHeader'
 import StatusBadge from '../../src/components/shared/StatusBadge'
 import { errorTracker } from '../../src/lib/error-tracking'
+import { getOrCreateCustomer } from '../../src/lib/customer-helper'
 
 export default function CustomerDashboard() {
   const { user } = useAuth()
@@ -34,11 +35,21 @@ export default function CustomerDashboard() {
     try {
       if (!user) return
 
-      // Single query: fetch all orders for stats + recent 5 in one go
+      // Get or create customer record
+      const customerId = await getOrCreateCustomer(user)
+      
+      if (!customerId) {
+        console.warn('Failed to get/create customer record')
+        setLoading(false)
+        setRefreshing(false)
+        return
+      }
+
+      // Fetch orders using customer.id
       const { data: allOrders, error } = await supabase
         .from('orders')
         .select('id, status, total_amount, created_at')
-        .eq('customer_id', user.id)
+        .eq('customer_id', customerId)
         .order('created_at', { ascending: false })
 
       if (error) throw error
