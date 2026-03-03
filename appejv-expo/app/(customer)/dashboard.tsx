@@ -236,7 +236,7 @@ export default function CustomerDashboard() {
                       </View>
                       <View style={styles.orderInfo}>
                         <Text style={styles.orderTitle}>
-                          Đơn #{order.id.slice(0, 8).toUpperCase()}
+                          Đơn #{String(order.id).slice(0, 8).toUpperCase()}
                         </Text>
                         <Text style={styles.orderDate}>
                           {new Date(order.created_at).toLocaleDateString('vi-VN')}
